@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="12" height="3" tilewidth="24" tileheight="24" nextobjectid="1">
+ <tileset firstgid="1" name="sf_world" tilewidth="24" tileheight="24" tilecount="1435" columns="35">
+  <image source="../../../../../javascript/jb/res/res/sf/oryx_16bit_scifi_world_trans.png" width="840" height="984"/>
+ </tileset>
+ <layer name="Niche" width="12" height="3">
+  <data encoding="csv">
+1233,1228,1232,1303,1298,1302,967,953,968,932,918,933,
+1231,1227,1229,1301,1297,1299,960,947,957,926,912,922,
+1234,1230,1235,1304,1300,1305,969,965,970,934,930,935
+</data>
+ </layer>
+ <layer name="NicheDetail" width="12" height="3">
+  <data encoding="csv">
+1109,1110,1111,0,0,0,0,0,0,0,0,0,
+1144,1145,1146,1112,1113,1114,0,0,0,0,0,0,
+0,0,0,1147,1148,1149,0,0,0,0,0,0
+</data>
+ </layer>
+</map>

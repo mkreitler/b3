@@ -1,0 +1,46 @@
+{ "height":3,
+ "layers":[
+        {
+         "data":[1233, 1228, 1232, 1303, 1298, 1302, 967, 953, 968, 932, 918, 933, 1231, 1227, 1229, 1301, 1297, 1299, 960, 947, 957, 926, 912, 922, 1234, 1230, 1235, 1304, 1300, 1305, 969, 965, 970, 934, 930, 935],
+         "height":3,
+         "name":"Niche",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":12,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "data":[1109, 1110, 1111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1144, 1145, 1146, 1112, 1113, 1114, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1147, 1148, 1149, 0, 0, 0, 0, 0, 0],
+         "height":3,
+         "name":"NicheDetail",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":12,
+         "x":0,
+         "y":0
+        }],
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tileheight":24,
+ "tilesets":[
+        {
+         "columns":35,
+         "firstgid":1,
+         "image":"..\/..\/..\/..\/..\/javascript\/jb\/res\/res\/sf\/oryx_16bit_scifi_world_trans.png",
+         "imageheight":984,
+         "imagewidth":840,
+         "margin":0,
+         "name":"sf_world",
+         "spacing":0,
+         "tilecount":1435,
+         "tileheight":24,
+         "tilewidth":24
+        }],
+ "tilewidth":24,
+ "version":1,
+ "width":12
+}

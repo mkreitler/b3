@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="3" height="3" tilewidth="24" tileheight="24" nextobjectid="1">
+ <tileset firstgid="1" name="ffWorld" tilewidth="24" tileheight="24" tilecount="2296" columns="56">
+  <image source="../res/oryx_16bit_fantasy_world_trans.png" width="1366" height="1007"/>
+ </tileset>
+ <layer name="WaterSurface01" width="3" height="3">
+  <data encoding="csv">
+1742,1742,1742,
+1742,1742,1742,
+1742,1742,1742
+</data>
+ </layer>
+ <layer name="WaterSurface01Detail" width="3" height="3">
+  <data encoding="csv">
+1574,1575,1576,
+1630,0,1632,
+1686,1687,1688
+</data>
+ </layer>
+ <layer name="WaterSurface02" width="3" height="3">
+  <data encoding="csv">
+1798,1798,1798,
+1798,1798,1798,
+1798,1798,1798
+</data>
+ </layer>
+ <layer name="WaterSurface02Detail" width="3" height="3">
+  <data encoding="csv">
+1574,1575,1576,
+1630,0,1632,
+1686,1687,1688
+</data>
+ </layer>
+ <layer name="WaterDeep01" width="3" height="3">
+  <data encoding="csv">
+1751,1751,1751,
+1751,1751,1751,
+1751,1751,1751
+</data>
+ </layer>
+ <layer name="WaterDeep01Detail" width="3" height="3">
+  <data encoding="csv">
+1583,1584,1585,
+1639,0,1641,
+1695,1696,1697
+</data>
+ </layer>
+ <layer name="WaterDeep02" width="3" height="3">
+  <data encoding="csv">
+1807,1807,1807,
+1807,1807,1807,
+1807,1807,1807
+</data>
+ </layer>
+ <layer name="WaterDeep02Detail" width="3" height="3">
+  <data encoding="csv">
+1583,1584,1585,
+1639,0,1641,
+1695,1696,1697
+</data>
+ </layer>
+</map>

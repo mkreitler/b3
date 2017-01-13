@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="3" height="3" tilewidth="24" tileheight="24" nextobjectid="1">
+ <tileset firstgid="1" name="sfWorld" tilewidth="24" tileheight="24" tilecount="1435" columns="35">
+  <image source="../res/oryx_16bit_scifi_world_trans.png" width="840" height="984"/>
+ </tileset>
+ <layer name="StoneDark" width="3" height="3">
+  <data encoding="csv">
+1233,1228,1232,
+1231,1227,1229,
+1234,1230,1235
+</data>
+ </layer>
+ <layer name="StoneDarkShadow" width="3" height="3" offsetx="0" offsety="-4">
+  <data encoding="csv">
+0,0,1414,
+1414,0,0,
+0,0,0
+</data>
+ </layer>
+ <layer name="StoneDarkDetail" width="3" height="3">
+  <data encoding="csv">
+0,0,346,
+346,0,0,
+0,0,0
+</data>
+ </layer>
+ <layer name="StoneLight" width="3" height="3">
+  <data encoding="csv">
+1303,1298,1302,
+1301,1297,1299,
+1304,1300,1305
+</data>
+ </layer>
+ <layer name="StoneLightShadow" width="3" height="3" offsetx="0" offsety="-4">
+  <data encoding="csv">
+0,1414,0,
+0,0,0,
+0,0,1414
+</data>
+ </layer>
+ <layer name="StoneLightDetail" width="3" height="3">
+  <data encoding="csv">
+0,136,0,
+0,0,0,
+0,0,136
+</data>
+ </layer>
+</map>
