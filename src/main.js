@@ -3,7 +3,7 @@ var MAX_WINDOW_X = 1024;
 var MAX_WINDOW_Y = 768;
 var N_BIOMES = 5;
 var LAYER_OFFSET = 3;
-var SHADOW_OFFSET = 2;
+var SHADOW_OFFSET = 4;
 
 var tilesX = Math.floor(MAX_WINDOW_X / TILE_SIZE);
 var tilesY = Math.floor(MAX_WINDOW_Y / TILE_SIZE);
@@ -104,12 +104,17 @@ function create() {
 	gs.layers.terrain 		= gs.biomeMap.createLayer('Terrain');
 	gs.layers.ice 			= gs.biomeMap.createLayer('Ice');
 	gs.layers.shadows		= gs.biomeMap.createLayer('Shadow');
+	gs.layers.links 		= gs.biomeMap.createLayer('Links');
 	gs.layers.producers		= gs.biomeMap.createLayer('Producers');
 	gs.layers.animals		= gs.biomeMap.createLayer('Animals');
 	gs.layers.ice 			= gs.biomeMap.createLayer('Ice');
 	gs.layers.grid 			= gs.biomeMap.createLayer('GridMarks');
 
+	gs.layers.producers.setScale(1.5, 1.5);	
+	gs.layers.animals.setScale(1.5, 1.5);
+
 	gs.layers.shadows.pivot.y -= SHADOW_OFFSET;
+	gs.layers.links.alpha = gs.LINK_ALPHA;
 
 	uim.init();
 	generateStartingTerrain();

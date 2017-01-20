@@ -137,7 +137,7 @@
 			for (i=0; i<this.banners.length; ++i) {
 				this.setBannerInfo(i,
 								   gs.getDrawDeckType(i),
-								   gs.getDrawDeckValue(i),
+								   gs.getDrawDeckSuit(i),
 								   gs.getDrawDeckKeywords(i),
 								   gs.getDrawDeckSpecial(i),
 								   gs.getDrawDeckCard(i));
@@ -149,7 +149,6 @@
 		var i = 0;
 		var fn = null;
 
-		this.uiOpCounter = 0;
 		for (i=0; i<this.banners.length; ++i) {
 			if (this.banners[i].data) {
 				fn = function(index) { return function() { uim.moveBannerOut(index); } };
@@ -355,7 +354,7 @@
 
  		switch(opName) {
  			case 'moveBannersOut':
- 				this.uiOpCounter = this.getNumBanners();
+ 				this.uiOpCounter = this.getNumBannersWithData();
  			break;
 
  			case 'moveBannersIn': case 'wiggleBanners':
@@ -377,6 +376,10 @@
  			break;
  		}
 
+ 		if(this.uiOpCounter === 0) {
+ 			bDoOperation = false;
+ 		}
+
  		if (bDoOperation && this.hasOwnProperty(opName)) {
  			this[opName]();
  		}
@@ -387,7 +390,7 @@
 
  	onUIopComplete: function() {
  		this.uiOpCounter -= 1;
- 		if (this.uiOpCounter === 0) {
+ 		if (this.uiOpCounter <= 0) {
  			broadcast('UIoperationComplete');
  		}
  	},
@@ -524,7 +527,7 @@ uim.banner.prototype.setTitle = function(newTitle) {
 },
 
 uim.banner.prototype.setValue = function(newValue) {
-	this.value.text = "" + newValue;
+	this.value.text = newValue;
 },
 
 uim.banner.prototype.setKeywords = function(newKeywords) {
