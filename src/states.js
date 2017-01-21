@@ -74,6 +74,7 @@ var sm = {
 		enter: function() {
 			listenFor('UIoperationComplete', this);
 			uim.syncBannersToCards();
+			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.startOperation('moveBannersIn', this);
 		},
 
@@ -93,6 +94,7 @@ var sm = {
 	phaseTwo: {
 		enter: function() {
 			uim.enableBannerInput();
+			gs.showNextCardHints();
 		},
 
 		update: function() {
@@ -105,6 +107,7 @@ var sm = {
 		onBannerPressedCallback: function(button) {
 			if (button && button.banner) {
 				uim.clearAllCursors();
+				uim.setRightHint(strings.HINTS.PLACE_ORGANISM);
 				button.banner.showKeywordInfo();
 				gs.showAvailableBiomes(button.banner.data);
 				gs.showTargetableNiches(button.banner.data);
@@ -169,6 +172,7 @@ var sm = {
 			}
 			else {
 				if (gs.playerHasLegalMove(false)) {
+					uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 					uim.clearFocusBanner();
 					uim.enableBannerInput();
 					setState('phaseTwo');
@@ -184,6 +188,7 @@ var sm = {
 		enter: function() {
 			uim.startOperation('showFocusBanner');
 			listenFor('UIoperationComplete', this);
+			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.clearFocusBanner();
 		},
 
@@ -228,6 +233,7 @@ var sm = {
 			}
 			else {
 				if (gs.playerHasLegalMove(true)) {
+					uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 					uim.clearFocusBanner();
 					uim.enableBannerInput();
 					setState('phaseOne');
@@ -241,6 +247,7 @@ var sm = {
 
 	phaseOneDraw: {
 		enter: function() {
+			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.startOperation('showFocusBanner');
 			listenFor('UIoperationComplete', this);
 			uim.clearFocusBanner();
@@ -272,6 +279,7 @@ var sm = {
 			gs.initDiscardDeck();
 			uim.syncBannersToCards();
 
+			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.disableBannerInput();
 			uim.startOperation('moveBannersIn');
 			listenFor('UIoperationComplete', this);
@@ -293,6 +301,7 @@ var sm = {
 	phaseOne: {
 		enter: function() {
 			uim.enableBannerInput();
+			gs.showNextCardHints();
 		},
 
 		update: function() {
@@ -308,6 +317,7 @@ var sm = {
 				button.banner.showKeywordInfo();
 				gs.showAvailableBiomes(button.banner.data);
 				gs.showTargetableNiches(button.banner.data);
+				uim.setRightHint(strings.HINTS.PLACE_ORGANISM);
 			}
 		},
 

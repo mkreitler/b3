@@ -16,27 +16,77 @@
  	SPECIAL_HEIGHT_DENOM: 3,
  	TWEEN_TIME: 333,
  	NUM_BANNERS: 5,
- 	BANNER_MARGIN: 74,
- 	BANNER_SPACING: 35,
- 	BANNER_SPACING: 40,
+ 	BANNER_MARGIN: 120,
+ 	BANNER_SPACING: 27,
  	SLIDE_IN_DELAY: 50,
- 	FRAME_BOTTOM_MARGIN: {X: 8, Y: 12},
- 	INFO_TEXT_SIZE: 24,
+ 	FRAME_BOTTOM_MARGIN: {X: 8, Y: 304},
+ 	INFO_TEXT_SIZE: 20,
  	INFO_TEXT_SPACING: 4,
+ 	HINT_TEXT_SIZE: 32,
  	MAX_CURSORS: 7 + 6 * 2 + 5 * 2, // <-- All possible biome spaces (actually, more than the possible number).
  	WIGGLE_FACTOR: 3,
+ 	HINT_WIDTH: 12,
 
 	group: null,
+	buttonGroup: null,
 	frameRight: null,
-	frameBottom: null,
+	frameTop: null,
 	groupBottomFrame: null,
 	infoText: {currentLine: -1, lines:[]},
 	banners: [],
 	cursors: [],
 	showingCards: [],
 	cursorGroup: null,
+	hint: {group: null, sprite: null, text: null},
 
  	focusWidget: null,
+
+ 	createHints: function() {
+ 		this.hint.group = game.add.group();
+ 		this.hint.sprite = this.hint.group.create(0, Math.round(TILE_SIZE / 3), 'ui_specials');
+ 		this.hint.sprite.animations.add('point', [1], 1, false);
+ 		this.hint.sprite.animations.play('point');
+ 		this.hint.sprite.scale.x = gs.SPRITE_SCALE;
+ 		this.hint.sprite.scale.y = gs.SPRITE_SCALE;
+ 		this.hint.sprite.visible = false;
+
+ 		this.hint.text = game.add.bitmapText(0, uim.HINT_TEXT_SIZE / 2, 'bogboo', '', uim.HINT_TEXT_SIZE);
+ 		this.hint.text.visible = false;
+ 		this.hint.group.addChild(this.hint.text);
+ 	},
+
+ 	leftHintCenter: function() {
+ 		return Math.round(this.HINT_WIDTH * TILE_SIZE * gs.SPRITE_SCALE / 2);
+ 	},
+
+ 	rightHintCenter: function() {
+ 		return Math.round(this.HINT_WIDTH * TILE_SIZE * gs.SPRITE_SCALE + (game.width - this.HINT_WIDTH * TILE_SIZE * gs.SPRITE_SCALE) / 2);
+ 	},
+
+ 	setLeftHint: function(message) {
+ 		this.hint.text.text = message;
+
+ 		this.hint.sprite.x = this.hint.text.width;
+ 		this.hint.group.x = Math.round(this.leftHintCenter() - (this.hint.text.width / 2 + TILE_SIZE * gs.SPRITE_SCALE / 2));
+
+ 		this.hint.text.visible = true;
+ 		this.hint.sprite.visible = true;
+ 	},
+
+ 	setRightHint: function(message) {
+ 		this.hint.text.text = message;
+
+ 		this.hint.sprite.x = this.hint.text.width;
+ 		this.hint.group.x = Math.round(this.rightHintCenter() - (this.hint.text.width / 2 + TILE_SIZE * gs.SPRITE_SCALE / 2));
+
+ 		this.hint.text.visible = true;
+ 		this.hint.sprite.visible = true;
+ 	},
+
+ 	hideHint: function() {
+ 		this.hint.text.visible = false;
+ 		this.hint.sprite.visible = false;
+ 	},
 
  	createCursors: function() {
  		var i = 0;
@@ -47,8 +97,25 @@
  		for (i=0; i<this.MAX_CURSORS; ++i) {
  			sprite = this.cursorGroup.create(0, 0, 'cursor');
  			sprite.animations.add('pulse', [0, 1, 2, 3, 4, 5, 4, 3, 2, 1], 10, true);
+ 			sprite.scale.setTo(gs.SPRITE_SCALE, gs.SPRITE_SCALE);
  			sprite.kill();
  		}
+ 	},
+
+ 	worldToUiX: function(x) {
+ 		return Math.round(x * gs.SPRITE_SCALE - gs.getOffsetX() + 2 * TILE_SIZE * gs.SPRITE_SCALE - 5);
+ 	},
+
+ 	worldToUiY: function(y) {
+ 		return Math.round(y * gs.SPRITE_SCALE - gs.getOffsetY() - TILE_SIZE * 0.6 * gs.SPRITE_SCALE);
+ 	},
+
+ 	UiToWorldX: function(x) {
+ 		return Math.round((x + gs.getOffsetX() - 2 * TILE_SIZE * gs.SPRITE_SCALE + 5) / gs.SPRITE_SCALE);
+ 	},
+
+ 	UiToWorldY: function(y) {
+ 		return Math.round((y + gs.getOffsetY() + TILE_SIZE * 0.6 * gs.SPRITE_SCALE) / gs.SPRITE_SCALE);
  	},
 
  	setCursor: function(x, y, card) {
@@ -57,8 +124,8 @@
  		assert(cursor, "setCursor: no available cursors!");
 
  		cursor.data = card;
- 		cursor.x = x;
- 		cursor.y = y;
+ 		cursor.x = uim.worldToUiX(x);
+ 		cursor.y = uim.worldToUiY(y);
  		cursor.revive();
  		cursor.animations.play('pulse');
  	},
@@ -267,14 +334,14 @@
  				this.sprOff.animations.add(key + 'Off', [buttonStates[key]], 1, false);
  			}
 
- 			this.sprOff.anchor.setTo(1.0, 0.5);
+ 			this.sprOff.anchor.setTo(0.0, 0.5);
  			this.sprOff.revive(0, this.sprOff.height / 2);
  			this.sprOff.inputEnabled = false;
  			this.sprOff.events.onInputDown.add(this.press, this);
  			this.group.add(this.sprOff);
 
 	 		this.sprOn = group.create(0, spriteSheetDown.height / 2, spriteSheetDown);
- 			this.sprOn.anchor.setTo(1.0, 0.5);
+ 			this.sprOn.anchor.setTo(0.0, 0.5);
 
  			// Add all possible 'on' states.
  			for (key in buttonStates) {
@@ -305,24 +372,24 @@
 	 		this.data = data;
 
 	 		this.title  	= game.add.bitmapText(this.button.width(), this.button.height() / 2, 'bogboo', title, uim.TITLE_SIZE);
-	 		this.title.anchor.setTo(1.0, 1.0);
+	 		this.title.anchor.setTo(0.0, 1.0);
 
-	 		this.value  	= game.add.bitmapText(15, 15, 'bogboo', "" + value, uim.VALUE_SIZE);
-	 		this.value.anchor.setTo(1.0, 1.0);
+	 		this.value  	= game.add.bitmapText(-15, 15, 'bogboo', "" + value, uim.VALUE_SIZE);
+	 		this.value.anchor.setTo(0.0, 1.0);
 
 	 		this.keywords  	= game.add.bitmapText(this.button.width(), this.button.height(), 'bogboo', keywords, uim.KEYWORD_SIZE);
-	 		this.keywords.anchor.setTo(1.0, 1.0);
+	 		this.keywords.anchor.setTo(0.0, 1.0);
 
 	 		this.button.group.addChild(this.title);
-	 		this.title.x = -this.button.sprOn.width / uim.BANNER_WIDTH_FACTOR;
+	 		this.title.x = this.button.sprOn.width / uim.BANNER_WIDTH_FACTOR;
 	 		this.title.y = 0;
 
 	 		this.button.group.addChild(this.value);
-	 		this.value.x -= uim.VALUE_WIDTH_NUM * this.button.sprOn.width / uim.VALUE_WIDTH_DENOM;
+	 		this.value.x += uim.VALUE_WIDTH_NUM * this.button.sprOn.width / uim.VALUE_WIDTH_DENOM;
 	 		this.value.y = 0;
 
 	 		this.button.group.addChild(this.keywords);
-	 		this.keywords.x = -this.button.sprOn.width / uim.BANNER_WIDTH_FACTOR;
+	 		this.keywords.x = this.button.sprOn.width / uim.BANNER_WIDTH_FACTOR;
 	 		this.keywords.y = this.keywords.height * (1 + uim.KEYWORDS_NUM / uim.KEYWORDS_DENOM);
 
  			this.special = this.button.group.create(0, 0, 'ui_specials');
@@ -335,11 +402,11 @@
 	 			this.special.animations.add(key, [specialStates[key]], 1, false);
 	 		}
 
-	 		this.tweenOut = game.add.tween(this.button.group).to({x: game.width + this.button.width()}, uim.TWEEN_TIME, Phaser.Easing.Cubic.Out, false);
-	 		this.tweenIn = game.add.tween(this.button.group).to({x: game.width}, uim.TWEEN_TIME, Phaser.Easing.Cubic.Out, false);
+	 		this.tweenOut = game.add.tween(this.button.group).to({x: -this.button.width() }, uim.TWEEN_TIME, Phaser.Easing.Cubic.Out, false);
+	 		this.tweenIn = game.add.tween(this.button.group).to({x: TILE_SIZE * gs.SPRITE_SCALE}, uim.TWEEN_TIME, Phaser.Easing.Cubic.Out, false);
 
-	 		this.tweenWiggle = game.add.tween(this.button.group).to({x: game.width + this.button.width() / uim.WIGGLE_FACTOR}, uim.TWEEN_TIME / uim.WIGGLE_FACTOR, Phaser.Easing.Cubic.Out, false);
-	 		this.tweenWiggle.chain(game.add.tween(this.button.group).to({x: game.width}, uim.TWEEN_TIME / uim.WIGGLE_FACTOR, Phaser.Easing.Cubic.Out, false));
+	 		this.tweenWiggle = game.add.tween(this.button.group).to({x: (-this.button.width() + TILE_SIZE * gs.SPRITE_SCALE) / uim.WIGGLE_FACTOR}, uim.TWEEN_TIME / uim.WIGGLE_FACTOR, Phaser.Easing.Cubic.Out, false);
+	 		this.tweenWiggle.chain(game.add.tween(this.button.group).to({x: TILE_SIZE * gs.SPRITE_SCALE}, uim.TWEEN_TIME / uim.WIGGLE_FACTOR, Phaser.Easing.Cubic.Out, false));
 
 	 		uim.banners.push(this);
 
@@ -397,6 +464,11 @@
 
  	init: function() {
 		this.group = game.add.group();
+		this.buttonGroup = game.add.group();
+ 	},
+
+ 	getButtonGroup: function() {
+ 		return this.buttonGroup;
  	},
 
  	addBlocker: function(x, y, sprName) {
@@ -459,14 +531,14 @@
  		var bmpTxt = null;
 
  		this.groupBottomFrame = game.add.group();
- 		this.groupBottomFrame.x = uim.frameBottom.x + uim.FRAME_BOTTOM_MARGIN.X;
- 		this.groupBottomFrame.y = uim.frameBottom.y + uim.FRAME_BOTTOM_MARGIN.Y;
+ 		this.groupBottomFrame.x = uim.frameTop.x + uim.FRAME_BOTTOM_MARGIN.X;
+ 		this.groupBottomFrame.y = uim.frameTop.y + uim.FRAME_BOTTOM_MARGIN.Y;
 
- 		nLines = this.frameBottom.height / (uim.INFO_TEXT_SIZE + uim.INFO_TEXT_SIZE);
+ 		nLines = this.frameTop.height / (uim.INFO_TEXT_SIZE + uim.INFO_TEXT_SIZE);
 
- 		x = uim.FRAME_BOTTOM_MARGIN.X;
+ 		x = uim.FRAME_BOTTOM_MARGIN.X + TILE_SIZE;
  		for (i=0; i<nLines; ++i) {
- 			y = uim.FRAME_BOTTOM_MARGIN.Y + i * (uim.INFO_TEXT_SIZE + uim.INFO_TEXT_SPACING);
+ 			y = uim.FRAME_BOTTOM_MARGIN.Y + i * (uim.INFO_TEXT_SIZE + uim.INFO_TEXT_SPACING) + gs.getOffsetY();
  			bmpText = game.add.bitmapText(x, y, 'bogboo', '', uim.INFO_TEXT_SIZE);
  			this.groupBottomFrame.add(bmpText);
  			this.infoText.lines.push(bmpText);
@@ -487,6 +559,9 @@
  		if (newLine && this.infoText.currentLine < this.infoText.lines.length - 1) {
  			this.infoText.currentLine += 1;
  			this.infoText.lines[this.infoText.currentLine].text = newLine;
+ 			if (newLine.indexOf('\n') >= 0) {
+ 				this.infoText.currentLine += 1;
+ 			}
  		}
  	},
  }

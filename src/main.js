@@ -70,7 +70,8 @@ function preload() {
 	// Tilemaps
 	game.load.image('world_ff', './res/tilesets/oryx_16bit_fantasy_world_trans.png', false);
 	game.load.image('world_sf', './res/tilesets/oryx_16bit_scifi_world_trans.png', false);
-	game.load.tilemap('globe', './art/globeTest.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('globe', './art/world.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('base', './art/base.json', null, Phaser.Tilemap.TILED_JSON);
 
 	// Images
 	game.load.image('noSelectSmall', './res/noSelectSmall.png', false);
@@ -83,7 +84,7 @@ function preload() {
 	game.load.spritesheet('ui_specials', './res/ui/specials.png', 24, 24);
 	game.load.spritesheet('cursor', './res/ui/cursor.png', 48, 96);
 	game.load.image('ui_frame_right', './res/ui/frameRight.png');
-	game.load.image('ui_frame_bottom', './res/ui/frameBottom.png');
+	game.load.image('ui_frame_top', './res/ui/frameTop.png');
 
 	// Fonts
 	game.load.bitmapFont('bogboo', './res/fonts/bogboo.png', './res/fonts/bogboo.xml');	
@@ -93,28 +94,49 @@ function preload() {
 }
 
 function create() {
+	var key = null;
+
 	gs.biomeMap = game.add.tilemap('globe');
 	gs.biomeMap.addTilesetImage('ff_world', 'world_ff', 24, 24);
 	gs.biomeMap.addTilesetImage('sf_world', 'world_sf', 24, 24);
 
-	gs.layers.stars 		= gs.biomeMap.createLayer('StarField');
-	gs.layers.ocean 		= gs.biomeMap.createLayer('Ocean01');
+	gs.baseMap = game.add.tilemap('base');
+	gs.baseMap.addTilesetImage('sf_world', 'world_sf', 24, 24);
+
+//	gs.layers.stars 		= gs.biomeMap.createLayer('StarField');
+//	gs.layers.ocean 		= gs.biomeMap.createLayer('Ocean01');
 	gs.layers.crust 		= gs.biomeMap.createLayer('Crust');
-	gs.layers.oceanDetail 	= gs.biomeMap.createLayer('OceanDetail');
+//	gs.layers.oceanDetail 	= gs.biomeMap.createLayer('OceanDetail');
 	gs.layers.terrain 		= gs.biomeMap.createLayer('Terrain');
-	gs.layers.ice 			= gs.biomeMap.createLayer('Ice');
+//	gs.layers.ice 			= gs.biomeMap.createLayer('Ice');
 	gs.layers.shadows		= gs.biomeMap.createLayer('Shadow');
-	gs.layers.links 		= gs.biomeMap.createLayer('Links');
 	gs.layers.producers		= gs.biomeMap.createLayer('Producers');
 	gs.layers.animals		= gs.biomeMap.createLayer('Animals');
-	gs.layers.ice 			= gs.biomeMap.createLayer('Ice');
+	gs.layers.links 		= gs.biomeMap.createLayer('Links');
 	gs.layers.grid 			= gs.biomeMap.createLayer('GridMarks');
 
-	gs.layers.producers.setScale(1.5, 1.5);	
-	gs.layers.animals.setScale(1.5, 1.5);
+	gs.baseLayers.floor 	= gs.baseMap.createLayer('Floor');
+	gs.baseLayers.walls 	= gs.baseMap.createLayer('Walls');
+	gs.baseLayers.objects	= gs.baseMap.createLayer('Objects');
+	gs.baseLayers.ui 		= gs.baseMap.createLayer('UI');
+
+	for (key in gs.layers) {
+		if (gs.layers[key]) {
+			gs.layers[key].setScale(1.5, 1.5);
+			gs.layers[key].pivot.x += gs.getOffsetX();
+			gs.layers[key].pivot.y += gs.getOffsetY();
+		}
+	}
 
 	gs.layers.shadows.pivot.y -= SHADOW_OFFSET;
 	gs.layers.links.alpha = gs.LINK_ALPHA;
+
+	for (key in gs.baseLayers) {
+		if (gs.baseLayers[key]) {
+			gs.baseLayers[key].pivot.y += gs.getBaseOffsetY();
+			gs.baseLayers[key].setScale(1.5, 1.5);
+		}
+	}
 
 	uim.init();
 	generateStartingTerrain();
@@ -181,30 +203,37 @@ function update() {
 function addUiElements() {
 	var x = 0;
 	var y = 0;
+	var _y = 0;
 	var btn = null;
 	var bnr = null;
 	var i = 0;
 	var nTitles = gs.getNumTitles();
+	var btnGroup = uim.getButtonGroup();
 
-	x = game.width - 1 + game.cache.getImage('ui_buttons').width / nTitles;
+	y = 0.0;
+
+	x = -game.cache.getImage('ui_buttons').width / nTitles + TILE_SIZE * gs.SPRITE_SCALE;
 	for (i=0; i<uim.NUM_BANNERS; ++i) {
-		y = uim.BANNER_MARGIN + i * game.cache.getImage('ui_buttons').height + i * uim.BANNER_SPACING;
-		btn = new uim.button(uim.group, 'ui_buttons', 'ui_buttons_g', x, y, onBannerPressedCallback.bind(this), gs.titleToAnimIndex, {buttonIndex: i})
+		_y = y + uim.BANNER_MARGIN + i * game.cache.getImage('ui_buttons').height + i * uim.BANNER_SPACING;
+		btn = new uim.button(btnGroup, 'ui_buttons', 'ui_buttons_g', x, _y, onBannerPressedCallback.bind(this), gs.titleToAnimIndex, {buttonIndex: i})
 		bnr = new uim.banner(btn, '', 0, '', '', gs.specialToAnimIndex, {bannerIndex: i});
 	}
 
-	x = game.width - game.cache.getImage('ui_frame_bottom').width;
-	y = game.height - game.cache.getImage('ui_frame_bottom').height;
-	uim.frameBottom = uim.group.create(x, y, 'ui_frame_bottom');
+	gs.baseLayers.walls.bringToTop();
 
-	x = game.width - game.cache.getImage('ui_frame_right').width;
-	y -= game.cache.getImage('ui_frame_right').height;
+	x = game.width - game.cache.getImage('ui_frame_top').width;
+	uim.frameTop = uim.group.create(0, 0, 'ui_frame_top');
+	uim.frameTop.visible = false;
+
+	x = 0;
 	uim.frameRight = uim.group.create(x, y, 'ui_frame_right');
+	uim.frameRight.visible = false;
 
 	game.input.onUp.add(onInputUp, this);
 
 	uim.createInfoArea();
 	uim.createCursors();
+	uim.createHints();
 
 	uim.enableInput();
 }
@@ -240,7 +269,7 @@ function generateStartingTerrain() {
 
 	for (i=0; i<N_BIOMES; ++i) {
 		type = biome.TYPES[biomeList[i]];
-		size = biome.sizeByLatitude[i] + type.sizeMod;
+		size = biome.sizeByLatitude[i];
 		maxCol = biome.maxSizeAtLatitude[i] - size;
 		minCol = biome.MAX_GROWTH;
 

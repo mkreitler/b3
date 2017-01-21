@@ -12,53 +12,51 @@
 // Nematoda
 // 
 
-// SaveState
-ss = {
-	drawDeck: null,
-	discardDeck: null,
-	biomes: null,
-};
-
 // GameState
 gs =  {
-	LINK_ALPHA: 0.67,
+	LINK_ALPHA: 0.5,
 	WILD_CARD_VALUE: 4,
-	linkTile: {down: 284, right: 282, left: 283},
+ 	SPRITE_SCALE: 1.5,
+
+//	linkTile: {down: 284, right: 282, left: 283},
+	linkTile: {down: 81, right: 81, left: 81, up: 81},
 
 	iter: 0,
 
 	worldPressInfo: {biome: null, niche: null, tile: null},
 	biomeMap: null,
+	baseMap: null,
 	biomes: [],
 	layers: {ocean: null, crust: null, oceanDetail: null, terrain: null, ice: null, shadows: null, producers: null, animals: null, links: null, grid: null},
+	baseLayers: {floor: null, walls: null, objects: null, ui: null},
 	drawDeck: [],
 	discardDeck: [],
 	workPoint: new Phaser.Point(),
-	titleToAnimIndex: {amphibia: 2, aves: 1, insecta: 0, mammalia: 4, nematoda: 3, plantae: 5, reptilia: 6},
+	titleToAnimIndex: {amphibia: 3, aves: 5, insecta: 6, mammalia: 2, nematoda: 3, plantae: 1, reptilia: 0},
 	specialToAnimIndex: {pollinator: 0, angiosperm: 1, symbiote: 2, adaptor: 3, decomposer: 4, migrator: 5},
 
  	cardInfo: {
 		plantae: {
-			large: ['Large plants cannot grow in deserts or plains.', 'Some events do extra damage to Large plants. Some do less.'],
-			small: ['Some events do extra damage to Small plants. Some do less.'],
-			angiosperm: ['An Angiosperm can regrow from seeds consumed by the animal below it.'],
+			large: ['Large plants cannot grow in deserts or\nplains.', 'Some events do extra damage to Large\nplants. Some do less.'],
+			small: ['Some events do extra damage to Small\nplants. Some do less.'],
+			angiosperm: ['An Angiosperm can regrow from seeds\nconsumed by the animal below it.'],
 		},
 
 		animalia: {
-			large: ['Some events do extra damage to Small animals. Some do less.'],
-			small: ['Some events to extra damage to Large animals. Some do less.'],
-			pollinator: ['A Pollinator strengthens the plant to its right by increasing its genetic diversity.'],
+			large: ['Some events do extra damage to Small\nanimals. Some do less.'],
+			small: ['Some events to extra damage to Large\nanimals. Some do less.'],
+			pollinator: ['A Pollinator strengthens the plant to its\nright by increasing its genetic diversity.'],
 			decomposer: ['A Decomposer adds 1 niche to its biome.'],
-			adaptor: ['Adaptors can can change role (herbivore/carnivore/scavenger) when displaced.'],
-			migrator: ['Migratory animals can move to any biome if displaced by an event.'],
-			symbiote: ['A Symbiote protects, and is protected by, the animal to it left.'],
+			adaptor: ['Adaptors can can change role (herbivore,\ncarnivore, or scavenger) when displaced.'],
+			migrator: ['Migratory animals can move to any biome\nif displaced by an event.'],
+			symbiote: ['A Symbiote protects, and is protected by,\nthe animal to it left.'],
 		},
 
 		class: {
 			herbivore: 'Herbivores must be played beneath a plant.',
-			carnivore: 'Carnivores must be played beneath an herbivore, insect, or nematode.',
-			scavenger: 'Scavengers must be played beneath a carnivore.',
-			omnivore: 'Omnivores can be played as an herbivore, carnivore, or scavenger.',
+			carnivore: 'Carnivores must be played beneath an\nherbivore, insect, or nematode.',
+			scavenger: 'Scavengers must be played beneath a\ncarnivore.',
+			omnivore: 'Omnivores can be played as an herbivore,\ncarnivore, or scavenger.',
 		},
 	},
 
@@ -211,12 +209,16 @@ gs =  {
 	}
 };
 
-gs.save = function() {
-	// ss.drawDeck = gs.drawDeck;
-	// ss.biomes = gs.biomes;
-	// ss.discardDeck = gs.discardDeck;
+gs.getBaseOffsetY = function() {
+	return -30.0;
+};
 
-	console.log(JSON.stringify(ss));
+gs.getOffsetX = function() {
+	return -TILE_SIZE * 5 - TILE_SIZE / 2;
+};
+
+gs.getOffsetY = function() {
+	return TILE_SIZE * 1.75;
 };
 
 gs.getNumBiomes = function() {
@@ -500,10 +502,11 @@ gs.cardHasLink = function(card, linkDirection) {
 	return bHasLink;
 }
 
-gs.getCardSuit = function(card) {
-	var key = card ? '' + card.value : 'unknown';
-	var suit = card &&  gs.cardValueToSuit.hasOwnProperty(key) ? gs.cardValueToSuit['' + card.value] : '?';
-	var title = card ? gs.getCardTitle(card).toLowerCase() : null;
+gs.getCardSuit = function(card, optTitle) {
+	var value = typeof(card) === 'number' ? card : card.value;
+	var key = card ? '' + value : 'unknown';
+	var suit = card &&  gs.cardValueToSuit.hasOwnProperty(key) ? gs.cardValueToSuit['' + value] : '?';
+	var title = optTitle ? optTitle : typeof(card) !== 'number' ? gs.getCardTitle(card).toLowerCase() : null;
 
 	if (title) {
 		// Overrides.
@@ -640,11 +643,16 @@ gs.getWorldPressInfo = function(x, y) {
 	var col = 0;
 	var terrain = gs.layers['terrain'];
 	var bContainsPoint = false;
+	var _x = 0;
+	var _y = 0;
+
+	_x = uim.UiToWorldX(x);
+	_y = uim.UiToWorldY(y);
 
 	this.worldPressInfo.biome = null;
 	this.worldPressInfo.tile  = null;
 
-	this.workPoint = terrain.getTileXY(x, y, this.workPoint);
+	this.workPoint = terrain.getTileXY(_x, _y, this.workPoint);
 	tile = terrain.map.getTile(this.workPoint.x, this.workPoint.y, gs.layers["terrain"]);
 	if (tile && tile.properties) {
 		// Clicked on a tile, but still need to validate it as a niche.
@@ -817,8 +825,6 @@ gs.discardAndReplace = function(card) {
 	else {
 		uim.setFocusBannerInfo('', 9, '', '', null);
 	}
-
-	gs.save();
 
 	return bReplaced;
 };
@@ -996,6 +1002,14 @@ gs.executeCardSpecialFunction = function(card, fnType) {
 	}
 };
 
+gs.showNextCardHints = function() {
+	var i = 0;
+
+	for (i=0; i<this.biomes.length; ++i) {
+		this.biomes[i].showNextCardHints();
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Biome Data
 ///////////////////////////////////////////////////////////////////////////////
@@ -1009,7 +1023,7 @@ bd.niche = function(topRow, leftCol) {
 	this.cards = [];
 	this.topRow = topRow;
 	this.leftCol = leftCol;
-	this.text = game.add.bitmapText(this.leftCol * TILE_SIZE, this.topRow * TILE_SIZE, 'bogboo', uim.INFO_TEXT_SIZE);
+	this.text = game.add.bitmapText(this.leftCol * TILE_SIZE, this.topRow * TILE_SIZE, 'bogboo', uim.INFO_TEXT_SIZE * gs.SPRITE_SCALE);
 	this.text.anchor.setTo(0.5, 0.5);
 	this.text.visible = false;
 	this.biome = null;
@@ -1062,6 +1076,27 @@ bd.niche.prototype.getTopRow = function() {
 
 bd.niche.prototype.getLeftCol = function() {
 	return this.leftCol;
+};
+
+bd.niche.prototype.getLastCard = function() {
+	return this.cards.length > 0 ? this.cards[this.cards.length - 1] : null;
+};
+
+bd.niche.prototype.showNextCardHint = function() {
+	var nCards = this.cards.length;
+	var cardVal = this.getLastCardValue() + 1;
+	var x = (this.leftCol + 0.5) * TILE_SIZE;
+	var y = (this.topRow + 0.5 + nCards) * TILE_SIZE;
+
+	if (cardVal > 0 && cardVal < gs.WILD_CARD_VALUE) {
+		this.text.x = Math.floor(uim.worldToUiX(x));
+		this.text.y = Math.floor(uim.worldToUiY(y));
+		this.text.text = gs.getCardSuit(cardVal, this.getLastCard().title);
+		this.text.visible = true;
+	}
+	else {
+		this.text.visible = false;
+	}
 };
 
 bd.niche.prototype.addCard = function(card) {
@@ -1164,6 +1199,7 @@ bd.biome = function() {
 	this.sprBlocked = null;
 	this.niches 	= [];
 	this.tileSet  	= null;
+	this.suitText 	= null;
 };
 
 bd.biome.prototype.MAX_GROWTH = 2;
@@ -1171,33 +1207,41 @@ bd.biome.prototype.MAX_GROWTH = 2;
 bd.biome.prototype.sizeByLatitude = [2, 3, 4, 3, 2];
 bd.biome.prototype.noSelectByLatitude = ['Small', 'Medium', 'Large', 'Medium', 'Small'];
 bd.biome.prototype.maxSizeAtLatitude = [5, 6, 7, 6, 5];
-bd.biome.prototype.offsets = [6, 5, 3, 4, 6];
+bd.biome.prototype.offsets = [6, 7, 6, 7, 6];
 bd.biome.prototype.TYPES = {
-	DESERT: { name: "Desert", sizeMod: -1, tiles: [ [{row: 18, col: 37}, {row: 18, col: 36}, {row: 19, col: 34}],
+	DESERT: { name: "Desert", tiles: [ [{row: 18, col: 37}, {row: 18, col: 36}, {row: 19, col: 34}],
 												    [{row: 18, col: 35}, {row: 18, col: 33}, {row: 19, col: 35}],
 												    [{row: 18, col: 35}, {row: 18, col: 33}, {row: 19, col: 35}],
 												    [{row: 18, col: 38}, {row: 18, col: 39}, {row: 19, col: 36}] ]
 			},
-	FOREST: { name: "Forest", sizeMod: +1, tiles: [ [{row: 34, col: 37}, {row: 34, col: 36}, {row: 35, col: 34}],
+	FOREST: { name: "Forest", tiles: [ [{row: 34, col: 37}, {row: 34, col: 36}, {row: 35, col: 34}],
 												    [{row: 34, col: 35}, {row: 34, col: 33}, {row: 35, col: 35}],
 												    [{row: 34, col: 35}, {row: 34, col: 33}, {row: 35, col: 35}],
 												    [{row: 34, col: 38}, {row: 34, col: 39}, {row: 35, col: 36}] ]
 			},
-	PLAINS: { name: "Plains", sizeMod: +0, tiles: [ [{row: 16, col: 37}, {row: 16, col: 36}, {row: 17, col: 34}],
+	PLAINS: { name: "Plains", tiles: [ [{row: 16, col: 37}, {row: 16, col: 36}, {row: 17, col: 34}],
 												    [{row: 16, col: 35}, {row: 16, col: 33}, {row: 17, col: 35}],
 												    [{row: 16, col: 35}, {row: 16, col: 33}, {row: 17, col: 35}],
 												    [{row: 16, col: 38}, {row: 16, col: 39}, {row: 17, col: 36}] ]
 			},
-	WETLANDS: { name: "Wetlands", sizeMod: +1, tiles: [ [{row: 31, col: 9}, {row: 31, col: 9}, {row: 31, col: 6}],
+	WETLANDS: { name: "Wetlands", tiles: [ [{row: 31, col: 9}, {row: 31, col: 9}, {row: 31, col: 6}],
 												    [{row: 31, col: 9}, {row: 31, col: 9}, {row: 31, col: 6}],
 												    [{row: 31, col: 9}, {row: 31, col: 9}, {row: 31, col: 6}],
 												    [{row: 31, col: 9}, {row: 31, col: 9}, {row: 31, col: 6}] ]
 			},
-	MOUNTAIN: { name: "Mountains", sizeMod: +0, tiles: [ [{row: 22, col: 37}, {row: 22, col: 36}, {row: 23, col: 34}],
+	MOUNTAIN: { name: "Mountains", tiles: [ [{row: 22, col: 37}, {row: 22, col: 36}, {row: 23, col: 34}],
 												    	[{row: 22, col: 35}, {row: 22, col: 33}, {row: 23, col: 35}],
 												    	[{row: 22, col: 35}, {row: 22, col: 33}, {row: 23, col: 35}],
 												    	[{row: 22, col: 38}, {row: 22, col: 39}, {row: 23, col: 36}] ]
 			},
+}
+
+bd.biome.prototype.showNextCardHints = function() {
+	var i = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].showNextCardHint();
+	}
 }
 
 bd.biome.prototype.isLastNiche = function(niche) {
@@ -1306,7 +1350,6 @@ bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 	var col = 0;
 	var x = 0;
 	var y = 0;
-	var tileData = null;
 	var bLastNiche = false;
 	var bSpacerCell = false;
 	var tile = null;
@@ -1314,8 +1357,10 @@ bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 	assert(sprBlocked, 'biome.build: invalid blocking sprite!');
 
 	this.sprBlocked = sprBlocked;
-	this.sprBlocked.x = this.startOffset * TILE_SIZE;
-	this.sprBlocked.y = (this.latitude * this.type.tiles.length + LAYER_OFFSET) * TILE_SIZE;
+	this.sprBlocked.x = uim.worldToUiX(this.startOffset * TILE_SIZE);
+	this.sprBlocked.y = uim.worldToUiY((this.latitude * this.type.tiles.length + LAYER_OFFSET) * TILE_SIZE);
+	this.sprBlocked.scale.setTo(gs.SPRITE_SCALE, gs.SPRITE_SCALE);
+
 	this.sprBlocked.kill();
 
 	this.tileSet = tileSet;

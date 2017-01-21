@@ -10,5 +10,9 @@ strings = {
 		INVALID_PLACEMENT_HERBIVORE: "Herbivores must be placed beneath a Producer.",
 		INVALID_PLACEMENT_CARNIVORE: "Carnivores must be placed beneath herbivores, insects, or nematodes.",
 		INVALID_PLACEMENT_SCAVENGER: "Scavengers must be placed beneath carnivores.",
+	},
+	HINTS: {
+		CHOOSE_EGG: "          Choose an E.G.G.        ",
+		PLACE_ORGANISM: "Place it in the biosphere",
 	}
 }

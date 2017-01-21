@@ -61,11 +61,11 @@
  			if (image) {
  				if (typeof tile === "number") {
 	 				imageCols = Math.floor(image.width / layer.map.tileWidth);
-	 				layer.map.putTile(tile, Math.floor(col / layer.scale.x), Math.floor(row / layer.scale.y), layer);
+	 				layer.map.putTile(tile, col, row, layer);
  				}
  				else {
 	 				imageCols = Math.floor(image.width / layer.map.tileWidth);
-	 				layer.map.putTile(tile.row * imageCols + tile.col, Math.floor(col / layer.scale.x), Math.floor(row / layer.scale.y), layer);
+	 				layer.map.putTile(tile.row * imageCols + tile.col, col, row, layer);
  				}
 
 // 				layer.map.putTile(2110, col, row, layer);
