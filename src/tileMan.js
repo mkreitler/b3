@@ -30,6 +30,17 @@
  		}
  	},
 
+ 	listNullAndMoveToBack: function(list, item) {
+ 		var i = 0;
+
+ 		for (i=0; i<list.length; ++i) {
+ 			if (list[i] === item) {
+ 				this.listReplaceWithLastNonNull(list, i);
+ 				break;
+ 			}
+ 		}
+ 	},
+
  	listReplaceWithLastNonNull: function(list, iReplace) {
  		var i = 0;
  		var iLast = -1;

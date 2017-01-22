@@ -47,12 +47,20 @@ bd.biome.prototype.TYPES = {
 												    [{row: 31, col: 9}, {row: 31, col: 9}, {row: 31, col: 6}],
 												    [{row: 31, col: 9}, {row: 31, col: 9}, {row: 31, col: 6}] ]
 			},
-	MOUNTAIN: { name: "Mountains", tiles: [ [{row: 22, col: 37}, {row: 22, col: 36}, {row: 23, col: 34}],
+	MOUNTAINS: { name: "Mountains", tiles: [ [{row: 22, col: 37}, {row: 22, col: 36}, {row: 23, col: 34}],
 												    	[{row: 22, col: 35}, {row: 22, col: 33}, {row: 23, col: 35}],
 												    	[{row: 22, col: 35}, {row: 22, col: 33}, {row: 23, col: 35}],
 												    	[{row: 22, col: 38}, {row: 22, col: 39}, {row: 23, col: 36}] ]
 			},
 }
+
+bd.biome.prototype.getStartColumn = function() {
+	return this.startCol;
+};
+
+bd.biome.prototype.getStartOffset = function() {
+	return this.offsets[this.getLatitude()];
+};
 
 bd.biome.prototype.showNextCardHints = function() {
 	var i = 0;
@@ -78,6 +86,16 @@ bd.biome.prototype.prependNiche = function(biome) {
 	niche.setBiome(biome);
 	this.buildAdditionalNiche(biome.getType(), niche);
 	this.niches.unshift(niche);
+
+	return niche;
+}
+
+bd.biome.prototype.getNicheAt = function(iNiche) {
+	var niche = null;
+
+	if (iNiche >= 0 && iNiche < this.niches.length) {
+		niche = this.niches[iNiche];
+	}
 
 	return niche;
 }
@@ -159,7 +177,6 @@ bd.biome.prototype.setLatitude = function(lat) { this.latitude = lat; }
 bd.biome.prototype.getLatitude = function() { return this.latitude; }
 bd.biome.prototype.setType = function(t) { this.type = t; }
 bd.biome.prototype.setStartCol = function(s) { this.startCol = s; }
-bd.biome.prototype.setStartOffset = function(i) { this.startOffset = this.offsets[Math.max(0, Math.min(i, this.offsets.length))]; }
 bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 	var i = 0;
 	var iCol = 0;
@@ -171,12 +188,13 @@ bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 	var bLastNiche = false;
 	var bSpacerCell = false;
 	var tile = null;
-	var blockFudge = this.startOffset % 2 === 0 ? 1 : 0;
+	var startOffset = this.getStartOffset();
+	var blockFudge = startOffset % 2 === 0 ? 1 : 0;
 
 	assert(sprBlocked, 'biome.build: invalid blocking sprite!');
 
 	this.sprBlocked = sprBlocked;
-	this.sprBlocked.x = uim.worldToUiX((this.startOffset + blockFudge) * TILE_SIZE);
+	this.sprBlocked.x = uim.worldToUiX((startOffset + blockFudge) * TILE_SIZE);
 	this.sprBlocked.y = uim.worldToUiY((this.latitude * this.type.tiles.length + LAYER_OFFSET) * TILE_SIZE);
 	this.sprBlocked.scale.setTo(gs.SPRITE_SCALE, gs.SPRITE_SCALE);
 
@@ -190,14 +208,14 @@ bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 			row = this.latitude * this.type.tiles.length + iRow;
 
 			if (iRow === this.type.tiles.length - 1 && i === 0) {
-				x = this.startOffset * TILE_SIZE;
+				x = startOffset * TILE_SIZE;
 				y = row * TILE_SIZE;
 				this.sprNoSelect = uim.getGroup().create(x, y, 'noSelect' + this.noSelectByLatitude[this.latitude]);
 				this.sprNoSelect.kill();
 			}
 
 			for (iCol=0; iCol<this.type.tiles[0].length; ++iCol) {
-				col = (this.startCol + i) * this.type.tiles[0].length + iCol + this.startOffset;
+				col = (this.startCol + i) * this.type.tiles[0].length + iCol + startOffset;
 
 				bLastNiche = i === this.getNumNiches() - 1;
 				bSpacerCell = iCol === this.type.tiles[0].length - 1;
@@ -230,17 +248,18 @@ bd.biome.prototype.buildAdditionalNiche = function(type, newNiche) {
 	var tileData = null;
 	var bSpacerCell = false;
 	var tile = null;
+	var startOffset = this.getStartOffset();
 
 	for (iRow=0; iRow<this.type.tiles.length; ++iRow) {
 		row = this.latitude * this.type.tiles.length + iRow;
 
 		if (iRow === this.type.tiles.length - 1) {
-			x = this.startOffset * TILE_SIZE;
+			x = startOffset * TILE_SIZE;
 			y = row * TILE_SIZE;
 		}
 
 		for (iCol=0; iCol<this.type.tiles[0].length; ++iCol) {
-			col = (this.startCol) * this.type.tiles[0].length + iCol + this.startOffset;
+			col = (this.startCol) * this.type.tiles[0].length + iCol + startOffset;
 
 			bSpacerCell = iCol === this.type.tiles[0].length - 1;
 			if (bSpacerCell) {
@@ -265,13 +284,14 @@ bd.biome.prototype.removeTiles = function(layer) {
 	var iRow = 0;
 	var row = 0;
 	var col = 0;
+	var startOffset = this.getStartOffset();
 
 	for (i=0; i<this.getNumNiches(); ++i) {
 		for (iRow=0; iRow<this.type.tiles.length; ++iRow) {
 			row = this.latitude * this.type.tiles.length + iRow;
 
 			for (iCol=0; iCol<this.type.tiles[0].length; ++iCol) {
-				col = (this.startCol + i) * this.type.tiles[0].length + iCol + this.startOffset;
+				col = (this.startCol + i) * this.type.tiles[0].length + iCol + startOffset;
 				tm.aremoveilesFromLayer(layer, bd.ROW_OFFSET, row, col);
 			}
 		}
@@ -294,7 +314,7 @@ bd.biome.prototype.placePhaseOneCursors = function(card) {
 }
 
 bd.biome.prototype.getNicheColumn = function(iNiche) {
-	return (this.startCol + iNiche) * this.type.tiles[0].length + this.startOffset;
+	return (this.startCol + iNiche) * this.type.tiles[0].length + this.getStartOffset();
 }
 
 bd.biome.prototype.getNicheRow = function() {
@@ -305,4 +325,18 @@ bd.biome.prototype.getNicheRank = function(iNiche) {
 	return iNiche >= 0 &&
 		   iNiche < this.niches.length &&
 		   this.niches[iNiche] ? this.niches[iNiche].getRank() : -1;
+}
+
+bd.biome.prototype.getNicheId = function(niche) {
+	var i = 0;
+	var id = -1;
+
+	for (i=0; i<this.niches.length; ++i) {
+		if (this.niches[i] === niche) {
+			id = i;
+			break;
+		}
+	}
+
+	return id;
 }

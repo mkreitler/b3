@@ -9,6 +9,15 @@ bd.niche = function(topRow, leftCol) {
 	this.text.anchor.setTo(0.5, 0.5);
 	this.text.visible = false;
 	this.biome = null;
+	this.bAddedDuringPlay = false;
+};
+
+bd.niche.prototype.setAddedDuringPlay = function() {
+	this.bAddedDuringPlay = true;
+};
+
+bd.niche.prototype.wasAddedDuringPlay = function() {
+	return this.bAddedDuringPlay;
 };
 
 bd.niche.prototype.getLastCardValue = function() {
@@ -52,6 +61,20 @@ bd.niche.prototype.getRankForCard = function(card) {
 	return rank;
 };
 
+bd.niche.prototype.getBiomeId = function() {
+	return gs.getBiomeId(this.biome);
+};
+
+bd.niche.prototype.getId = function() {
+	var id = -1;
+
+	if (this.biome) {
+		id = this.biome.getNicheId(this);
+	}
+
+	return id;
+};
+
 bd.niche.prototype.getTopRow = function() {
 	return this.topRow;
 };
@@ -88,6 +111,8 @@ bd.niche.prototype.addCard = function(card) {
 
 	gs.setCardNiche(card, this);
 	this.cards.push(card);
+
+	this.text.visible = false;
 
 	gs.executeCardSpecialFunction(card, 'onPlayed');
 

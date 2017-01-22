@@ -275,8 +275,6 @@ var sm = {
 
 	startPhaseOne: {
 		enter: function() {
-			gs.initDrawDeck();
-			gs.initDiscardDeck();
 			uim.syncBannersToCards();
 
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);

@@ -139,11 +139,34 @@ function create() {
 	}
 
 	uim.init();
-	generateStartingTerrain();
-	addUiElements();
+	gs.assignCardIds();
+	startGame();
+}
 
-	// TEMP: force game into PhaseOne state.
-	setState(sm.startPhaseOne);
+function startGame() {
+	var bPhaseOneRestore = false;
+
+	if (gs.doRestoreGame()) {
+		bPhaseOneRestore = gs.restoreGameState();
+		addUiElements();
+		
+		// TEMP: force game into PhaseOne state.
+		if (bPhaseOneRestore) {
+			setState(sm.startPhaseOne);
+		}
+		else {
+			setState(sm.endPhaseOne);
+		}
+	}
+	else {
+		generateStartingTerrain();
+		addUiElements();
+		
+		// TEMP: force game into PhaseOne state.
+		gs.initDrawDeck();
+		gs.initDiscardDeck();
+		setState(sm.startPhaseOne);
+	}
 }
 
 function assert(bTest, message) {
@@ -281,7 +304,6 @@ function generateStartingTerrain() {
 
 		biome.setType(type);
 		biome.setLatitude(i);
-		biome.setStartOffset(i);
 		biome.setStartCol((Math.round(Math.random() * (maxCol - minCol)) + minCol));
 
 		for (iNiche=0; iNiche<size; ++iNiche) {
