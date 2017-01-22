@@ -220,6 +220,8 @@ function addUiElements() {
 	}
 
 	gs.baseLayers.walls.bringToTop();
+	gs.baseLayers.objects.bringToTop();
+	gs.baseLayers.ui.bringToTop();
 
 	x = game.width - game.cache.getImage('ui_frame_top').width;
 	uim.frameTop = uim.group.create(0, 0, 'ui_frame_top');
@@ -270,13 +272,17 @@ function generateStartingTerrain() {
 	for (i=0; i<N_BIOMES; ++i) {
 		type = biome.TYPES[biomeList[i]];
 		size = biome.sizeByLatitude[i];
-		maxCol = biome.maxSizeAtLatitude[i] - size;
-		minCol = biome.MAX_GROWTH;
+		minCol = Math.min((biome.offsets[i] + 1) % 2 + biome.MAX_GROWTH - 1, biome.MAX_SIZE - size);
+		maxCol = biome.MAX_SIZE - size - biome.offsets[i] % 2;
+
+		if (maxCol < minCol) {
+			maxCol = minCol;
+		}
 
 		biome.setType(type);
 		biome.setLatitude(i);
 		biome.setStartOffset(i);
-		biome.setStartCol((Math.floor(Math.random() * (maxCol - minCol)) + minCol));
+		biome.setStartCol((Math.round(Math.random() * (maxCol - minCol)) + minCol));
 
 		for (iNiche=0; iNiche<size; ++iNiche) {
 			biome.addNiche(biome);
