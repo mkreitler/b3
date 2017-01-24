@@ -77,6 +77,7 @@ function preload() {
 	game.load.image('noSelectSmall', './res/noSelectSmall.png', false);
 	game.load.image('noSelectMedium', './res/noSelectMedium.png', false);
 	game.load.image('noSelectLarge', './res/noSelectLarge.png', false);
+	game.load.image('eventMarker', './res/ui/eventMarker.png', false);
 
 	// Spritesheets
 	game.load.spritesheet('ui_buttons', './res/ui/buttons.png', 315, 79);
@@ -157,6 +158,9 @@ function startGame() {
 		else {
 			setState(sm.endPhaseOne);
 		}
+
+		// DEBUG: force transition to testEvent state.
+		setTimeout(function() {setState(sm.testEvent);}, 1000);
 	}
 	else {
 		generateStartingTerrain();

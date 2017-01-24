@@ -8,6 +8,31 @@ var sm = {
 		setState(state);
 	},
 
+	///////////////////////////////////////////////////////////////////////////
+	// Event Resolution
+	///////////////////////////////////////////////////////////////////////////
+	testEvent: {
+		enter: function() {
+			uim.showEvent(gs.DEBUGgetRandomBiome());
+			listenFor('eventArrived', this);
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+
+		},
+
+		eventArrived: function(data) {
+			unlistenFor('eventArrived', this);
+		}
+	},
+
+	///////////////////////////////////////////////////////////////////////////
+	// UI Messaging
+	///////////////////////////////////////////////////////////////////////////
 	wiggleFocusBanner: {
 		enter: function() {
 			uim.disableBannerInput();
@@ -47,29 +72,9 @@ var sm = {
 		},
 	},
 
-	endPhaseOne: {
-		enter: function() {
-			uim.disableBannerInput();
-			listenFor('UIoperationComplete', this);
-			uim.startOperation('moveBannersOut', this);
-		},
-
-		update: function() {
-
-		},
-
-		exit: function() {
-			unlistenFor('UIoperationComplete', this);
-		},
-
-		UIoperationComplete: function(data) {
-			gs.removeInsectsAndNematodes();
-			gs.addPhaseTwoCards();
-			gs.shuffleDrawDeck();
-			sm.setTransitionState('phaseTwoStart' ,'phaseTwo');
-		},
-	},
-
+	///////////////////////////////////////////////////////////////////////////
+	// Phase Two
+	///////////////////////////////////////////////////////////////////////////
 	phaseTwoStart: {
 		enter: function() {
 			listenFor('UIoperationComplete', this);
@@ -209,6 +214,32 @@ var sm = {
 			else {
 				assert(false, "phaseTwoDraw.UIoperationComplete: player out of moves!");
 			}
+		},
+	},
+
+	///////////////////////////////////////////////////////////////////////////
+	// Phase One
+	///////////////////////////////////////////////////////////////////////////
+	endPhaseOne: {
+		enter: function() {
+			uim.disableBannerInput();
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut', this);
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		UIoperationComplete: function(data) {
+			gs.removeInsectsAndNematodes();
+			gs.addPhaseTwoCards();
+			gs.shuffleDrawDeck();
+			sm.setTransitionState('phaseTwoStart' ,'phaseTwo');
 		},
 	},
 

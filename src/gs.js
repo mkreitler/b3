@@ -286,8 +286,6 @@ gs.saveGameState = function() {
 		}
 
 		saveData.cards = this.cardLog;
-
-		console.log(JSON.stringify(saveData));
 	}
 };
 
@@ -303,13 +301,12 @@ gs.restoreGameState = function() {
 
 	if (this.iRestore >= 0 && this.iRestore < this.debugLog.length) {
 		gameData = gs.debugLog[this.iRestore];
-		console.log(gameData);
 		gs.rebuildBiomes(gameData.biomes);
 		bIsPhaseOneRestore = gs.populateBiomes(gameData.cards);
 		gs.removeInsectsAndNematodes();
 	}
 	else {
-		console.log("restoreGameState: invalid restore ID!");
+		assert(false, "restoreGameState: invalid restore ID!");
 	}
 
 	return bIsPhaseOneRestore;
@@ -1260,7 +1257,11 @@ gs.showNextCardHints = function() {
 	for (i=0; i<this.biomes.length; ++i) {
 		this.biomes[i].showNextCardHints();
 	}
-}
+};
+
+gs.DEBUGgetRandomBiome = function() {
+	return (this.biomes[Math.floor(Math.random() * this.biomes.length)]);
+};
 
 
 

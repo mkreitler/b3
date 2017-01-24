@@ -172,6 +172,17 @@ bd.biome.prototype.addNiche = function(biome) {
 	return niche;
 }
 
+bd.biome.prototype.getX = function(bRight) {
+	var startOffset = this.getStartOffset();
+	var blockFudge = startOffset % 2 === 0 ? 1 : 0;
+	var tilesPerNiche = this.type.tiles[0].length;
+
+	return bRight ? uim.worldToUiX((startOffset + blockFudge (this.getNumNiches() - 1) * tilesPerNiche + tilesPerNiche - 1) * TILE_SIZE) : uim.worldToUiX((startOffset + blockFudge) * TILE_SIZE);
+}
+bd.biome.prototype.getY = function(bBottom) {
+	var tilesPerNiche = this.type.tiles.length;
+	return bBottom ? uim.worldToUiY((this.latitude * tilesPerNiche + tilesPerNiche - 1 + LAYER_OFFSET) * TILE_SIZE) : uim.worldToUiY((this.latitude * tilesPerNiche + LAYER_OFFSET) * TILE_SIZE)
+}
 bd.biome.prototype.getType = function() { return this.type; }
 bd.biome.prototype.setLatitude = function(lat) { this.latitude = lat; }
 bd.biome.prototype.getLatitude = function() { return this.latitude; }

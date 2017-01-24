@@ -15,6 +15,7 @@
  	SPECIAL_HEIGHT_NUM: 2,
  	SPECIAL_HEIGHT_DENOM: 3,
  	TWEEN_TIME: 333,
+ 	EVENT_TWEEN_TIME: 999,
  	NUM_BANNERS: 5,
  	BANNER_MARGIN: 120,
  	BANNER_SPACING: 27,
@@ -26,6 +27,7 @@
  	MAX_CURSORS: 7 + 6 * 2 + 5 * 2, // <-- All possible biome spaces (actually, more than the possible number).
  	WIGGLE_FACTOR: 3,
  	HINT_WIDTH: 12,
+ 	EVENT_MARGIN: 14,
 
 	group: null,
 	buttonGroup: null,
@@ -38,6 +40,7 @@
 	showingCards: [],
 	cursorGroup: null,
 	hint: {group: null, sprite: null, text: null},
+	eventMarker: null,
 
  	focusWidget: null,
 
@@ -100,6 +103,48 @@
  			sprite.scale.setTo(gs.SPRITE_SCALE, gs.SPRITE_SCALE);
  			sprite.kill();
  		}
+ 	},
+
+ 	createEvents: function() {
+ 		this.eventMarker = this.group.create(0, 0, 'eventMarker');
+ 		this.eventMarker.x = 0;
+ 		this.eventMarker.y = -this.eventMarker.height;
+ 		this.eventMarker.anchor.setTo(0, 0);
+ 		this.eventMarker.visible = false;
+ 		this.eventMarker.data = {};
+ 		this.eventMarker.data.tweenOut = game.add.tween(this.group).to({x: 0, y: -this.eventMarker.height }, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.In, false);
+ 		this.eventMarker.data.tweenIn = game.add.tween(this.group).to({x: 0, y: game.height}, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.Out, false);
+ 		this.eventMarker.data.tweenToBiome = game.add.tween(this.group).to({x: 0, y:0}, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
+
+ 		this.eventMarker.data.tweenOut.onComplete.add(this.onEventOff, this);
+ 		this.eventMarker.data.tweenIn.onComplete.add(this.onEventIn, this);
+ 		this.eventMarker.data.tweenToBiome.onComplete.add(this.onEventArrived, this);
+ 	},
+
+ 	showEvent: function(biome) {
+ 		var x = this.EVENT_MARGIN * TILE_SIZE + this.eventMarker.width + TILE_SIZE * gs.SPRITE_SCALE / 2;
+ 		var y = biome.getY();
+ 		var dt = Math.abs(y - game.height) / game.height * uim.EVENT_TWEEN_TIME;
+
+ 		this.eventMarker.x = x;
+ 		this.eventMarker.y = -this.eventMarker.height;
+
+ 		this.eventMarker.data.tweenToBiome.updateTweenData('vEnd', {x: x - this.eventMarker.x, y: y - this.eventMarker.y});
+ 		this.eventMarker.data.tweenIn.start();
+ 		this.eventMarker.visible = true;
+ 	},
+
+ 	onEventOff: function() {
+
+ 	},
+
+ 	onEventIn: function() {
+ 		this.eventMarker.data.tweenToBiome.start();
+ 	},
+
+ 	onEventArrived: function() {
+ 		// TODO: apply event.
+ 		broadcast('eventArrived');
  	},
 
  	worldToUiX: function(x) {
@@ -465,6 +510,8 @@
  	init: function() {
 		this.group = game.add.group();
 		this.buttonGroup = game.add.group();
+
+		this.createEvents();
  	},
 
  	getButtonGroup: function() {
