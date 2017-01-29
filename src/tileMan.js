@@ -3,12 +3,14 @@
  */
 
  tm = {
- 	copyListToList: function(src, dest) {
+ 	copyListToList: function(src, dest, bOverwrite) {
  		var i = 0;
 
  		assert(src && dest, "copyListToList: invalid list!");
 
- 		dest.length = 0;
+ 		if (bOverwrite) {
+	 		dest.length = 0;
+	 	}
 
  		for (i=0; i<src.length; ++i) {
  			dest.push(src[i]);
@@ -28,6 +30,23 @@
  				list[iSwap] = temp;
  			}
  		}
+ 	},
+
+ 	listsExclusive: function(list1, list2) {
+ 		var bExclusive = true;
+ 		var i1 = 0;
+ 		var i2 = 0;
+
+ 		for (i1=0; i1<list1.length; ++i1) {
+ 			for (i2=0; i2<list2.length; ++i2) {
+ 				if (list1[i1] === list2[i2]) {
+ 					bExclusive = false;
+ 					break;
+ 				}
+ 			}
+ 		}
+
+ 		return bExclusive;
  	},
 
  	listNullAndMoveToBack: function(list, item) {
@@ -59,6 +78,19 @@
  		}
 
  		return iLast;
+ 	},
+
+ 	trimList: function(list) {
+ 		var i = 0;
+
+ 		assert(list, "terminateListAtFirstNull: invalid list!");
+
+ 		for (i=0; i<list.length; ++i) {
+ 			if (!list[i]) {
+ 				list.length = i;
+ 				break;
+ 			}
+ 		}
  	},
 
  	addTilesToLayer: function(layer, imageName, tile, row, col) {

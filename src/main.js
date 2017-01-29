@@ -14,7 +14,12 @@ var row = -1;
 var col = -1;
 var currentState = null;
 var nextState = null;
+var stateData = null;
+var suspendedStates = [];
+var suspendData = {state: null, data: null};
 var bWantsStateChange = false;
+var bWantsStatePush = false;
+var bWantsStatePop = false;
 var switchboard = {};
 
 var game = new Phaser.Game(MAX_WINDOW_X, MAX_WINDOW_Y, Phaser.AUTO, '', { preload: preload, create: create, update: update });
@@ -78,6 +83,9 @@ function preload() {
 	game.load.image('noSelectMedium', './res/noSelectMedium.png', false);
 	game.load.image('noSelectLarge', './res/noSelectLarge.png', false);
 	game.load.image('eventMarker', './res/ui/eventMarker.png', false);
+	game.load.image('eventInfo', './res/ui/eventInfo.png', false);
+	game.load.image('infoShield', './res/ui/infoShield.png', false);
+	game.load.image('infoPanel', './res/ui/infoPanel.png', false);
 
 	// Spritesheets
 	game.load.spritesheet('ui_buttons', './res/ui/buttons.png', 315, 79);
@@ -150,27 +158,36 @@ function startGame() {
 	if (gs.doRestoreGame()) {
 		bPhaseOneRestore = gs.restoreGameState();
 		addUiElements();
+		events.init();
 		
 		// TEMP: force game into PhaseOne state.
-		if (bPhaseOneRestore) {
+		if (bPhaseOneRestore && gs.playerHasLegalMove(true)) {
 			setState(sm.startPhaseOne);
 		}
 		else {
-			setState(sm.endPhaseOne);
+			sm.setTransitionState('phaseTwoStart', 'phaseTwo');
 		}
 
 		// DEBUG: force transition to testEvent state.
-		setTimeout(function() {setState(sm.testEvent);}, 1000);
+		// setTimeout(function() {setState(sm.chooseEvent);}, 1000);
 	}
 	else {
 		generateStartingTerrain();
 		addUiElements();
+		events.init();
 		
 		// TEMP: force game into PhaseOne state.
 		gs.initDrawDeck();
 		gs.initDiscardDeck();
 		setState(sm.startPhaseOne);
 	}
+
+	uim.raiseGroups();
+}
+
+function resetGame() {
+	gs.resetBiomes();
+	gs.resetCards();	
 }
 
 function assert(bTest, message) {
@@ -180,7 +197,52 @@ function assert(bTest, message) {
 	}
 }
 
-function setState(newState) {
+function pushState(newState, newStateData) {
+	suspendData.state = newState;
+	suspendData.data = newStateData;
+	bWantsStatePush = true;
+}
+
+function popState() {
+	bWantsStatePop = true;
+}
+
+function doStatePush() {
+	if (suspendData.state) {
+		if (currentState && currentState.hasOwnProperty('onPushed')) {
+			currentState.onPushed();
+		}
+
+		suspendedStates.unshift(currentState);
+		suspendData.state.enter(suspendData.data);
+		currentState = suspendData.state;
+
+		// Clear old 'nextState' settings from the state machine
+		// history. Otherwise, the dialog will try to return to
+		// the 'nextState', rather than the popped one.
+		sm.clearNextState();
+
+		bWantsStatePush = false;
+	}
+}
+
+function doStatePop() {
+	if (suspendedStates.length > 0) {
+		if (currentState) {
+			currentState.exit();
+		}
+
+		currentState = suspendedStates.shift();
+
+		if (currentState && currentState.hasOwnProperty('onPopped')) {
+			currentState.onPopped();
+		}
+
+		bWantsStatePop = false;
+	}
+}
+
+function setState(newState, newStateData) {
 	assert(!nextState, "setState: multiple state transitions in a single frame!");
 
 	if (typeof newState === "string") {
@@ -193,6 +255,7 @@ function setState(newState) {
 	}
 
 	nextState = newState;
+	stateData = newStateData;
 	bWantsStateChange = true;
 }
 
@@ -202,9 +265,8 @@ function changeState() {
 			currentState.exit();
 		}
 
-		nextState.enter();
-
 		currentState = nextState;
+		currentState.enter(stateData);
 	}
 	else if (!nextState) {
 		if (currentState) {
@@ -214,11 +276,18 @@ function changeState() {
 	}
 
 	nextState = null;
+	stateData = null;
 	bWantsStateChange = false;
 }
 
 function update() {
-	if (bWantsStateChange) {
+	if (bWantsStatePush) {
+		doStatePush();
+	}
+	else if (bWantsStatePop) {
+		doStatePop();
+	}
+	else if (bWantsStateChange) {
 		changeState();
 	}
 

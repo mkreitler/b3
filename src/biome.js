@@ -17,6 +17,8 @@ bd.biome = function() {
 	this.niches 	= [];
 	this.tileSet  	= null;
 	this.suitText 	= null;
+	this.score 		= 0;
+	this.nPrepended = 0;
 };
 
 bd.biome.prototype.MAX_GROWTH = 2;
@@ -52,6 +54,14 @@ bd.biome.prototype.TYPES = {
 												    	[{row: 22, col: 35}, {row: 22, col: 33}, {row: 23, col: 35}],
 												    	[{row: 22, col: 38}, {row: 22, col: 39}, {row: 23, col: 36}] ]
 			},
+};
+
+bd.biome.prototype.reset = function() {
+	var i = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].init();
+	}
 }
 
 bd.biome.prototype.getStartColumn = function() {
@@ -70,6 +80,14 @@ bd.biome.prototype.showNextCardHints = function() {
 	}
 }
 
+bd.biome.prototype.getScore = function() {
+	return this.score;
+}
+
+bd.biome.prototype.setScore = function(newScore) {
+	this.score = newScore;
+}
+
 bd.biome.prototype.isLastNiche = function(niche) {
 	return this.niches && this.niches.length > 0 && this.niches[this.niches.length - 1] === niche;
 }
@@ -86,8 +104,13 @@ bd.biome.prototype.prependNiche = function(biome) {
 	niche.setBiome(biome);
 	this.buildAdditionalNiche(biome.getType(), niche);
 	this.niches.unshift(niche);
+	this.nPrepended += 1;
 
 	return niche;
+}
+
+bd.biome.prototype.getNumPrepended = function() {
+	return this.nPrepended;
 }
 
 bd.biome.prototype.getNicheAt = function(iNiche) {
@@ -249,6 +272,42 @@ bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 	}
 }
 
+bd.biome.prototype.scoreNichesBy = function(organismType, keyword, bCascade) {
+	var i = 0;
+	var organismRank = -1;
+	var iRank = 0;
+	var score = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		organismRank = this.niches[i].getOrganismRank(organismType, keyword);
+		if (organismRank >= 0) {
+			// Score two points for each destroyed card...
+			score += 2;
+
+			if (bCascade) {
+				// ...plus 1 point for every card destroyed or displaced.
+				score += this.niches[i].countOrganismsAboveRank(organismRank) - organismRank - 1;
+			}
+		}
+	}
+
+	return score;
+}
+
+bd.biome.prototype.discard = function(orgnism, keyword) {
+	var i = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].markForDiscard(organism, keyword);
+	}
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].discard();
+	}
+
+
+}
+
 bd.biome.prototype.buildAdditionalNiche = function(type, newNiche) {
 	var iCol = 0;
 	var iRow = 0;
@@ -318,7 +377,7 @@ bd.biome.prototype.placePhaseOneCursors = function(card) {
 	var i = 0;
 
 	for (i=0; i<nNiches; ++i) {
-		if (!this.isBlocked() && this.niches[i].canAddCard(card)) {
+		if (!this.isBlocked() && this.niches[i].canHoldCard(card)) {
 			this.niches[i].setCursor(card);
 		}
 	}
@@ -332,10 +391,17 @@ bd.biome.prototype.getNicheRow = function() {
 	return this.latitude * this.type.tiles.length + LAYER_OFFSET;
 }
 
-bd.biome.prototype.getNicheRank = function(iNiche) {
-	return iNiche >= 0 &&
-		   iNiche < this.niches.length &&
-		   this.niches[iNiche] ? this.niches[iNiche].getRank() : -1;
+bd.biome.prototype.canHoldCard = function(card) {
+	var i = 0;
+	var bCanHoldCard = false;
+
+	for (i=0; i<this.niches.length; ++i) {
+		if (this.niches[i].canHoldCard(card)) {
+			bCanHoldCard = true;
+		}
+	}
+
+	return bCanHoldCard;
 }
 
 bd.biome.prototype.getNicheId = function(niche) {

@@ -2,19 +2,42 @@
 
 var sm = {
 	nextState: null,
+	eventBiome: null,
 
-	setTransitionState: function(state, nextState) {
+	setTransitionState: function(state, nextState, stateData) {
 		this.nextState = nextState;
-		setState(state);
+		setState(state, stateData);
+	},
+
+	clearNextState: function() {
+		this.nextState = null;
+	},
+
+	///////////////////////////////////////////////////////////////////////////
+	// End Game
+	///////////////////////////////////////////////////////////////////////////
+	endGame: {
+		enter: function(data) {
+			console.log("GAME OVER!");
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+
+		}
 	},
 
 	///////////////////////////////////////////////////////////////////////////
 	// Event Resolution
 	///////////////////////////////////////////////////////////////////////////
-	testEvent: {
-		enter: function() {
-			uim.showEvent(gs.DEBUGgetRandomBiome());
-			listenFor('eventArrived', this);
+	chooseEvent: {
+		enter: function(data) {
+			sm.eventBiome = gs.getEventBiome();
+			uim.showEvent(sm.eventBiome, events.getCurrentEventTitle(), events.getCurrentEventInfo());
+			listenFor('eventExited', this);
 		},
 
 		update: function() {
@@ -25,16 +48,75 @@ var sm = {
 
 		},
 
-		eventArrived: function(data) {
-			unlistenFor('eventArrived', this);
+		eventExited: function(data) {
+			unlistenFor('eventExited', this);
+			setState(sm.applyEvent);
 		}
+	},
+
+	applyEvent: {
+		enter: function(data) {
+			uim.disableBannerInput();
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut', this);
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		UIoperationComplete: function(data) {
+			listenFor('eventApplied', this);
+			uim.clearInfoText();
+			uim.addInfoText(strings.EVENTS.LOST);
+
+			events.applyCurrent(sm.eventBiome);
+		},
+
+		eventResolved: function(data) {
+			unlistenFor('eventApplied', this);
+			setState(sm.resolveEvent);
+		},
+	},
+
+	resolveEvent: {
+		enter: function(data) {
+
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+
+		},
+	},
+
+	discussEvent: {
+		enter: function(data) {
+
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+
+		},
 	},
 
 	///////////////////////////////////////////////////////////////////////////
 	// UI Messaging
 	///////////////////////////////////////////////////////////////////////////
+	// wiggleFocusBanner must be invoked with setTransitionState()!
 	wiggleFocusBanner: {
-		enter: function() {
+		enter: function(data) {
 			uim.disableBannerInput();
 			listenFor('UIoperationComplete', this);
 			uim.startOperation('wiggleFocusBanner');
@@ -53,8 +135,9 @@ var sm = {
 		},
 	},
 
+	// wiggleBanners must be invoked with setTransitionState()!
 	wiggleBanners: {
-		enter: function() {
+		enter: function(data) {
 			uim.disableBannerInput();
 			listenFor('UIoperationComplete', this);
 			uim.startOperation('wiggleBanners');
@@ -72,14 +155,48 @@ var sm = {
 		},
 	},
 
+	// showInfoDialog must be invoked with setTransitionState()!
+	showInfoDialog: {
+		enter: function(data) {
+			listenFor('infoDialogOut', this);
+
+			assert(data && data.title && data.text, "showInfoDialog: invalid text data!");
+
+			uim.startInfoDialog(data.title, data.text);
+			uim.blockInput();
+		},
+
+		update: function() {
+		},
+
+		exit: function() {
+		},
+
+		infoDialogOut: function(data) {
+			uim.unblockInput();
+			unlistenFor('infoDialogOut', this);
+
+			if (sm.nextState) {
+				setState(sm.nextState);
+			}
+			else {
+				popState();
+			}
+		}
+	},
+
 	///////////////////////////////////////////////////////////////////////////
 	// Phase Two
 	///////////////////////////////////////////////////////////////////////////
 	phaseTwoStart: {
-		enter: function() {
-			listenFor('UIoperationComplete', this);
+		enter: function(data) {
+			gs.shuffleDrawDeck();
 			uim.syncBannersToCards();
+
+			gs.setPhaseOne(false);
+
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
+			listenFor('UIoperationComplete', this);
 			uim.startOperation('moveBannersIn', this);
 		},
 
@@ -91,13 +208,21 @@ var sm = {
 			unlistenFor('UIoperationComplete', this);
 		},
 
+		onPushed: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPopped: function() {
+			listenFor('UIoperationComplete', this);
+		},
+
 		UIoperationComplete: function(data) {
 			setState(sm.nextState);
 		}
 	},
 
 	phaseTwo: {
-		enter: function() {
+		enter: function(data) {
 			uim.enableBannerInput();
 			gs.showNextCardHints();
 		},
@@ -130,7 +255,7 @@ var sm = {
 			 		if (worldPressInfo.biome.isBlocked()) {
 					 	uim.clearInfoText();
 					 	uim.addInfoText(strings.INFO.ILLEGAL_PLACEMENT);
-					 	sm.setTransitionState('wiggleFocusBanner' ,'phaseTwo');
+					 	sm.setTransitionState('wiggleFocusBanner', 'phaseTwo');
 			 		}
 			 		else {
 			 			failMsg = gs.populateNiche(uim.getFocusCard(), worldPressInfo.niche);
@@ -158,7 +283,7 @@ var sm = {
 
 	phaseTwoDiscard: {
 		// TODO: Trigger extinction events every 7 discards.
-		enter: function() {
+		enter: function(data) {
 			uim.disableBannerInput();
 			listenFor('UIoperationComplete', this);
 			uim.startOperation('hideFocusBanner', this);
@@ -171,26 +296,62 @@ var sm = {
 			unlistenFor('UIoperationComplete', this);
 		},
 
+		onPushed: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPopped: function() {
+			listenFor('UIoperationComplete', this);
+		},
+
 		UIoperationComplete: function(data) {
 			if (gs.discardAndReplace(uim.getFocusCard())) {
 				setState('phaseTwoDraw');
 			}
 			else {
+				uim.clearFocusBanner();
+
 				if (gs.playerHasLegalMove(false)) {
 					uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
-					uim.clearFocusBanner();
 					uim.enableBannerInput();
 					setState('phaseTwo');
 				}
 				else {
-					assert(false, "phaseTwoDiscard: player out of moves!");
+					uim.setLeftHint('');
+					uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'phaseTwoReshuffle');
 				}
 			}
 		},
 	},
 
+	phaseTwoReshuffle: {
+		enter: function(data) {
+			uim.startOperation('moveBannersOut');
+			listenFor('UIoperationComplete', this);
+		},
+
+		update: function() {
+		},
+
+		exit: function() {
+
+		},
+
+		UIoperationComplete: function() {
+			unlistenFor('UIoperationComplete', this);
+
+			if (!gs.doPlaysRemainInDrawDeck()) {
+				uim.showInfoDialog(strings.INFO.GAME_OVER, strings.INFO.NO_MORE_PLAYS, 'endGame');
+			}
+			else {
+				gs.shuffleDrawDeck();
+				sm.setTransitionState('phaseTwoStart', 'phaseTwo');
+			}
+		}
+	},
+
 	phaseTwoDraw: {
-		enter: function() {
+		enter: function(data) {
 			uim.startOperation('showFocusBanner');
 			listenFor('UIoperationComplete', this);
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
@@ -206,13 +367,22 @@ var sm = {
 			uim.enableBannerInput();
 		},
 
+		onPushed: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPopped: function() {
+			listenFor('UIoperationComplete', this);
+		},
+
 		UIoperationComplete: function(data) {
 			if (gs.playerHasLegalMove(false)) {
 				uim.enableBannerInput();
 				setState('phaseTwo');
 			}
 			else {
-				assert(false, "phaseTwoDraw.UIoperationComplete: player out of moves!");
+				uim.setLeftHint('');
+				uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'phaseTwoReshuffle');
 			}
 		},
 	},
@@ -221,7 +391,7 @@ var sm = {
 	// Phase One
 	///////////////////////////////////////////////////////////////////////////
 	endPhaseOne: {
-		enter: function() {
+		enter: function(data) {
 			uim.disableBannerInput();
 			listenFor('UIoperationComplete', this);
 			uim.startOperation('moveBannersOut', this);
@@ -235,16 +405,23 @@ var sm = {
 			unlistenFor('UIoperationComplete', this);
 		},
 
+		onPushed: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPopped: function() {
+			listenFor('UIoperationComplete', this);
+		},
+
 		UIoperationComplete: function(data) {
 			gs.removeInsectsAndNematodes();
 			gs.addPhaseTwoCards();
-			gs.shuffleDrawDeck();
-			sm.setTransitionState('phaseTwoStart' ,'phaseTwo');
+			sm.setTransitionState('phaseTwoStart', 'phaseTwo');
 		},
 	},
 
 	phaseOneDiscard: {
-		enter: function() {
+		enter: function(data) {
 			uim.disableBannerInput();
 			listenFor('UIoperationComplete', this);
 			gs.blockBiomes(null);
@@ -256,6 +433,14 @@ var sm = {
 
 		exit: function() {
 			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPushed: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPopped: function() {
+			listenFor('UIoperationComplete', this);
 		},
 
 		UIoperationComplete: function(data) {
@@ -277,7 +462,7 @@ var sm = {
 	},
 
 	phaseOneDraw: {
-		enter: function() {
+		enter: function(data) {
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.startOperation('showFocusBanner');
 			listenFor('UIoperationComplete', this);
@@ -293,6 +478,14 @@ var sm = {
 			uim.enableBannerInput();
 		},
 
+		onPushed: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPopped: function() {
+			listenFor('UIoperationComplete', this);
+		},
+
 		UIoperationComplete: function(data) {
 			if (gs.playerHasLegalMove(true)) {
 				uim.enableBannerInput();
@@ -305,8 +498,11 @@ var sm = {
 	},
 
 	startPhaseOne: {
-		enter: function() {
+		enter: function(data) {
+			gs.shuffleDrawDeck();
 			uim.syncBannersToCards();
+
+			gs.setPhaseOne(true);
 
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.disableBannerInput();
@@ -322,13 +518,21 @@ var sm = {
 			unlistenFor('UIoperationComplete', this);
 		},
 
+		onPushed: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPopped: function() {
+			listenFor('UIoperationComplete', this);
+		},
+
 		UIoperationComplete: function(data) {
 			setState('phaseOne');
 		},
 	},
 
 	phaseOne: {
-		enter: function() {
+		enter: function(data) {
 			uim.enableBannerInput();
 			gs.showNextCardHints();
 		},
