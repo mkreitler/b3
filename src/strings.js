@@ -6,7 +6,7 @@ strings = {
 		OUT_OF_PLAYS: "Out of Plays!",
 		RESHUFFLE_AND_TRY_AGAIN: "Reshuffle and try again.",
 		GAME_OVER: "Game Over",
-		NO_MORE_PLAYS: "None of your remaining E.G.G.s can hatch\non this world."
+		NO_MORE_PLAYS: "None of your remaining E.G.G.s can hatch\non this world.",
 		INSECT_MISPLACED: "Place insects to the left of a plant\nto activate their special ability.",
 		NICHE_FULL: "This niche cannot hold any more\norganisms.",
 		INVALID_PLACEMENT_HERBIVORE: "Herbivores must be placed beneath a Producer.",
@@ -33,4 +33,19 @@ strings = {
 		PROMPT: "(Tap here to continue...)",
 		LOST: "LOST:",
 	},
+	DESCRIPTIONS: {
+		LARGE_PLANT: 'Large plants cannot grow in deserts or\nplains.',
+		ANGIOSPERM: 'An Angiosperm can regrow from seeds\nconsumed by the animal below it.',
+		POLLINATOR: 'A Pollinator strengthens the plant to its\nright by increasing its genetic diversity.',
+		DECOMPOSER: "Decomposers increase a biome's arable\nland.",
+		ADAPTOR: 'Adaptors can can change role (herbivore,\ncarnivore, or scavenger) when displaced.',
+		MIGRATOR: 'Migratory animals can move to any biome\nif displaced by an event.',
+		SYMBIOTE: 'A Symbiote protects, and is protected by,\nthe animal to it left.',		
+	},
+	WARNINGS: {
+		HERBIVORE: 'Herbivores must be played beneath a plant.',
+		CARNIVORE: 'Carnivores must be played beneath an\nherbivore, insect, or nematode.',
+		SCAVENGER: 'Scavengers must be played beneath a\ncarnivore.',
+		OMNIVORE: 'Omnivores can be played as an herbivore,\ncarnivore, or scavenger.',
+	}
 }

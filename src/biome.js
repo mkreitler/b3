@@ -372,7 +372,7 @@ bd.biome.prototype.getNumNiches = function() {
 	return this.niches ? this.niches.length : 0;
 }
 
-bd.biome.prototype.placePhaseOneCursors = function(card) {
+bd.biome.prototype.placeCursors = function(card) {
 	var nNiches = this.getNumNiches();
 	var i = 0;
 

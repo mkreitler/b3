@@ -61,23 +61,24 @@
  	},
 
  	listReplaceWithLastNonNull: function(list, iReplace) {
- 		var i = 0;
+ 		var bReplaced = false;
  		var iLast = -1;
 
  		if (list && iReplace < list.length) {
- 			for (iLast = list.length - 1; iLast >= 0; --iLast) {
+ 			for (iLast = list.length - 1; iLast > iReplace; --iLast) {
  				if (list[iLast]) {
  					break;
  				}
  			}
 
- 			if (iLast >= 0) {
+ 			if (iLast > iReplace) {
  				list[iReplace] = list[iLast];
  				list[iLast] = null;
+ 				bReplaced = true;
  			}
  		}
 
- 		return iLast;
+ 		return bReplaced;
  	},
 
  	trimList: function(list) {
