@@ -71,7 +71,7 @@
 
  	raiseGroups: function() {
  		game.world.bringToTop(this.group);
- 		game.world.bringToTop(this.buttonGroup);
+ 		// game.world.bringToTop(this.buttonGroup);
  		game.world.bringToTop(this.infoGroup);
  	},
 
@@ -98,23 +98,33 @@
  	},
 
  	setLeftHint: function(message) {
- 		this.hint.text.text = message;
+ 		if (message) {
+	 		this.hint.text.text = message;
 
- 		this.hint.sprite.x = this.hint.text.width;
- 		this.hint.group.x = Math.round(this.leftHintCenter() - (this.hint.text.width / 2 + TILE_SIZE * gs.SPRITE_SCALE / 2));
+	 		this.hint.sprite.x = this.hint.text.width;
+	 		this.hint.group.x = Math.round(this.leftHintCenter() - (this.hint.text.width / 2 + TILE_SIZE * gs.SPRITE_SCALE / 2));
 
- 		this.hint.text.visible = true;
- 		this.hint.sprite.visible = true;
+	 		this.hint.text.visible = true;
+	 		this.hint.sprite.visible = true;
+	 	}
+	 	else {
+	 		this.hideHint();
+	 	}
  	},
 
  	setRightHint: function(message) {
- 		this.hint.text.text = message;
+ 		if (message) {
+	 		this.hint.text.text = message;
 
- 		this.hint.sprite.x = this.hint.text.width;
- 		this.hint.group.x = Math.round(this.rightHintCenter() - (this.hint.text.width / 2 + TILE_SIZE * gs.SPRITE_SCALE / 2));
+	 		this.hint.sprite.x = this.hint.text.width;
+	 		this.hint.group.x = Math.round(this.rightHintCenter() - (this.hint.text.width / 2 + TILE_SIZE * gs.SPRITE_SCALE / 2));
 
- 		this.hint.text.visible = true;
- 		this.hint.sprite.visible = true;
+	 		this.hint.text.visible = true;
+	 		this.hint.sprite.visible = true;
+	 	}
+	 	else {
+	 		this.hideHint();
+	 	}
  	},
 
  	hideHint: function() {
@@ -167,7 +177,7 @@
  		this.infoDlgMarker.data.tweenIn.onComplete.add(this.onInfoDialogIn, this);
 
 		this.infoDlgTitle = game.add.bitmapText(this.infoDlgPanel.width / 2, uim.TITLE_SIZE / 2, 'bogboo', "Event Title", uim.TITLE_SIZE); 		
-		this.infoDlgText = game.add.bitmapText(this.infoDlgPanel.width / 2, this.infoDlgPanel.height * 1 / 4 + uim.TITLE_SIZE / 2, 'bogboo', "Event Info", uim.INFO_TEXT_SIZE); 		
+		this.infoDlgText = game.add.bitmapText(this.infoDlgPanel.width / 2, this.infoDlgPanel.height * 1 / 4 + uim.TITLE_SIZE / 3, 'bogboo', "Event Info", uim.INFO_TEXT_SIZE); 		
 		this.infoDlgPrompt = game.add.bitmapText(this.infoDlgPanel.width / 2, this.infoDlgPanel.height - uim.TITLE_SIZE, 'bogboo', strings.EVENTS.PROMPT, uim.INFO_TEXT_SIZE * 3 / 4); 		
 		this.infoDlgPanel.addChild(this.infoDlgTitle);
 		this.infoDlgPanel.addChild(this.infoDlgText);
@@ -223,6 +233,10 @@
 		this.infoDlgMarker.data.tweenIn.start()
  	},
 
+ 	showInfoPrompt: function() {
+ 		this.infoDlgPrompt.tweenIn.start();
+ 	},
+
  	onInfoDialogIn: function() {
 		this.infoDlgPanel.data.tweenOut.start();
  	},
@@ -230,10 +244,17 @@
  	revealInfoText: function() {
 		this.infoDlgTitle.tweenIn.start();
 		this.infoDlgText.tweenIn.start();
-		this.infoDlgPrompt.tweenIn.start();
  	},
 
  	hideInfoText: function() {
+		this.infoDlgTitle.tweenIn.stop();
+		this.infoDlgText.tweenIn.stop();
+		this.infoDlgPrompt.tweenIn.stop();
+
+		this.infoDlgTitle.tweenOut.start();
+		this.infoDlgText.tweenOut.start();
+		this.infoDlgPrompt.tweenOut.start();
+
  		this.infoDlgMarker.data.tweenOut.start();
  	},
 

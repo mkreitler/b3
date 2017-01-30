@@ -2,7 +2,6 @@
 
 var sm = {
 	nextState: null,
-	eventBiome: null,
 
 	setTransitionState: function(state, nextState, stateData) {
 		this.nextState = nextState;
@@ -13,9 +12,74 @@ var sm = {
 		this.nextState = null;
 	},
 
+	handleBannerPress: function(button) {
+		if (button && button.banner) {
+			uim.clearAllCursors();
+			uim.setRightHint(strings.HINTS.PLACE_ORGANISM);
+			button.banner.showKeywordInfo();
+			gs.showAvailableBiomes(button.banner.data);
+			gs.showTargetableNiches(button.banner.data);
+		}
+	},
+
+	handleWorldPress: function(transReturnState, discardState) {
+		var worldPressInfo = null;
+		var failMsg = null;
+
+		if (uim.hasFocusCard()) {
+		 	worldPressInfo = gs.getWorldPressInfo(game.input.activePointer.x, game.input.activePointer.y);
+
+		 	if (worldPressInfo && worldPressInfo.biome) {
+		 		if (worldPressInfo.biome.isBlocked()) {
+				 	uim.clearInfoText();
+				 	uim.addInfoText(strings.INFO.ILLEGAL_PLACEMENT);
+				 	sm.setTransitionState('wiggleFocusBanner', transReturnState);
+		 		}
+		 		else {
+		 			failMsg = gs.populateNiche(uim.getFocusCard(), worldPressInfo.niche);
+		 			if (failMsg) {
+					 	uim.clearInfoText();
+					 	uim.addInfoText(failMsg);
+		 			}
+		 			else {
+		 				uim.clearInfoText();
+		 				setState(discardState);
+		 			}
+		 		}
+
+		 		uim.clearAllCursors();
+		 	}
+		 }
+		 else {
+		 	uim.clearInfoText();
+		 	uim.addInfoText(strings.INFO.SELECT_ORGANISM);
+
+		 	sm.setTransitionState('wiggleBanners', transReturnState);
+		 }
+	},
+
 	///////////////////////////////////////////////////////////////////////////
 	// End Game
 	///////////////////////////////////////////////////////////////////////////
+	startGameEnd: {
+		enter: function(data) {
+			uim.clearInfoText();
+			uim.disableBannerInput();
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut', this);
+			uim.hideHint();
+		},
+
+		update: function() {},
+
+		exit: function() {},
+
+		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+			uim.showInfoDialog(strings.INFO.GAME_OVER, strings.INFO.NO_MORE_PLAYS, 'endGame');
+		}
+	},
+
 	endGame: {
 		enter: function(data) {
 			console.log("GAME OVER!");
@@ -35,8 +99,9 @@ var sm = {
 	///////////////////////////////////////////////////////////////////////////
 	chooseEvent: {
 		enter: function(data) {
-			sm.eventBiome = gs.getEventBiome();
-			uim.showEvent(sm.eventBiome, events.getCurrentEventTitle(), events.getCurrentEventInfo());
+			var eventBiome = gs.getEventBiome();
+			events.setBiome(eventBiome);
+			uim.showEvent(eventBiome, events.getCurrentEventTitle(), events.getCurrentEventInfo());
 			listenFor('eventExited', this);
 		},
 
@@ -50,12 +115,14 @@ var sm = {
 
 		eventExited: function(data) {
 			unlistenFor('eventExited', this);
-			setState(sm.applyEvent);
+			setState(sm.eventDestroyCards);
+			gs.makeDisplacementDeckDrawDeck();
 		}
 	},
 
-	applyEvent: {
+	eventDestroyCards: {
 		enter: function(data) {
+			uim.clearInfoText();
 			uim.disableBannerInput();
 			listenFor('UIoperationComplete', this);
 			uim.startOperation('moveBannersOut', this);
@@ -66,26 +133,286 @@ var sm = {
 		},
 
 		exit: function() {
-			unlistenFor('UIoperationComplete', this);
 		},
 
 		UIoperationComplete: function(data) {
-			listenFor('eventApplied', this);
-			uim.clearInfoText();
-			uim.addInfoText(strings.EVENTS.LOST);
+			events.tagCardsForDestruction();
+			unlistenFor('UIoperationComplete', this);
 
-			events.applyCurrent(sm.eventBiome);
-		},
-
-		eventResolved: function(data) {
-			unlistenFor('eventApplied', this);
-			setState(sm.resolveEvent);
+			setState(sm.eventShowDestroyed);
 		},
 	},
 
-	resolveEvent: {
-		enter: function(data) {
+	eventShowDestroyed: {
+		bExit: false,
 
+		enter: function(data) {
+			listenFor('allCardsRemoved', this);
+			events.destroyCards();
+		},
+
+		update: function() {
+			var nBiomesAffected = events.getNumBiomesAffected();
+			var nCardsDestroyed = events.getNumCardsDestroyed();
+
+			if (this.bExit) {
+				unlistenFor('cardsDestroyed', this);
+
+				if (events.getNumBiomesAffected() === 1) {
+					if (nCardsDestroyed === 1) {
+						uim.showInfoDialog(strings.EVENTS.BIOME_DAMAGED,
+										   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_SINGULAR, [nBiomesAffected, nCardsDestroyed]),
+										   'eventDisplaceCards');
+					}
+					else {
+						uim.showInfoDialog(strings.EVENTS.BIOME_DAMAGED,
+										   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_PLURAL, [nBiomesAffected, nCardsDestroyed]),
+										   'eventDisplaceCards');
+					}
+				}
+				else {
+					if (nCardsDestroyed === 1) {
+						uim.showInfoDialog(strings.EVENTS.BIOMES_DAMAGED,
+										   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_SINGULAR, [nBiomesAffected, nCardsDestroyed]),
+										   'eventDisplaceCards');
+					}
+					else {
+						uim.showInfoDialog(strings.EVENTS.BIOMES_DAMAGED,
+										   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_PLURAL, [nBiomesAffected, nCardsDestroyed]),
+										   'eventDisplaceCards');
+					}
+				}
+			}
+		},
+
+		exit: function() {
+		},
+
+		allCardsRemoved: function(data) {
+			unlistenFor('allCardsRemoved', this);
+			this.bExit = true;
+		}
+	},
+
+	eventDisplaceCards: {
+		bExit: false,
+
+		enter: function(data) {
+			var nextBiome = null;
+
+			nextBiome = events.getNextAffectedBiome();
+
+			while (nextBiome) {
+				listenFor('allCardsDisplaced', this);
+				gs.isolateBiome(nextBiome);
+				events.tagCardsForDisplacement(nextBiome);
+
+				if (events.getNumCardsDisplaced()) {
+					events.displaceCards(nextBiome);
+					break;
+				}
+				else {
+					nextBiome = events.getNextAffectedBiome();
+				}
+			}
+
+			if (!nextBiome) {
+				this.bExit = true;
+			}
+		},
+
+		update: function() {
+			if (this.bExit) {
+				// Set up next state here.
+				gs.unblockAllBiomes();
+				uim.showInfoDialog(strings.EVENTS.RESOLVED,
+								   strings.EVENTS.RESOLUTION_MESSAGE,
+								   "eventEnd");
+			}
+		},
+
+		exit: function() {
+		},
+
+		allCardsDisplaced: function(data) {
+			unlistenFor('allCardsDisplaced', this);
+			setState(sm.eventStartDisplacementResolution);
+		},
+	},
+
+	eventStartDisplacementResolution: {
+		bExit: false,
+
+		enter: function(data) {
+			uim.syncBannersToCards();
+			uim.disableBannerInput();
+
+			uim.setLeftHint(strings.HINTS.CHOOSE_DISPLACED_ORGANISM);
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersIn', this);
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+		},
+
+		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+			setState(sm.eventResolveDisplacement);
+		}
+	},
+
+	eventResolveDisplacement: {
+		bExit: false,
+
+		enter: function(data) {
+			if (gs.playerHasLegalMove(false)) {
+				uim.enableBannerInput();
+				gs.showNextCardHints();
+			}
+			else {
+				this.bExit = true;
+			}
+		},
+
+		update: function() {
+			if (this.bExit) {
+				uim.disableBannerInput();
+
+				if (!gs.doPlaysRemainInDrawDeck()) {
+					uim.showInfoDialog(strings.INFO.NO_MORE_MOVES, strings.EVENTS.WILL_DISCARD_REMAINING_ORGANISMS, 'eventDisplaceCards');
+				}
+				else {
+					uim.setLeftHint('');
+					uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'eventReshuffle');
+				}
+			}
+		},
+
+		exit: function() {
+		},
+
+		onBannerPressedCallback: function(button) {
+			sm.handleBannerPress(button);
+		},
+
+		onWorldPressCallback: function() {
+			sm.handleWorldPress('eventResolveDisplacement', 'eventDiscard');
+		},
+	},
+
+	eventReshuffle: {
+		enter: function(data) {
+			uim.startOperation('moveBannersOut');
+			listenFor('UIoperationComplete', this);
+		},
+
+		update: function() {
+		},
+
+		exit: function() {
+
+		},
+
+		UIoperationComplete: function() {
+			unlistenFor('UIoperationComplete', this);
+			gs.shuffleDrawDeck();
+			setState(sm.eventStartDisplacementResolution);
+		}
+	},
+
+	eventDiscard: {
+		// TODO: Trigger extinction events every 7 discards.
+		enter: function(data) {
+			uim.disableBannerInput();
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('hideFocusBanner', this);
+		},
+
+		update: function() {
+		},
+
+		exit: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPushed: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPopped: function() {
+			listenFor('UIoperationComplete', this);
+		},
+
+		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+
+			if (gs.discardAndReplace(uim.getFocusCard())) {
+				setState('eventDraw');
+			}
+			else {
+				// No cards left in deck. Check to see if legal
+				// plays remain.
+				uim.clearFocusBanner();
+
+				if (gs.playerHasLegalMove(false)) {
+					uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
+					uim.enableBannerInput();
+					setState('eventResolveDisplacement');
+				}
+				else {
+					// TODO: transition to next biome.
+					// If this is the last biome, transition
+					// back to normal game.
+					uim.setLeftHint('');
+					gs.shuffleDrawDeck();
+					uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'eventResolveDisplacement');
+				}
+			}
+		},
+	},
+
+	eventDraw: {
+		enter: function(data) {
+			uim.startOperation('showFocusBanner');
+			listenFor('UIoperationComplete', this);
+			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
+			uim.clearFocusBanner();
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+			unlistenFor('UIoperationComplete', this);
+			uim.enableBannerInput();
+		},
+
+		onPushed: function() {
+			unlistenFor('UIoperationComplete', this);
+		},
+
+		onPopped: function() {
+			listenFor('UIoperationComplete', this);
+		},
+
+		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+
+			uim.enableBannerInput();
+			setState('eventResolveDisplacement');
+		},
+	},
+
+	eventEnd: {
+		enter: function(data) {
+			uim.startOperation('moveBannersOut');
+			listenFor('UIoperationComplete', this);
+			uim.setLeftHint('');
 		},
 
 		update: function() {
@@ -95,20 +422,15 @@ var sm = {
 		exit: function() {
 
 		},
-	},
 
-	discussEvent: {
-		enter: function(data) {
+		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
 
-		},
+			gs.restoreOriginalDrawDeck();
+			sm.setTransitionState("startPhaseTwo", "phaseTwo");
 
-		update: function() {
-
-		},
-
-		exit: function() {
-
-		},
+			// TODO: if this is the final event, go to game over.
+		}
 	},
 
 	///////////////////////////////////////////////////////////////////////////
@@ -131,6 +453,8 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+			
 			setState(sm.nextState);
 		},
 	},
@@ -151,22 +475,35 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+			
 			setState(sm.nextState);
 		},
 	},
 
 	// showInfoDialog must be invoked with setTransitionState()!
 	showInfoDialog: {
+		PROMPT_DELAY_MS: 2000,
+		promptTimer: 0,
+
 		enter: function(data) {
 			listenFor('infoDialogOut', this);
 
 			assert(data && data.title && data.text, "showInfoDialog: invalid text data!");
 
+			this.promptTimer = 0;
 			uim.startInfoDialog(data.title, data.text);
 			uim.blockInput();
 		},
 
 		update: function() {
+			var oldTime = this.promptTimer;
+
+			this.promptTimer += game.time.physicsElapsedMS;
+
+			if (oldTime < this.PROMPT_DELAY_MS && this.promptTimer >= this.PROMPT_DELAY_MS) {
+				uim.showInfoPrompt();
+			}
 		},
 
 		exit: function() {
@@ -188,20 +525,29 @@ var sm = {
 	///////////////////////////////////////////////////////////////////////////
 	// Phase Two
 	///////////////////////////////////////////////////////////////////////////
-	phaseTwoStart: {
+	startPhaseTwo: {
+		bExit: false,
+
 		enter: function(data) {
-			gs.shuffleDrawDeck();
-			uim.syncBannersToCards();
+			if (gs.doPlaysRemainInDrawDeck()) {
+				gs.shuffleDrawDeck();
+				uim.syncBannersToCards();
 
-			gs.setPhaseOne(false);
+				gs.setPhaseOne(false);
 
-			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
-			listenFor('UIoperationComplete', this);
-			uim.startOperation('moveBannersIn', this);
+				uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
+				listenFor('UIoperationComplete', this);
+				uim.startOperation('moveBannersIn', this);
+			}
+			else {
+				this.bExit = true;
+			}
 		},
 
 		update: function() {
-
+			if (this.bExit) {
+				uim.showInfoDialog(strings.INFO.GAME_OVER, strings.INFO.NO_MORE_PLAYS, 'endGame');
+			}
 		},
 
 		exit: function() {
@@ -217,6 +563,7 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
 			setState(sm.nextState);
 		}
 	},
@@ -235,49 +582,11 @@ var sm = {
 		},
 
 		onBannerPressedCallback: function(button) {
-			if (button && button.banner) {
-				uim.clearAllCursors();
-				uim.setRightHint(strings.HINTS.PLACE_ORGANISM);
-				button.banner.showKeywordInfo();
-				gs.showAvailableBiomes(button.banner.data);
-				gs.showTargetableNiches(button.banner.data);
-			}
+			sm.handleBannerPress(button);
 		},
 
 		onWorldPressCallback: function() {
-			var worldPressInfo = null;
-			var failMsg = null;
-
-			if (uim.hasFocusCard()) {
-			 	worldPressInfo = gs.getWorldPressInfo(game.input.activePointer.x, game.input.activePointer.y);
-
-			 	if (worldPressInfo && worldPressInfo.biome) {
-			 		if (worldPressInfo.biome.isBlocked()) {
-					 	uim.clearInfoText();
-					 	uim.addInfoText(strings.INFO.ILLEGAL_PLACEMENT);
-					 	sm.setTransitionState('wiggleFocusBanner', 'phaseTwo');
-			 		}
-			 		else {
-			 			failMsg = gs.populateNiche(uim.getFocusCard(), worldPressInfo.niche);
-			 			if (failMsg) {
-						 	uim.clearInfoText();
-						 	uim.addInfoText(failMsg);
-			 			}
-			 			else {
-			 				uim.clearInfoText();
-			 				setState('phaseTwoDiscard');
-			 			}
-			 		}
-
-			 		uim.clearAllCursors();
-			 	}
-			 }
-			 else {
-			 	uim.clearInfoText();
-			 	uim.addInfoText(strings.INFO.SELECT_ORGANISM);
-
-			 	sm.setTransitionState('wiggleBanners', 'phaseTwo');
-			 }
+			sm.handleWorldPress('phaseTwo', 'phaseTwoDiscard');
 		},
 	},
 
@@ -305,20 +614,32 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+
 			if (gs.discardAndReplace(uim.getFocusCard())) {
-				setState('phaseTwoDraw');
+				if (gs.doPlaysRemainInDrawDeck()) {
+					setState('phaseTwoDraw');
+				}
+				else {
+					setState(sm.startGameEnd);
+				}
 			}
 			else {
 				uim.clearFocusBanner();
 
-				if (gs.playerHasLegalMove(false)) {
-					uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
-					uim.enableBannerInput();
-					setState('phaseTwo');
+				if (gs.doPlaysRemainInDrawDeck()) {
+					if (gs.playerHasLegalMove(false)) {
+						uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
+						uim.enableBannerInput();
+						setState('phaseTwo');
+					}
+					else {
+						uim.setLeftHint('');
+						uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'phaseTwoReshuffle');
+					}
 				}
 				else {
-					uim.setLeftHint('');
-					uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'phaseTwoReshuffle');
+					setState(sm.startGameEnd);
 				}
 			}
 		},
@@ -326,6 +647,8 @@ var sm = {
 
 	phaseTwoReshuffle: {
 		enter: function(data) {
+			assert(gs.doPlaysRemainInDrawDeck(), "phaseTwoReshuffle.enter: no plays remain in draw deck!");
+
 			uim.startOperation('moveBannersOut');
 			listenFor('UIoperationComplete', this);
 		},
@@ -340,18 +663,15 @@ var sm = {
 		UIoperationComplete: function() {
 			unlistenFor('UIoperationComplete', this);
 
-			if (!gs.doPlaysRemainInDrawDeck()) {
-				uim.showInfoDialog(strings.INFO.GAME_OVER, strings.INFO.NO_MORE_PLAYS, 'endGame');
-			}
-			else {
-				gs.shuffleDrawDeck();
-				sm.setTransitionState('phaseTwoStart', 'phaseTwo');
-			}
+			gs.shuffleDrawDeck();
+			sm.setTransitionState('startPhaseTwo', 'phaseTwo');
 		}
 	},
 
 	phaseTwoDraw: {
 		enter: function(data) {
+			assert(gs.doPlaysRemainInDrawDeck(), "phaseTwoReshuffle.enter: no plays remain in draw deck!");
+			
 			uim.startOperation('showFocusBanner');
 			listenFor('UIoperationComplete', this);
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
@@ -376,6 +696,8 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+			
 			if (gs.playerHasLegalMove(false)) {
 				uim.enableBannerInput();
 				setState('phaseTwo');
@@ -390,11 +712,17 @@ var sm = {
 	///////////////////////////////////////////////////////////////////////////
 	// Phase One
 	///////////////////////////////////////////////////////////////////////////
-	endPhaseOne: {
+	startPhaseOne: {
 		enter: function(data) {
+			gs.shuffleDrawDeck();
+			uim.syncBannersToCards();
+
+			gs.setPhaseOne(true);
+
+			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.disableBannerInput();
+			uim.startOperation('moveBannersIn');
 			listenFor('UIoperationComplete', this);
-			uim.startOperation('moveBannersOut', this);
 		},
 
 		update: function() {
@@ -414,10 +742,32 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
-			gs.removeInsectsAndNematodes();
-			gs.addPhaseTwoCards();
-			sm.setTransitionState('phaseTwoStart', 'phaseTwo');
+			unlistenFor('UIoperationComplete', this);
+			
+			setState('phaseOne');
 		},
+	},
+
+	phaseOne: {
+		enter: function(data) {
+			uim.enableBannerInput();
+			gs.showNextCardHints();
+		},
+
+		update: function() {
+		},
+
+		exit: function() {
+
+		},
+
+		onBannerPressedCallback: function(button) {
+			sm.handleBannerPress(button);
+		},
+
+		onWorldPressCallback: function() {
+			sm.handleWorldPress('phaseOne', 'phaseOneDiscard');
+		}
 	},
 
 	phaseOneDiscard: {
@@ -444,6 +794,8 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+			
 			if (gs.discardAndReplace(uim.getFocusCard())) {
 				setState('phaseOneDraw');
 			}
@@ -487,6 +839,8 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+			
 			if (gs.playerHasLegalMove(true)) {
 				uim.enableBannerInput();
 				setState('phaseOne');
@@ -497,17 +851,11 @@ var sm = {
 		},
 	},
 
-	startPhaseOne: {
+	endPhaseOne: {
 		enter: function(data) {
-			gs.shuffleDrawDeck();
-			uim.syncBannersToCards();
-
-			gs.setPhaseOne(true);
-
-			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.disableBannerInput();
-			uim.startOperation('moveBannersIn');
 			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut', this);
 		},
 
 		update: function() {
@@ -527,67 +875,11 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
-			setState('phaseOne');
+			unlistenFor('UIoperationComplete', this);
+			
+			gs.removeInsectsAndNematodes();
+			gs.addPhaseTwoCards();
+			sm.setTransitionState('startPhaseTwo', 'phaseTwo');
 		},
 	},
-
-	phaseOne: {
-		enter: function(data) {
-			uim.enableBannerInput();
-			gs.showNextCardHints();
-		},
-
-		update: function() {
-		},
-
-		exit: function() {
-
-		},
-
-		onBannerPressedCallback: function(button) {
-			if (button && button.banner) {
-				uim.clearAllCursors();
-				button.banner.showKeywordInfo();
-				gs.showAvailableBiomes(button.banner.data);
-				gs.showTargetableNiches(button.banner.data);
-				uim.setRightHint(strings.HINTS.PLACE_ORGANISM);
-			}
-		},
-
-		onWorldPressCallback: function() {
-			var worldPressInfo = null;
-			var failMsg = null;
-
-			if (uim.hasFocusCard()) {
-			 	worldPressInfo = gs.getWorldPressInfo(game.input.activePointer.x, game.input.activePointer.y);
-
-			 	if (worldPressInfo && worldPressInfo.biome) {
-			 		if (worldPressInfo.biome.isBlocked()) {
-					 	uim.clearInfoText();
-					 	uim.addInfoText(strings.INFO.ILLEGAL_PLACEMENT);
-					 	sm.setTransitionState('wiggleFocusBanner' ,'phaseOne');
-			 		}
-			 		else {
-			 			failMsg = gs.populateNiche(uim.getFocusCard(), worldPressInfo.niche);
-			 			if (failMsg) {
-						 	uim.clearInfoText();
-						 	uim.addInfoText(failMsg);
-			 			}
-			 			else {
-			 				uim.clearInfoText();
-			 				setState('phaseOneDiscard');
-			 			}
-			 		}
-
-			 		uim.clearAllCursors();
-			 	}
-			 }
-			 else {
-			 	uim.clearInfoText();
-			 	uim.addInfoText(strings.INFO.SELECT_ORGANISM);
-
-			 	sm.setTransitionState('wiggleBanners', 'phaseOne');
-			 }
-		},
-	}
 }

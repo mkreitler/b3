@@ -4,6 +4,8 @@ var MAX_WINDOW_Y = 768;
 var N_BIOMES = 5;
 var LAYER_OFFSET = 3;
 var SHADOW_OFFSET = 4;
+var TILE_OFFSET_X = TILE_SIZE / 6;
+var TILE_OFFSET_Y = TILE_SIZE / 6;
 
 var tilesX = Math.floor(MAX_WINDOW_X / TILE_SIZE);
 var tilesY = Math.floor(MAX_WINDOW_Y / TILE_SIZE);
@@ -137,8 +139,15 @@ function create() {
 		}
 	}
 
-	gs.layers.shadows.pivot.y -= SHADOW_OFFSET;
+	gs.layers.shadows.pivot.y -= SHADOW_OFFSET - TILE_OFFSET_Y;
+	gs.layers.shadows.pivot.x += TILE_OFFSET_X;
+	gs.layers.animals.pivot.y += TILE_OFFSET_Y;
+	gs.layers.animals.pivot.x += TILE_OFFSET_X;
+	gs.layers.producers.pivot.y += TILE_OFFSET_Y;
+	gs.layers.producers.pivot.x += TILE_OFFSET_X;
+	gs.layers.grid.pivot.x += TILE_OFFSET_X;
 	gs.layers.links.alpha = gs.LINK_ALPHA;
+	gs.layers.grid.alpha = gs.SPECIAL_ALPHA;
 
 	for (key in gs.baseLayers) {
 		if (gs.baseLayers[key]) {
@@ -165,11 +174,11 @@ function startGame() {
 			setState(sm.startPhaseOne);
 		}
 		else {
-			sm.setTransitionState('phaseTwoStart', 'phaseTwo');
+			sm.setTransitionState('startPhaseTwo', 'phaseTwo');
 		}
 
 		// DEBUG: force transition to testEvent state.
-		// setTimeout(function() {setState(sm.chooseEvent);}, 1000);
+		setTimeout(function() {setState(sm.chooseEvent);}, 1000);
 	}
 	else {
 		generateStartingTerrain();

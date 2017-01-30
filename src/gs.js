@@ -14,7 +14,8 @@
 
 // GameState
 gs =  {
-	LINK_ALPHA: 0.5,
+	LINK_ALPHA: 0.67,
+	SPECIAL_ALPHA: 0.5,
 	WILD_CARD_VALUE: 4,
  	SPRITE_SCALE: 1.5,
 
@@ -26,9 +27,10 @@ gs =  {
 	bLogging: true,
 	cardLog: [],
 	debugLog: [
-		{"biomes":"{~Desert~0~3~2~}{~Wetlands~1~1~3~}{~Plains~2~2~4~}{~Plains~3~2~3~}{~Mountains~4~2~2~}","cards":["4~0~1","14~2~3","13~1~2","10~3~2","6~2~1","0~3~0","15~0~0","1~1~1","8~2~2","7~4~1","3~2~0","2~3~1","12~1~1","5~4~1","9~4~0","11~1~0"]}
+		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1"]},
+		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1","38~0~1","21~1~2","27~1~1","71~2~2","65~0~1","30~4~0","28~3~2","32~3~1","29~4~1","49~0~0","39~1~0","56~1~0","37~4~1","51~4~1","22~2~3","50~1~1","47~1~2","24~2~1","66~0~0","59~1~2","48~2~3","17~2~0","46~2~0","25~3~0","64~1~1","34~2~2","54~2~3","67~2~2","35~4~0","45~2~1","41~3~2","55~2~1","43~3~0","53~4~0","70~3~1","57~3~2","68~3~1"]},
 	],
-	iRestore: -1,
+	iRestore: 0,
 	logData: '',
 
 	worldPressInfo: {biome: null, niche: null, tile: null},
@@ -78,98 +80,98 @@ gs =  {
 	cardValueToSuit: {'0': 'P', '1': 'H', '2': 'C', '3': 'S', '4': 'W'},
 
 	phaseOneCards: [
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer, Angiosperm', special: 'angiosperm'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Nematoda', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Decomposer', special: 'decomposer'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Insecta', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer, Pollinator', special: 'pollinator'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer, Angiosperm', special: 'angiosperm'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Nematoda', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Decomposer', special: 'decomposer'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer, Angiosperm', special: 'angiosperm'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Producer', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Producer', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Producer, Angiosperm', special: 'angiosperm'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Insecta', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer, Pollinator', special: 'pollinator'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Producer', special: ''},
+		{id: 0, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer, Angiosperm', special: 'angiosperm'},
+		{id: 1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Nematoda', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Decomposer', special: 'decomposer'},
+		{id: 2, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Insecta', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer, Pollinator', special: 'pollinator'},
+		{id: 3, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer, Angiosperm', special: 'angiosperm'},
+		{id: 4, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer', special: ''},
+		{id: 5, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer', special: ''},
+		{id: 6, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer', special: ''},
+		{id: 7, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Nematoda', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Decomposer', special: 'decomposer'},
+		{id: 8, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer, Angiosperm', special: 'angiosperm'},
+		{id: 9, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Producer', special: ''},
+		{id: 10, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer', special: ''},
+		{id: 11, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Producer', special: ''},
+		{id: 12, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer', special: ''},
+		{id: 13, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Producer, Angiosperm', special: 'angiosperm'},
+		{id: 14, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Producer', special: ''},
+		{id: 15, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Insecta', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Producer, Pollinator', special: 'pollinator'},
+		{id: 16, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Plantae', niche: null, value: 0, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Producer', special: ''},
 	],
 
 	phaseTwoCards: [
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore, Migrator', special: 'migrator'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Herbivore, Symbiote', special: 'symbiote'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Herbivore, Migratory', special: 'migratory'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Herbivore, Symbiote', special: 'symbiote'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Herbivore, Migrator', special: 'migrator'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Herbivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore, Symbiote', special: 'symbiote'},
+		{id: 17, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Herbivore', special: ''},
+		{id: 18, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Herbivore', special: ''},
+		{id: 19, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Herbivore', special: ''},
+		{id: 20, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore', special: ''},
+		{id: 21, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore, Migrator', special: 'migrator'},
+		{id: 22, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Herbivore, Symbiote', special: 'symbiote'},
+		{id: 23, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Herbivore', special: ''},
+		{id: 24, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Herbivore, Migrator', special: 'migrator'},
+		{id: 25, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Herbivore', special: ''},
+		{id: 26, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Herbivore', special: ''},
+		{id: 27, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Herbivore', special: ''},
+		{id: 28, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Herbivore, Symbiote', special: 'symbiote'},
+		{id: 29, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Herbivore, Migrator', special: 'migrator'},
+		{id: 30, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore', special: ''},
+		{id: 31, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore', special: ''},
+		{id: 32, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Herbivore', special: ''},
+		{id: 33, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 1, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Herbivore, Symbiote', special: 'symbiote'},
 
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Carnivore, Symbiote', special: 'symbiote'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Large, Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Carnivore, Migrator', special: 'migrator'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Carnivore, Symbiote', special: 'symbiote'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Carnivore, Migrator', special: 'migrator'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore, Symbiote', special: 'symbiote'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Carnivore, Migrator', special: 'migrator'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Carnivore', special: ''},
+		{id: 34, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Carnivore, Symbiote', special: 'symbiote'},
+		{id: 35, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Large, Carnivore', special: ''},
+		{id: 36, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Carnivore', special: ''},
+		{id: 37, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Carnivore', special: ''},
+		{id: 38, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Carnivore, Migrator', special: 'migrator'},
+		{id: 39, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
+		{id: 40, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Carnivore', special: ''},
+		{id: 41, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Carnivore, Symbiote', special: 'symbiote'},
+		{id: 42, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Carnivore', special: ''},
+		{id: 43, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Carnivore', special: ''},
+		{id: 44, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
+		{id: 45, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
+		{id: 46, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Carnivore, Migrator', special: 'migrator'},
+		{id: 47, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore, Symbiote', special: 'symbiote'},
+		{id: 48, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
+		{id: 49, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Carnivore, Migrator', special: 'migrator'},
+		{id: 50, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Carnivore', special: ''},
 
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger, Symbiote', special: 'symbiote'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger, Migrator', special: 'migrator'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Scavenger, Symbiote', special: 'symbiote'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger, Symbiote', special: 'symbiote'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger, Migrator', special: 'migrator'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger, Migrator', special: 'migrator'},
+		{id: 51, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger, Symbiote', special: 'symbiote'},
+		{id: 52, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger, Migrator', special: 'migrator'},
+		{id: 53, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
+		{id: 54, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
+		{id: 55, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
+		{id: 56, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Scavenger', special: ''},
+		{id: 57, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Scavenger', special: ''},
+		{id: 58, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Scavenger, Symbiote', special: 'symbiote'},
+		{id: 59, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
+		{id: 60, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
+		{id: 61, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger, Symbiote', special: 'symbiote'},
+		{id: 62, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger, Migrator', special: 'migrator'},
+		{id: 63, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger', special: ''},
+		{id: 64, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
+		{id: 65, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
+		{id: 66, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
+		{id: 67, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger, Migrator', special: 'migrator'},
 
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Omnivore, Adaptor', special: 'adaptor'},
-		{id: -1, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
+		{id: 68, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
+		{id: 69, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
+		{id: 70, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Omnivore, Adaptor', special: 'adaptor'},
+		{id: 71, coCard: null, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
 	],
 
 	cardSpecialFunctionTable: {
 		onPlayed: {
-			angiosperm: 'linkBelow',
-			pollinator: 'linkRight',
-			symbiote: 'linkLeft',
 			decomposer: 'addNiche',
 		},
 
 		onDestroyed: {
-			adaptor: 'adapt',
+			angiosperm: 'transferSeeds',
 			migrator: 'migrate',
-			symbiote: 'survive',
+		},
+
+		onDisplaced: {
+			adaptor: 'adapt',
 		},
 	},
 
@@ -219,7 +221,7 @@ gs =  {
 			herbivore: 	{large: {tile: 73, shadow: 2110}, normal: {tile: 74, shadow: 2110}, small: {tile: 75, shadow: 2110}},
 			carnivore: 	{large: {tile: 73, shadow: 2110}, normal: {tile: 74, shadow: 2110}, small: {tile: 75, shadow: 2110}},
 			scavenger: 	{large: {tile: 73, shadow: 2110}, normal: {tile: 74, shadow: 2110}, small: {tile: 75, shadow: 2110}},
-			omnivore: 	{large: {tile: 241, shadow: 2110}, normal: {tile: 240, shadow: 2111}, small: {tile: 239, shadow: 2110}},
+			omnivore: 	{large: {tile: 77, shadow: 2110}, normal: {tile: 78, shadow: 2111}, small: {tile: 79, shadow: 2110}},
 		},
 
 		mammalia: {
@@ -398,7 +400,7 @@ gs.populateBiomes = function(cardData) {
 	gs.initDrawDeck();
 	gs.initDiscardDeck();
 
-	if (cardData.length > this.phaseOneCards.length) {
+	if (cardData.length >= this.getNumNiches()) {
 		bPhaseOneRestore = false;
 		gs.removeInsectsAndNematodes();
 		gs.addPhaseTwoCards();
@@ -474,6 +476,62 @@ gs.getCardWithId = function(id) {
 	return card;
 };
 
+gs.eraseCard = function(card) {
+	var niche = card ? gs.getCardNiche(card) : null;
+	var rank = niche ? niche.getRankForCard(card) : -1;
+
+	assert(niche, "eraseCard: invalid card or niche!");
+
+	switch(gs.getCardTitle(card).toLowerCase()) {
+		case 'plantae': case 'insecta': case 'nematoda':
+			gs.getTileIndexForCardInBiome(card, niche.getBiome());
+
+			if (gs.indexInfo.shadow) {
+				tm.removeTileFromLayer(gs.layers.shadows, niche.getTopRow(), niche.getLeftCol() + 1);
+			}
+
+			if (gs.indexInfo.tile > 0) {
+				tm.removeTileFromLayer(gs.layers.producers, niche.getTopRow(), niche.getLeftCol() + 1);
+			}
+			else {
+				tm.removeTileFromLayer(gs.layers.animals, niche.getTopRow(), niche.getLeftCol() + 1);
+			}
+
+			special = gs.getCardSpecial(card);
+			switch (special) {
+				case 'angiosperm':
+					tm.removeTileFromLayer(gs.layers.grid, niche.getTopRow(), niche.getLeftCol());
+				break;
+
+				case 'pollinator':
+					tm.removeTileFromLayer(gs.layers.grid, niche.getTopRow(), niche.getLeftCol() + 2);
+				break;
+			}
+		break;
+
+		default:
+			assert(rank > 0, "eraseCard: invalid rank!");
+
+			if (gs.indexInfo.shadow) {
+				tm.removeTileFromLayer(gs.layers.shadows, niche.getTopRow() + rank, niche.getLeftCol() + 1);
+			}
+
+			tm.removeTileFromLayer(gs.layers.animals, niche.getTopRow() + rank, niche.getLeftCol() + 1);
+
+			if (gs.getCardValue(card) === gs.WILD_CARD_VALUE) {
+				gs.setCardValue(card, rank);
+			}
+
+			special = gs.getCardSpecial(card);
+			switch (special) {
+				case 'migrator': case 'symbiote': case 'adaptor':
+					tm.removeTileFromLayer(gs.layers.grid, niche.getTopRow() + rank, niche.getLeftCol());
+				break;
+			}
+		break;
+	}
+};
+
 gs.populateNiche = function(card, niche) {
 	var failMsg = null;
 	var keywords = [];
@@ -495,6 +553,17 @@ gs.populateNiche = function(card, niche) {
 				}
 				else {
 					tm.addTilesToLayer(gs.layers.animals, 'ff_world', -gs.indexInfo.tile, niche.getTopRow(), niche.getLeftCol() + 1);
+				}
+
+				special = gs.getCardSpecial(card);
+				switch (special) {
+					case 'angiosperm':
+						tm.addTilesToLayer(gs.layers.grid, 'ff_world', 135, niche.getTopRow(), niche.getLeftCol());
+					break;
+
+					case 'pollinator':
+						tm.addTilesToLayer(gs.layers.grid, 'ff_world', 134, niche.getTopRow(), niche.getLeftCol() + 2);
+					break;
 				}
 			}
 			else {
@@ -521,19 +590,19 @@ gs.populateNiche = function(card, niche) {
 				special = gs.getCardSpecial(card);
 				switch (special) {
 					case 'migrator':
-						tm.addTilesToLayer(gs.layers.animals, 'ff_world', 139, niche.getTopRow() + rank, niche.getLeftCol());
+						tm.addTilesToLayer(gs.layers.grid, 'ff_world', 139, niche.getTopRow() + rank, niche.getLeftCol());
 					break;
 
 					case 'symbiote':
-						// This case is handled by drawLink(..., 'left');
+						tm.addTilesToLayer(gs.layers.grid, 'ff_world', 136, niche.getTopRow() + rank, niche.getLeftCol());
 					break;
 
 					case 'adaptor':
-						tm.addTilesToLayer(gs.layers.animals, 'ff_world', 137, niche.getTopRow() + rank, niche.getLeftCol());
+						tm.addTilesToLayer(gs.layers.grid, 'ff_world', 137, niche.getTopRow() + rank, niche.getLeftCol());
 					break;
 				}
 			}
-			else if (rank === niche.ERR_INVALID_PLACEMENT) {
+			else if (rank !== niche.ERR_INVALID_PLACEMENT && rank !== niche.ERR_MAX_RANK_EXCEED) {
 				switch (gs.getCardValue(card)) {
 					case 1:
 						failMsg = strings.INFO.INVALID_PLACEMENT_HERBIVORE;
@@ -582,6 +651,40 @@ gs.populateNiche = function(card, niche) {
 ///////////////////////////////////////////////////////////////////////////////
 // Special Ability Functions
 ///////////////////////////////////////////////////////////////////////////////
+gs.onCardDestroyed = function(card) {
+	var special = gs.getCardSpecial(card);
+	var bCardSaved = false;
+
+	if (gs.cardSpecialFunctionTable.onDestroyed.hasOwnProperty(special)) {
+		bCardSaved = gs[gs.cardSpecialFunctionTable.onDestroyed[special]](card);
+	}
+
+	if (!bCardSaved) {
+		gs.discard(card);
+		gs.resetCard(card);
+	}
+	else {
+		broadcast("cardSaved", card);
+	}
+
+	return bCardSaved;
+},
+
+gs.onCardDisplaced = function(card) {
+	var special = gs.getCardSpecial(card);
+	var bAnchored = false;
+
+	if (gs.cardSpecialFunctionTable.onDisplaced.hasOwnProperty(special)) {
+		bAnchored = gs[gs.cardSpecialFunctionTable.onDisplaced[special]](card);
+	}
+
+	if (!bAnchored) {
+		gs.displacementDeck.push(card);
+	}
+
+	return bAnchored;
+},
+
 gs.addNiche = function(card, niche) {
 	assert(niche.getBiome(), "addNiche: invalid biome!");
 
@@ -589,92 +692,117 @@ gs.addNiche = function(card, niche) {
 	niche.getBiome().prependNiche(niche.getBiome());
 },
 
-gs.unlinkBelow = function(card) {
-	gs.eraseLink(card, 'below');
-};
+gs.transferSeeds = function(card) {
+	var niche = null;
+	var cardBelow = null;
+	var bCardSaved = false;
 
-gs.unlinkRight = function(card) {
-	gs.eraseLink(card, 'right');
-};
+	assert(card, "transferSeeds: invalid card!");
 
-gs.unlinkAbove = function(card) {
-	gs.eraseLink(card, 'above');
-};
-
-gs.unlinkLeft = function(card) {
-	gs.eraseLink(card, 'left');
-};
-
-gs.linkBelow = function(card, niche, bBackLink) {
-	var cardBelow = niche.getNextCard(card);
+	niche = gs.getCardNiche(card);
+	cardBelow = niche.getNextCard(card);
 
 	if (cardBelow) {
-		cardBelow.linkedCards.above = card;
-		card.linkedCards.below = cardBelow;
+		gs.setCoCard(cardBelow, card);
+		broadcast("seedsTransferred", {angiosperm: card, seedCarrier: cardBelow});
+
+		bCardSaved = true;
 	}
 
-	if (!bBackLink) {
-		gs.drawLink(card, 'down');
-	}
+	return bCardSaved;
 };
 
-gs.linkRight = function(card, niche, bBackLink) {
-	var nextNiche = niche.next();
-	var nextCard = nextNiche ? nextNiche.cardAtRank(niche.getRankForCard(card)) : null;
+gs.adapt = function(card) {
+	assert(card, "adapt: invalid card!");
+	gs.setCardValue(card, gs.WILD_CARD_VALUE);
 
-	if (!niche.isLast()) {
-		if (!nextCard || gs.getCardTitle(nextCard).toLowerCase() === 'plantae') {
-			card.linkedCards.right = nextCard;
-			if (nextCard) {
-				nextCard.linkedCards.left = card;
-			}
+	broadcast("cardAdapted", card);
 
-			if (!bBackLink) {
-				gs.drawLink(card, 'right');
-			}
-		}
-		else {
-			card.linkedCards.right = null;
-			if (nextCard) {
-				nextCard.linkedCards.left = null;
-			}
-
-			if (bBackLink) {
-			 	uim.clearInfoText();
-			 	uim.addInfoText(strings.INFO.INSECT_MISPLACED);
-				gs.eraseLink(card, 'right');
-			}
-		}
-	}
+	return false;
 };
 
-gs.linkLeft = function(card, niche, bBackLink) {
-	var prevNiche = niche.prev();
-	var prevCard = prevNiche ? prevNiche.cardAtRank(niche.getRankForCard(card)) : null;
+gs.migrate = function(card) {
+	this.swapDeck.unshift(card);
 
-	if (!niche.isFirst()) {
-		card.linkedCards.left = prevCard;
-		if (prevCard) {
-			prevCard.linkedCards.right = card;
-		}
+	broadcast("cardMigrated", card);
 
-		if (!bBackLink) {
-			gs.drawLink(card, 'left');
-		}
-	}
+	return true;
 };
 
-gs.adapt = function(card, niche) {
-	// TODO: implement!
-};
+// gs.unlinkBelow = function(card) {
+// 	gs.eraseLink(card, 'below');
+// };
 
-gs.migrate = function(card, niche) {
-	// TODO: implement!
-};
+// gs.unlinkRight = function(card) {
+// 	gs.eraseLink(card, 'right');
+// };
 
-gs.survive = function(card, niche) {
-	// TODO: implement!
-};
+// gs.unlinkAbove = function(card) {
+// 	gs.eraseLink(card, 'above');
+// };
+
+// gs.unlinkLeft = function(card) {
+// 	gs.eraseLink(card, 'left');
+// };
+
+// gs.linkBelow = function(card, niche, bBackLink) {
+// 	var cardBelow = niche.getNextCard(card);
+
+// 	if (cardBelow) {
+// 		cardBelow.linkedCards.above = card;
+// 		card.linkedCards.below = cardBelow;
+// 	}
+
+// 	if (!bBackLink) {
+// 		gs.drawLink(card, 'down');
+// 	}
+// };
+
+// gs.linkRight = function(card, niche, bBackLink) {
+// 	var nextNiche = niche.next();
+// 	var nextCard = nextNiche ? nextNiche.cardAtRank(niche.getRankForCard(card)) : null;
+
+// 	if (!niche.isLast()) {
+// 		if (!nextCard || gs.getCardTitle(nextCard).toLowerCase() === 'plantae') {
+// 			card.linkedCards.right = nextCard;
+// 			if (nextCard) {
+// 				nextCard.linkedCards.left = card;
+// 			}
+
+// 			if (!bBackLink) {
+// 				gs.drawLink(card, 'right');
+// 			}
+// 		}
+// 		else {
+// 			card.linkedCards.right = null;
+// 			if (nextCard) {
+// 				nextCard.linkedCards.left = null;
+// 			}
+
+// 			if (bBackLink) {
+// 			 	uim.clearInfoText();
+// 			 	uim.addInfoText(strings.INFO.INSECT_MISPLACED);
+// 				gs.eraseLink(card, 'right');
+// 			}
+// 		}
+// 	}
+// };
+
+// gs.linkLeft = function(card, niche, bBackLink) {
+// 	var prevNiche = niche.prev();
+// 	var prevCard = prevNiche ? prevNiche.cardAtRank(niche.getRankForCard(card)) : null;
+
+// 	if (!niche.isFirst()) {
+// 		card.linkedCards.left = prevCard;
+// 		if (prevCard) {
+// 			prevCard.linkedCards.right = card;
+// 		}
+
+// 		if (!bBackLink) {
+// 			gs.drawLink(card, 'left');
+// 		}
+// 	}
+// };
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -861,12 +989,20 @@ gs.cardBreakLink = function(card, direction) {
 	return bBrokeLink;
 };
 
+gs.isCardWild = function(card) {
+	return card && gs.cardHasKeyword(card, 'adaptor');
+};
+
 gs.getCardValue = function(card) {
 	return card ? card.value : -1;
 };
 
 gs.setCardValue = function(card, value) {
 	card.value = value;
+};
+
+gs.setCoCard = function(card, coCard) {
+	card.coCard = card;
 };
 
 gs.getCardSpecial = function(card) {
@@ -941,6 +1077,36 @@ gs.getTextForKeyword = function(title, keyword) {
 	}
 
 	return text;
+};
+
+gs.getNextBiome = function(refBiome) {
+	var index = 0;
+	var nextBiome = null;
+
+	assert(refBiome, "getNextBiome: invalid reference biome!");
+
+	index = this.biomes.indexOf(refBiome);
+
+	if (index >= 0 && index < this.biomes.length - 1) {
+		nextBiome = this.biomes[index + 1];
+	}
+
+	return nextBiome;
+};
+
+gs.getPrevBiome = function(refBiome) {
+	var index = 0;
+	var prevBiome = null;
+
+	assert(refBiome, "getPrevBiome: invalid reference biome!");
+
+	index = this.biomes.indexOf(refBiome);
+
+	if (index > 0) {
+		prevBiome = this.biomes[index - 1];
+	}
+
+	return prevBiome;
 };
 
 gs.getFirstKeywordForCard = function(card) {
@@ -1064,6 +1230,10 @@ gs.showTargetableNiches = function(card) {
 	this.placeCursors(card);
 };
 
+gs.resolvingEvents = function() {
+	return currentState === sm.eventResolveDisplacement;
+};
+
 gs.placeCursors = function(card) {
 	var i = 0;
 
@@ -1079,20 +1249,44 @@ gs.showAvailableBiomes = function(card) {
 
 	keywords = gs.getCardKeywords(card);
 
-	this.blockBiomes(null);
+	if (!gs.resolvingEvents()) {
+		this.blockBiomes(null);
 
-	if (keywords) {
-		keywords = keywords.toLowerCase();
+		if (keywords) {
+			keywords = keywords.toLowerCase();
 
-		// Put biome-blocking conditions here.
-		if (gs.getCardTitle(card).toLowerCase() === 'plantae' && keywords.toLowerCase().indexOf('large') >= 0) {
-			this.blockBiomes(['desert', 'plains']);
-		}
-		else if (gs.getCardTitle(card).toLowerCase() === 'nematoda') {
-			this.blockLargeBiomes();
+			// Put biome-blocking conditions here.
+			if (gs.getCardTitle(card).toLowerCase() === 'plantae' && keywords.toLowerCase().indexOf('large') >= 0) {
+				this.blockBiomes(['desert', 'plains']);
+			}
+			else if (gs.getCardTitle(card).toLowerCase() === 'nematoda') {
+				this.blockLargeBiomes();
+			}
 		}
 	}
 };
+
+gs.unblockAllBiomes = function() {
+	var i = 0;
+
+	for (i=0; i<this.biomes.length; ++i) {
+		this.biomes[i].unblock();
+	}
+};
+
+gs.isolateBiome = function(biome) {
+	var i = 0;
+
+	assert(biome, "isolateBiome: invalid biome!");
+
+	for (i=0; i<this.biomes.length; ++i) {
+		if (this.biomes[i] !== biome) {
+			this.biomes[i].block();
+		}
+	}
+
+	biome.unblock();	
+}
 
 gs.blockLargeBiomes = function() {
 	var i = 0;
@@ -1215,18 +1409,25 @@ gs.cardRemove = function(niche, card) {
 	niche.removeCard(card);
 };
 
-gs.cardOnRemoved = function(card) {
-	if (gs.cardHasKeyword(card, 'migrator')) {
-		if (curState === sm.applyEvent) {
-			this.drawDeck.unshift(card);
-		}
-		else if (curState === sm.resolveEvent) {
-			this.swapDeck.unshift(card);
-		}
-		else {
-			assert(false, "cardOnRemoved: removing cards during invalid state!");
+gs.makeDisplacementDeckDrawDeck = function() {
+	this.swapDeck = this.drawDeck;
+	this.drawDeck = this.displacementDeck;
+};
+
+gs.restoreOriginalDrawDeck = function() {
+	var i = 0;
+
+	this.drawDeck = this.swapDeck;
+
+	// Discard remainind displaced cards.
+	for (i=0; i<this.displacementDeck.length; ++i) {
+		if (this.displacementDeck[i]) {
+			assert(!gs.isCardPlantInsectOrNematode(this.displacementDeck[i]), "restoreOriginalDrawDeck: displacement deck contains plant/insect/nematode!");
+			gs.onCardDestroyed(this.displacementDeck[i]);
 		}
 	}
+
+	this.displacementDeck.length = 0;
 };
 
 gs.cardOnPostDisplacementShuffle = function(card) {
@@ -1336,6 +1537,10 @@ gs.getDrawCardsRemaining = function() {
 	return nCards;
 };
 
+gs.discard = function(card) {
+	gs.discardDeck.push(card);
+};
+
 gs.discardAndReplace = function(card) {
 	var i = 0;
 	var bReplaced = false;
@@ -1343,7 +1548,7 @@ gs.discardAndReplace = function(card) {
 
 	assert(card, "discardAndReplace: invalid card!");
 
-	gs.discardDeck.push(card);
+	gs.discard(card);
 
 	if (gs.getDrawCardsRemaining() > uim.getNumBanners()) {
 		for (i=0; i<gs.drawDeck.length; ++i) {
@@ -1444,6 +1649,17 @@ gs.doPlaysRemainInDrawDeck = function() {
 	}
 
 	return bPlaysRemain;
+};
+
+gs.getNumNiches = function() {
+	var i = 0;
+	var nNiches = 0;
+
+	for (i=0; i<this.biomes.length; ++i) {
+		nNiches += this.biomes[i].getNumNiches();
+	}
+
+	return nNiches;
 };
 
 gs.countPlays = function(card, bLargePlant, bPhaseOne) {
@@ -1671,10 +1887,6 @@ gs.scoreBiomesBy = function(organismType, keyword, bClearScores, bCascade, score
 		if (scoresOut) {
 			scoresOut.push(this.biomes[i].score);
 		}
-	}
-
-	if (scoresOut) {
-		console.log(scoresOut);
 	}
 };
 

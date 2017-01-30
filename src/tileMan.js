@@ -76,6 +76,12 @@
  				list[iLast] = null;
  				bReplaced = true;
  			}
+ 			else {
+ 				// Only 'null' elements beyond iReplace, so we can
+ 				// null-out list[iReplace] without moving it.
+ 				list[iReplace] = null;
+ 				bReplaced = true;
+ 			}
  		}
 
  		return bReplaced;

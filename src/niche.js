@@ -58,7 +58,7 @@ bd.niche.prototype.getOrganismRank = function(orgType, keyword) {
 	keyword = keyword.toLowerCase();
 
 	for (i=0; i<this.cards.length; ++i) {
-		if (gs.getCardTitle(this.cards[i]).toLowerCase() === orgType) {
+		if (this.cards[i] && gs.getCardTitle(this.cards[i]).toLowerCase() === orgType) {
 			if (!keyword || gs.getCardKeywords(this.cards[i]).toLowerCase().indexOf(keyword) >= 0) {
 				iRank = i;
 				break;
@@ -112,15 +112,12 @@ bd.niche.prototype.getSuitOfFirstHole = function() {
 	var rank = this.getRankOfFirstHole();
 	var suit = null;
 
-	if (rank === 0) {
-		gs.getCardSuitFromValue(0);
+	if (this.cards[0]) {
+		rank += gs.getCardValue(this.cards[0]);
 	}
-	else if (this.cards[rank - 1]) {
-		value = gs.getCardValue(this.cards[rank - 1]) + 1;
 
-		if (value !== gs.WILD_CARD_VALUE) {
-			suit = gs.getCardSuitFromValue(value);
-		}
+	if (rank < gs.WILD_CARD_VALUE) {
+		suit = gs.getCardSuitFromValue(rank);
 	}
 
 	return suit;
@@ -165,43 +162,56 @@ bd.niche.prototype.getRankForCard = function(card) {
 bd.niche.prototype.getRankForNewCard = function(card) {
 	var i = 0;
 	var newRank = -1;
-	var cardValue = gs.getCardPhaseValue(card);
-	var bFoundHole = false;
+	var wantRank = gs.isCardPlantInsectOrNematode(card) ? 0 : gs.getCardValue(card);
 
-	for (i=0; i<this.cards.length; ++i) {
-		if (!this.cards[i]) {
-			// Found a hole.
-			bFoundHole = true;
+	// If the base card in this niche is an insect or nematode, the niche will support
+	// only 3 cards total.
+	var maxRank = this.cards.length - 1 - (this.cards[0] ? gs.getCardValue(this.cards[0]) : 0);
 
-			if (i === 0) {
-				if (cardValue === 0) {
-					newRank = i;
-					break;
-				}
+	if (gs.isCardWild(card)) {
+		for (i=1; i<=maxRank; ++i) {
+			wantRank = i;
+
+			if (this.cards[0]) {
+				wantRank -= gs.getCardValue(this.cards[0]);
 			}
-			else if (this.cards[i - 1]) {
-				if (cardValue === gs.WILD_CARD_VALUE || gs.getCardValue(this.cards[i - 1]) === cardValue - 1) {
-					newRank = i;
-					break;
-				}
-			}
-			else if (gs.cardHasKeyword(card, 'symbiote') && gs.getCardLinkedCards(card).left) {
-				newRank = i;
+
+			newRank = this.isRankOpenAndSupported(card, wantRank);
+
+			if (newRank >= 0) {
 				break;
 			}
 		}
 	}
-
-	if (!bFoundHole) {
-		newRank = this.ERR_INVALID_PLACEMENT;
+	else {
+		if (this.cards[0]) {
+			wantRank -= gs.getCardValue(this.cards[0]);
+		}
+		newRank = this.isRankOpenAndSupported(card, wantRank);
 	}
 
 	return newRank;
-}
+};
+
+bd.niche.prototype.isRankOpenAndSupported = function(card, iRank) {
+	var checkedCards = [];
+	var newRank = -1;
+
+	if (this.cards[iRank]) {
+		newRank = this.ERR_INVALID_PLACEMENT;
+	}
+	else {
+		if (this.isCardSupported(card, checkedCards, iRank)) {
+			newRank = iRank;
+		}
+	}
+
+	return newRank;
+};
 
 bd.niche.prototype.canHoldCard = function(card) {
 	return this.getRankForNewCard(card) >= 0;
-}
+};
 
 bd.niche.prototype.getBiomeId = function() {
 	return gs.getBiomeId(this.biome);
@@ -241,90 +251,142 @@ bd.niche.prototype.showNextCardHint = function() {
 	}
 };
 
-bd.niche.prototype.markForDiscard = function(organism, keyword) {
+bd.niche.prototype.isProtected = function(card) {
+	var otherNiche = null;
+	var otherCard = null;
+	var bProtected = false;
+
+	assert(card, "isProtected: invalid card!");
+
+	if (gs.cardsTitleIs(card, 'plantae')) {
+		otherNiche = this.prev();
+		otherCard = otherNiche ? otherNiche.cardAtRank(this.getRankForCard(card)) : null;
+
+		bProtected = otherCard && gs.cardsTitleIs(otherCard, 'insecta');
+	}
+
+	return bProtected;
+};
+
+bd.niche.prototype.tagCardsOfTypeForDestruction = function(organism, keyword, cardsDestroyed) {
 	var i = 0;
 
-	// ###
 	organism = organism.toLowerCase();
 
 	for (i=0; i<this.cards.length; ++i) {
 		if (this.cards[i]) {
 			if (gs.getCardTitle(this.cards[i]).toLowerCase() === organism) {
 				if (!keyword || gs.getCardKeywords(this.cards[i]).toLowerCase().indexOf(keyword) >= 0) {
-					gs.tagCardForRemoval(this.cards[i]);
+					if (!this.isProtected(this.cards[i])) {
+						cardsDestroyed.push(this.cards[i]);
+					}
 				}
-			}
-		}
-	}
-
-	for (i=0; i<this.cards.length; ++i) {
-		if (this.cards[i]) {
-			if (gs.cardTaggedForRemoval(this.cards[i])) {
-				gs.verifyCardCanBeRemoved(this, this.cards[i]);
 			}
 		}
 	}
 };
 
-bd.niche.prototype.discard = function() {
+bd.niche.prototype.tagCardsForDisplacement = function(cardsDisplaced) {
 	var i = 0;
-	var iLowest = -1;
+	var checkedCards = [];
 
-	// Remove destroyed cards.
 	for (i=0; i<this.cards.length; ++i) {
-		if (this.cards[i] && gs.cardRemovalConfirmed(this.cards[i])) {
-			gs.cardPrepForRemoval(this, this.cards[i]);
-			gs.cardRemove(this, this.cards[i]);
-			gs.cardOnRemoved(this, this.cards[i]);
-
-			if (iLowest < 0) {
-				iLowest = i;
-			}
+		checkedCards.length = 0;
+		if (this.cards[i] && !this.isCardSupported(this.cards[i], checkedCards)) {
+			cardsDisplaced.push(this.cards[i]);
 		}
 	}
+};
 
-	// Displace "downstream" cards.
-	// ###
-	for (i=iLowest + 1; i<this.cards.length; ++i) {
-		if (this.cards[i]) {
-			gs.displaceCard(this.cards[i]);
-			this.cards[i] = null;
-		}
-	}
+bd.niche.prototype.displaceCard = function(card) {
+	this.removeCard(this.cards[i], false);
+};
 
-	return iLowest;
-}
-
-bd.niche.prototype.removeCard = function(card) {
+bd.niche.prototype.removeCard = function(card, bDestroyed) {
 	var rank = -1;
-	var linkedCards = null;
 
 	// TODO: create particle effect at this location.
 
 	assert(card, "removeCard: invalid card!");
 
-	tm.removeTilesFromLayer(gs.layers.shadows, this.getTopRow(), this.getLeftCol() + 1);
-	tm.removeTilesFromLayer(gs.layers.producers, this.getTopRow(), this.getLeftCol() + 1);
+	// var linkedCards = null;
+	// linkedCards = gs.getCardLinkedCards(card);
 
+	// if (gs.cardBreakLink(linkedCards.left, 'right')) {
+	// 	gs.unlinkLeft(card);
+	// }
+	// if (gs.cardBreakLink(linkedCards.above, 'below')) {
+	// 	gs.unlinkAbove(card);
+	// }
+	// if (gs.cardBreakLink(linkedCards.right, 'left')) {
+	// 	gs.unlinkRight(card);
+	// }
+	// if (gs.cardBreakLink(linkedCards.below, 'above')) {
+	// 	gs.unlinkBelow(card);
+	// }
+
+	if (bDestroyed) {
+		gs.onCardDestroyed(card);
+		broadcast("cardDestroyed");
+	}
+	else {
+		gs.onCardDisplaced(card);
+		broadcast("cardDisplaced");
+	}
+
+	gs.eraseCard(card);
 	rank = this.getRankForCard(card);
 	this.cards[rank] = null;
+};
 
-	linkedCards = gs.getCardLinkedCards(card);
+bd.niche.prototype.isCardSupported = function(card, checkedCards, rank) {
+	var bSupported = false;
+	var supportCard = null;
+	var supportNiche = null;
 
-	if (gs.cardBreakLink(linkedCards.left, 'right')) {
-		gs.unlinkLeft(card);
-	}
-	if (gs.cardBreakLink(linkedCards.above, 'below')) {
-		gs.unlinkAbove(card);
-	}
-	if (gs.cardBreakLink(linkedCards.right, 'left')) {
-		gs.unlinkRight(card);
-	}
-	if (gs.cardBreakLink(linkedCards.below, 'above')) {
-		gs.unlinkBelow(card);
+	if (typeof(rank) === 'undefined') {
+		rank = this.getRankForCard(card);
 	}
 
-	gs.resetCard(card);
+	checkedCards.push(card);
+
+	bSupported = rank === 0;
+
+	if (!bSupported) {
+		// Check for support from above.
+		supportCard = this.cardAtRank(rank - 1);
+		if (supportCard && checkedCards.indexOf(supportCard) < 0) {
+			bSupported = this.isCardSupported(supportCard, checkedCards);
+		}
+	}
+
+	if (!bSupported) {
+		// Check for lateral support from symbiotes.
+		if (gs.cardHasKeyword(card, 'symbiote')) {
+			// If this card is a symbiote, it could be supported by
+			// the card to its left.
+			supportNiche = this.prev();
+			if (supportNiche) {
+				supportCard = supportNiche.cardAtRank(rank);
+				if (supportCard && checkedCards.indexOf(supportCard) < 0) {
+					bSupported = supportNiche.isCardSupported(supportCard, checkedCards);
+				}
+			}
+		}
+
+		if (!bSupported) {
+			// All cards can be supported by symbiotes to the right.
+			supportNiche = this.next();
+			if (supportNiche) {
+				supportCard = supportNiche.cardAtRank(rank);
+				if (supportCard && gs.cardHasKeyword(supportCard, 'symbiote') && checkedCards.indexOf(supportCard) < 0) {
+					bSupported = supportNiche.isCardSupported(supportCard, checkedCards);
+				}
+			}
+		}
+	}
+
+	return bSupported;
 };
 
 bd.niche.prototype.addCard = function(card) {
@@ -343,28 +405,28 @@ bd.niche.prototype.addCard = function(card) {
 	gs.executeCardSpecialFunction(card, 'onPlayed');
 
 	// Check for back-links.
-	linkedCards = gs.getCardLinkedCards(card);
-	assert(linkedCards, "niche.addCard: invalid linkedCards!");
+	// linkedCards = gs.getCardLinkedCards(card);
+	// assert(linkedCards, "niche.addCard: invalid linkedCards!");
 
-	if (newRank > 0) {
-		neighbor = this.cards[newRank - 1];
+	// if (newRank > 0) {
+	// 	neighbor = this.cards[newRank - 1];
 
-		if (neighbor && gs.cardHasLink(neighbor, 'below')) {
-			gs.linkBelow(neighbor, gs.getCardNiche(neighbor), true);
-		}
-	}
+	// 	if (neighbor && gs.cardHasLink(neighbor, 'below')) {
+	// 		gs.linkBelow(neighbor, gs.getCardNiche(neighbor), true);
+	// 	}
+	// }
 
-	neighborNiche = this.prev(this);
-	neighbor = neighborNiche ? neighborNiche.cardAtRank(newRank) : null;
-	if (neighbor && gs.cardHasLink(neighbor, 'right')) {
-		gs.linkRight(neighbor, neighborNiche, true);
-	}
+	// neighborNiche = this.prev(this);
+	// neighbor = neighborNiche ? neighborNiche.cardAtRank(newRank) : null;
+	// if (neighbor && gs.cardHasLink(neighbor, 'right')) {
+	// 	gs.linkRight(neighbor, neighborNiche, true);
+	// }
 
-	neighborNiche = this.next(this);
-	neighbor = neighborNiche ? neighborNiche.cardAtRank(newRank) : null;
-	if (neighbor && gs.cardHasLink(neighbor, 'left')) {
-		gs.linkLeft(neighbor, neighborNiche, true);
-	}
+	// neighborNiche = this.next(this);
+	// neighbor = neighborNiche ? neighborNiche.cardAtRank(newRank) : null;
+	// if (neighbor && gs.cardHasLink(neighbor, 'left')) {
+	// 	gs.linkLeft(neighbor, neighborNiche, true);
+	// }
 };
 
 bd.niche.prototype.next = function() {

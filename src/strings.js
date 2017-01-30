@@ -1,4 +1,25 @@
 strings = {
+	construct: function(string, addIns) {
+		var segments = string.split('~');
+		var i = 0;
+		var strOut = null;
+
+		for (i=0; i<addIns.length; ++i) {
+			if (i === 0) {
+				strOut = segments[i] + addIns[i];
+			}
+			else {
+				strOut += segments[i] + addIns[i];
+			}
+		}
+
+		if (segments.length > addIns.length) {
+			strOut = strOut + segments[segments.length - 1];
+		}
+
+		return strOut;
+	},
+
 	INFO: {
 		SELECT_ORGANISM: "Select an E.G.G. on the left, then click\non the map to add it to the world.",
 		ILLEGAL_PLACEMENT: "You can't place that organism in this\nbiome.",
@@ -7,14 +28,16 @@ strings = {
 		RESHUFFLE_AND_TRY_AGAIN: "Reshuffle and try again.",
 		GAME_OVER: "Game Over",
 		NO_MORE_PLAYS: "None of your remaining E.G.G.s can hatch\non this world.",
+		NO_MORE_MOVES: "No More Moves!",
 		INSECT_MISPLACED: "Place insects to the left of a plant\nto activate their special ability.",
-		NICHE_FULL: "This niche cannot hold any more\norganisms.",
-		INVALID_PLACEMENT_HERBIVORE: "Herbivores must be placed beneath a Producer.",
-		INVALID_PLACEMENT_CARNIVORE: "Carnivores must be placed beneath herbivores, insects, or nematodes.",
-		INVALID_PLACEMENT_SCAVENGER: "Scavengers must be placed beneath carnivores.",
+		NICHE_FULL: "This organism's place in the\nniche is already full.",
+		INVALID_PLACEMENT_HERBIVORE: "Herbivores must be placed beneath\na Producer.",
+		INVALID_PLACEMENT_CARNIVORE: "Carnivores must be placed beneath\nherbivores, insects, or nematodes.",
+		INVALID_PLACEMENT_SCAVENGER: "Scavengers must be placed beneath\ncarnivores.",
 	},
 	HINTS: {
 		CHOOSE_EGG: "          Choose an E.G.G.        ",
+		CHOOSE_DISPLACED_ORGANISM: "Pick a displaced organism",
 		PLACE_ORGANISM: "Place it in the biosphere",
 	},
 	EVENTS: {
@@ -30,6 +53,14 @@ strings = {
 		SUPER_PARASITE: {title: "Super Parasite", info: "Destroy all carnivores and dependent\nscavengers in one biome."},
 		CONFLAGRATION: {title: "Conflagration", info: "All vegetation in 1 biome is temporarily\ndestroyed."},
 
+		BIOME_DAMAGED: "Biome damaged!",
+		BIOMES_DAMAGED: "Biomes damaged!",
+		BIOME_DAMAGE_REPORT_SINGULAR: "~ of your biomes lost a total of\n1 population. This may displace\nother populations.",
+		BIOME_DAMAGE_REPORT_PLURAL: "~ of your biomes lost a total of\n~ populations. This may displace\nother populations.",
+		RESOLVED: "Resolved!",
+		RESOLUTION_MESSAGE: "You have survived this event! Now you\ncan return to building the biosphere.",
+		WILL_DISCARD_REMAINING_ORGANISMS: "None of the remaining displaced\npopulations can find a niche.\nThey will not survive.",
+
 		PROMPT: "(Tap here to continue...)",
 		LOST: "LOST:",
 	},
@@ -43,9 +74,5 @@ strings = {
 		SYMBIOTE: 'A Symbiote protects, and is protected by,\nthe animal to it left.',		
 	},
 	WARNINGS: {
-		HERBIVORE: 'Herbivores must be played beneath a plant.',
-		CARNIVORE: 'Carnivores must be played beneath an\nherbivore, insect, or nematode.',
-		SCAVENGER: 'Scavengers must be played beneath a\ncarnivore.',
-		OMNIVORE: 'Omnivores can be played as an herbivore,\ncarnivore, or scavenger.',
 	}
 }

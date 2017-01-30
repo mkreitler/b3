@@ -8,17 +8,19 @@ bd.ROW_OFFSET = 3;
 // Biome
 // ----------------------------------------------------------------------------
 bd.biome = function() {
-	this.latitude 	= -1;
-	this.type 		= null;
-	this.startCol 	= -1;
-	this.sprNoSelect= null;
-	this.layer 		= null;
-	this.sprBlocked = null;
-	this.niches 	= [];
-	this.tileSet  	= null;
-	this.suitText 	= null;
-	this.score 		= 0;
-	this.nPrepended = 0;
+	this.latitude 		= -1;
+	this.type 			= null;
+	this.startCol 		= -1;
+	this.sprNoSelect	= null;
+	this.layer 			= null;
+	this.sprBlocked 	= null;
+	this.niches 		= [];
+	this.tileSet  		= null;
+	this.suitText 		= null;
+	this.score 			= 0;
+	this.nPrepended 	= 0;
+	this.cardsDestroyed	= [];
+	this.cardsDisplaced = [];
 };
 
 bd.biome.prototype.MAX_GROWTH = 2;
@@ -107,6 +109,10 @@ bd.biome.prototype.prependNiche = function(biome) {
 	this.nPrepended += 1;
 
 	return niche;
+}
+
+bd.biome.prototype.getNumCardsDestroyed = function() {
+	return this.cardsDestroyed.length;
 }
 
 bd.biome.prototype.getNumPrepended = function() {
@@ -294,18 +300,53 @@ bd.biome.prototype.scoreNichesBy = function(organismType, keyword, bCascade) {
 	return score;
 }
 
-bd.biome.prototype.discard = function(orgnism, keyword) {
+bd.biome.prototype.tagCardsForDisplacement = function() {
+	var i = 0;
+	var niche = null;
+
+	this.cardsDisplaced.length = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].tagCardsForDisplacement(this.cardsDisplaced);
+	}
+
+	return this.cardsDisplaced.length;
+}
+
+bd.biome.prototype.getDisplacedCard = function(iCard) {
+	assert(this.cardsDisplaced &&
+		   iCard >= 0 &&
+		   iCard < this.cardsDisplaced.length,
+		   "getDisplacedCard: invalid card index!");
+
+	return this.cardsDisplaced[iCard];
+}
+
+bd.biome.prototype.getTaggedCard = function(iCard) {
+	assert(this.cardsDestroyed &&
+		   iCard >= 0 &&
+		   iCard < this.cardsDestroyed.length,
+		   "getTaggedCard: invalid card index!");
+
+	return this.cardsDestroyed[iCard];
+}
+
+bd.biome.prototype.removeTaggedCard = function(card) {
+	var niche = card ? gs.getCardNiche(card) : null;
+
+	assert(niche, "removeTaggedCard: invalid card or niche!");
+
+	niche.removeCard(card, true);
+}
+
+bd.biome.prototype.tagCardsOfTypeForDestruction = function(organism, keyword) {
 	var i = 0;
 
-	for (i=0; i<this.niches.length; ++i) {
-		this.niches[i].markForDiscard(organism, keyword);
-	}
+	this.cardsDestroyed.length = 0;
 
 	for (i=0; i<this.niches.length; ++i) {
-		this.niches[i].discard();
+		this.niches[i].tagCardsOfTypeForDestruction(organism, keyword, this.cardsDestroyed);
 	}
-
-
 }
 
 bd.biome.prototype.buildAdditionalNiche = function(type, newNiche) {
