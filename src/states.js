@@ -161,7 +161,7 @@ var sm = {
 				if (events.getNumBiomesAffected() === 1) {
 					if (nCardsDestroyed === 1) {
 						uim.showInfoDialog(strings.EVENTS.BIOME_DAMAGED,
-										   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_SINGULAR, [nBiomesAffected, nCardsDestroyed]),
+										   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_SINGULAR, [nCardsDestroyed]),
 										   'eventDisplaceCards');
 					}
 					else {
@@ -173,7 +173,7 @@ var sm = {
 				else {
 					if (nCardsDestroyed === 1) {
 						uim.showInfoDialog(strings.EVENTS.BIOMES_DAMAGED,
-										   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_SINGULAR, [nBiomesAffected, nCardsDestroyed]),
+										   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_SINGULAR, [nCardsDestroyed]),
 										   'eventDisplaceCards');
 					}
 					else {
@@ -485,9 +485,13 @@ var sm = {
 	showInfoDialog: {
 		PROMPT_DELAY_MS: 2000,
 		promptTimer: 0,
+		bCanShowPrompt: true,
 
 		enter: function(data) {
 			listenFor('infoDialogOut', this);
+			listenFor('hideInfoText', this);
+
+			this.bCanShowPrompt = true;
 
 			assert(data && data.title && data.text, "showInfoDialog: invalid text data!");
 
@@ -501,7 +505,7 @@ var sm = {
 
 			this.promptTimer += game.time.physicsElapsedMS;
 
-			if (oldTime < this.PROMPT_DELAY_MS && this.promptTimer >= this.PROMPT_DELAY_MS) {
+			if (this.bCanShowPrompt && oldTime < this.PROMPT_DELAY_MS && this.promptTimer >= this.PROMPT_DELAY_MS) {
 				uim.showInfoPrompt();
 			}
 		},
@@ -509,9 +513,14 @@ var sm = {
 		exit: function() {
 		},
 
+		hideInfoText: function(data) {
+			this.bCanShowPrompt = false;
+		},
+
 		infoDialogOut: function(data) {
 			uim.unblockInput();
 			unlistenFor('infoDialogOut', this);
+			unlistenFor('hideInfoText', this);
 
 			if (sm.nextState) {
 				setState(sm.nextState);

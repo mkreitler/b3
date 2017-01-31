@@ -247,15 +247,8 @@
  	},
 
  	hideInfoText: function() {
-		this.infoDlgTitle.tweenIn.stop();
-		this.infoDlgText.tweenIn.stop();
-		this.infoDlgPrompt.tweenIn.stop();
-
-		this.infoDlgTitle.tweenOut.start();
-		this.infoDlgText.tweenOut.start();
-		this.infoDlgPrompt.tweenOut.start();
-
  		this.infoDlgMarker.data.tweenOut.start();
+ 		broadcast("hideInfoText");
  	},
 
  	onInfoDialogOut: function() {
@@ -275,6 +268,15 @@
  	onInfoPanelClicked: function() {
  		this.infoDlgShield.inputEnabled = false;
  		this.infoDlgPanel.inputEnabled = false;
+ 		
+		this.infoDlgTitle.tweenIn.stop();
+		this.infoDlgText.tweenIn.stop();
+		this.infoDlgPrompt.tweenIn.stop();
+
+		this.infoDlgTitle.tweenOut.start();
+		this.infoDlgText.tweenOut.start();
+		this.infoDlgPrompt.tweenOut.start();
+
 		this.infoDlgPanel.data.tweenBack.start();
  	},
 

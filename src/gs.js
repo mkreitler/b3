@@ -30,7 +30,7 @@ gs =  {
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1"]},
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1","38~0~1","21~1~2","27~1~1","71~2~2","65~0~1","30~4~0","28~3~2","32~3~1","29~4~1","49~0~0","39~1~0","56~1~0","37~4~1","51~4~1","22~2~3","50~1~1","47~1~2","24~2~1","66~0~0","59~1~2","48~2~3","17~2~0","46~2~0","25~3~0","64~1~1","34~2~2","54~2~3","67~2~2","35~4~0","45~2~1","41~3~2","55~2~1","43~3~0","53~4~0","70~3~1","57~3~2","68~3~1"]},
 	],
-	iRestore: 0,
+	iRestore: 1,
 	logData: '',
 
 	worldPressInfo: {biome: null, niche: null, tile: null},
@@ -1670,12 +1670,14 @@ gs.countPlays = function(card, bLargePlant, bPhaseOne) {
 
 	for (iBiome=0; iBiome<this.biomes.length; ++iBiome) {
 		biomeName = this.biomes[iBiome].getType().name.toLowerCase();
-		if (bLargePlant && (biomeName === 'desert'|| biomeName === 'plains')) {
-			// Biome blocked. No play possible.
-		}
-		else {
-			if (this.biomes[iBiome].canHoldCard(card)) {
-				nPlays += 1;
+		if (!this.biomes[iBiome].isBlocked()) {
+			if (bLargePlant && (biomeName === 'desert'|| biomeName === 'plains')) {
+				// Biome blocked. No play possible.
+			}
+			else {
+				if (this.biomes[iBiome].canHoldCard(card)) {
+					nPlays += 1;
+				}
 			}
 		}
 	}
@@ -1875,18 +1877,22 @@ gs.getEventBiome = function() {
 
 gs.scoreBiomesBy = function(organismType, keyword, bClearScores, bCascade, scoresOut) {
 	var i = 0;
+	var scores = 0;
+
+	assert(scoresOut, "scoreBiomesBy: invalid scores out array!");
+
+	if (bClearScores) {
+		scoresOut.length = 0;
+	}
 
 	for (i=0; i<this.biomes.length; ++i) {
 		if (bClearScores) {
-			this.biomes[i].setScore(this.biomes[i].scoreNichesBy(organismType, keyword, bCascade));
-		}
-		else {
-			this.biomes[i].setScore(this.biomes[i].getScore() + this.biomes[i].scoreNichesBy(organismType, keyword, bCascade));
+			scoresOut.push(0);
+			this.biomes[i].setScore(0);
 		}
 
-		if (scoresOut) {
-			scoresOut.push(this.biomes[i].score);
-		}
+		this.biomes[i].setScore(this.biomes[i].getScore() + this.biomes[i].scoreNichesBy(organismType, keyword, bCascade));
+		scoresOut[i] = this.biomes[i].getScore();
 	}
 };
 
@@ -1902,5 +1908,9 @@ gs.clearDisplacementDeck = function() {
 
 gs.displaceCard = function(card) {
 	this.displacementDeck.push(card);
+};
+
+gs.displacementDeckEmpty = function() {
+	return this.displacementDeck.length === 0;
 };
 

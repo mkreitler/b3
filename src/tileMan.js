@@ -100,6 +100,32 @@
  		}
  	},
 
+ 	numberListFindMaxima: function(list, maximaOut) {
+ 		var i = 0;
+ 		var max = Number.NEGATIVE_INFINITY;
+
+ 		assert(list, "numberListFindMaxima: invalid list!");
+
+ 		for (i=0; i<list.length; ++i) {
+ 			assert(typeof(list[i] == "number"), "numberListFindMaxima: found non-numerical data!");
+ 			if (list[i] > max) {
+ 				max = list[i];
+ 			}
+ 		}
+
+ 		for (i=0; i<list.length; ++i) {
+ 			if (list[i] === max) {
+ 				maximaOut.push(i);
+ 			}
+ 		}
+ 	},
+
+ 	listReturnRandomElement: function(list) {
+ 		assert(list, "listReturnRandomElement: invalid list!");
+
+ 		return (list[Math.floor(Math.random() * list.length)]);
+ 	},
+
  	addTilesToLayer: function(layer, imageName, tile, row, col) {
  		var image = null;
  		var imageCols = -1;

@@ -21,7 +21,7 @@ events = {
 		tm.scrambleList(this.remaining);
 
 		// DEBUG
-		this.remaining.unshift(this.all['blight']);
+		this.remaining.unshift(this.all['poleShift']);
 	},
 
 	getNextAffectedBiome: function() {
@@ -153,11 +153,31 @@ events = {
 			},
 
 			getPrimaryBiome: function() {
-				return gs.DEBUGgetRandomBiome();
+				var biomeScores = [];
+				var maxIndeces = [];
+				var iMax = -1;
+
+				gs.scoreBiomesBy('aves', 'large', true, true, biomeScores);
+				gs.scoreBiomesBy('mammalia', 'large', false, true, biomeScores);
+				tm.numberListFindMaxima(biomeScores, maxIndeces);
+				iMax = tm.listReturnRandomElement(maxIndeces);
+
+				assert(iMax > 0 && iMax < biomeScores.length, "events.famine.getPrimaryBiome: invalid max index!");
+
+				return gs.getIthBiome(iMax);
 			},
 
 			tagCardsForDestruction: function(targetBiome) {
+				assert(gs.displacementDeckEmpty(), "events.famine.tagCardsForDestruction: displacementDeck not empty!");
 
+				targetBiome.tagCardsOfTypeForDestruction('aves', 'large', true);
+				targetBiome.tagCardsOfTypeForDestruction('mammalia', 'large', false);
+
+				if (targetBiome.getNumCardsDestroyed() > 0) {
+					events.affectedBiomes.push(targetBiome);
+				}
+
+				broadcast('cardsDestroyed');
 			}
 		},
 
@@ -172,11 +192,31 @@ events = {
 			},
 
 			getPrimaryBiome: function() {
-				return gs.DEBUGgetRandomBiome();
+				var biomeScores = [];
+				var maxIndeces = [];
+				var iMax = -1;
+
+				gs.scoreBiomesBy('reptilia', 'large', true, true, biomeScores);
+				gs.scoreBiomesBy('amphibia', 'large', false, true, biomeScores);
+				tm.numberListFindMaxima(biomeScores, maxIndeces);
+				iMax = tm.listReturnRandomElement(maxIndeces);
+
+				assert(iMax > 0 && iMax < biomeScores.length, "events.famine.getPrimaryBiome: invalid max index!");
+
+				return gs.getIthBiome(iMax);
 			},
 
 			tagCardsForDestruction: function(targetBiome) {
-				
+				assert(gs.displacementDeckEmpty(), "events.famine.tagCardsForDestruction: displacementDeck not empty!");
+
+				targetBiome.tagCardsOfTypeForDestruction('reptilia', 'large', true);
+				targetBiome.tagCardsOfTypeForDestruction('amphibia', 'large', false);
+
+				if (targetBiome.getNumCardsDestroyed() > 0) {
+					events.affectedBiomes.push(targetBiome);
+				}
+
+				broadcast('cardsDestroyed');
 			}
 		},
 
@@ -226,10 +266,10 @@ events = {
 				var i = 0;
 
 				// Discard large plants.
-				gs.clearDisplacementDeck();
+				assert(gs.displacementDeckEmpty(), "events.famine.tagCardsForDestruction: displacementDeck not empty!");
 
 				for (i=0; i<this.NUM_BIOMES_AFFECTED; ++i) {
-					targetBiome.tagCardsOfTypeForDestruction('plantae', 'large');
+					targetBiome.tagCardsOfTypeForDestruction('plantae', 'large', true);
 
 					if (targetBiome.getNumCardsDestroyed() > 0) {
 						events.affectedBiomes.push(targetBiome);

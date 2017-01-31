@@ -339,10 +339,12 @@ bd.biome.prototype.removeTaggedCard = function(card) {
 	niche.removeCard(card, true);
 }
 
-bd.biome.prototype.tagCardsOfTypeForDestruction = function(organism, keyword) {
+bd.biome.prototype.tagCardsOfTypeForDestruction = function(organism, keyword, bClear) {
 	var i = 0;
 
-	this.cardsDestroyed.length = 0;
+	if (bClear) {
+		this.cardsDestroyed.length = 0;
+	}
 
 	for (i=0; i<this.niches.length; ++i) {
 		this.niches[i].tagCardsOfTypeForDestruction(organism, keyword, this.cardsDestroyed);
