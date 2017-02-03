@@ -98,15 +98,17 @@ var sm = {
 	// Event Resolution
 	///////////////////////////////////////////////////////////////////////////
 	chooseEvent: {
+		eventBiome: null,
+
 		enter: function(data) {
-			var eventBiome = gs.getEventBiome();
+			eventBiome = gs.getEventBiome();
+
 			events.setBiome(eventBiome);
 			uim.showEvent(eventBiome, events.getCurrentEventTitle(), events.getCurrentEventInfo());
 			listenFor('eventExited', this);
 		},
 
 		update: function() {
-
 		},
 
 		exit: function() {
@@ -115,8 +117,16 @@ var sm = {
 
 		eventExited: function(data) {
 			unlistenFor('eventExited', this);
-			setState(sm.eventDestroyCards);
 			gs.makeDisplacementDeckDrawDeck();
+
+			if (eventBiome === null) {
+				uim.showInfoDialog(strings.EVENTS.BIOSPHERE_SAFE,
+								   strings.EVENTS.BIOME_DAMAGE_REPORT_NONE,
+								   'eventEndNoDamage');
+			}
+			else {
+				setState(sm.eventDestroyCards);
+			}
 		}
 	},
 
@@ -147,7 +157,9 @@ var sm = {
 		bExit: false,
 
 		enter: function(data) {
+			this.bExit = false;
 			listenFor('allCardsRemoved', this);
+			listenFor('noCardsRemoved', this);
 			events.destroyCards();
 		},
 
@@ -156,9 +168,12 @@ var sm = {
 			var nCardsDestroyed = events.getNumCardsDestroyed();
 
 			if (this.bExit) {
-				unlistenFor('cardsDestroyed', this);
-
-				if (events.getNumBiomesAffected() === 1) {
+				if (events.getNumBiomesAffected() === 0) {
+					uim.showInfoDialog(strings.EVENTS.BIOSPHERE_SAFE,
+									   strings.EVENTS.BIOME_DAMAGE_REPORT_NONE,
+									   'eventEndNoDamage');
+				}
+				else if (events.getNumBiomesAffected() === 1) {
 					if (nCardsDestroyed === 1) {
 						uim.showInfoDialog(strings.EVENTS.BIOME_DAMAGED,
 										   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_SINGULAR, [nCardsDestroyed]),
@@ -188,8 +203,15 @@ var sm = {
 		exit: function() {
 		},
 
+		noCardsRemoved: function(data) {
+			unlistenFor('allCardsRemoved', this);
+			unlistenFor('noCardsRemoved', this);
+			this.bExit = true;
+		},
+
 		allCardsRemoved: function(data) {
 			unlistenFor('allCardsRemoved', this);
+			unlistenFor('noCardsRemoved', this);
 			this.bExit = true;
 		}
 	},
@@ -200,7 +222,10 @@ var sm = {
 		enter: function(data) {
 			var nextBiome = null;
 
+			this.bExit = false;
 			nextBiome = events.getNextAffectedBiome();
+
+			gs.clearDisplacementDeck();
 
 			while (nextBiome) {
 				listenFor('allCardsDisplaced', this);
@@ -244,6 +269,8 @@ var sm = {
 		bExit: false,
 
 		enter: function(data) {
+			this.bExit = false;
+
 			uim.syncBannersToCards();
 			uim.disableBannerInput();
 
@@ -269,6 +296,8 @@ var sm = {
 		bExit: false,
 
 		enter: function(data) {
+			this.bExit = false;
+
 			if (gs.playerHasLegalMove(false)) {
 				uim.enableBannerInput();
 				gs.showNextCardHints();
@@ -283,7 +312,7 @@ var sm = {
 				uim.disableBannerInput();
 
 				if (!gs.doPlaysRemainInDrawDeck()) {
-					uim.showInfoDialog(strings.INFO.NO_MORE_MOVES, strings.EVENTS.WILL_DISCARD_REMAINING_ORGANISMS, 'eventDisplaceCards');
+					uim.showInfoDialog(strings.INFO.NO_MORE_MOVES, strings.EVENTS.WILL_DISCARD_REMAINING_ORGANISMS, 'eventCloseBannersAndDisplace');
 				}
 				else {
 					uim.setLeftHint('');
@@ -304,10 +333,35 @@ var sm = {
 		},
 	},
 
+	eventCloseBannersAndDisplace: {
+		bExit: false,
+
+		enter: function(data) {
+			this.bExit = false;
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut');
+		},
+
+		update: function() {
+			if (this.bExit) {
+				setState(sm.eventDisplaceCards);
+			}
+		},
+
+		exit: function() {
+
+		},
+
+		UIoperationComplete: function() {
+			unlistenFor('UIoperationComplete', this);
+			this.bExit = true;
+		}
+	},
+
 	eventReshuffle: {
 		enter: function(data) {
-			uim.startOperation('moveBannersOut');
 			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut');
 		},
 
 		update: function() {
@@ -364,12 +418,19 @@ var sm = {
 					setState('eventResolveDisplacement');
 				}
 				else {
-					// TODO: transition to next biome.
-					// If this is the last biome, transition
-					// back to normal game.
-					uim.setLeftHint('');
-					gs.shuffleDrawDeck();
-					uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'eventResolveDisplacement');
+					if (gs.drawDeckExhausted()) {
+						uim.showInfoDialog(strings.EVENTS.WELL_DONE,
+										   strings.EVENTS.PLACED_ALL_ORGANISMS,
+										   "eventDisplaceCards");
+					}
+					else {
+						// TODO: transition to next biome.
+						// If this is the last biome, transition
+						// back to normal game.
+						uim.setLeftHint('');
+						gs.shuffleDrawDeck();
+						uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'eventResolveDisplacement');
+					}
 				}
 			}
 		},
@@ -377,8 +438,8 @@ var sm = {
 
 	eventDraw: {
 		enter: function(data) {
-			uim.startOperation('showFocusBanner');
 			listenFor('UIoperationComplete', this);
+			uim.startOperation('showFocusBanner');
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.clearFocusBanner();
 		},
@@ -410,8 +471,8 @@ var sm = {
 
 	eventEnd: {
 		enter: function(data) {
-			uim.startOperation('moveBannersOut');
 			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut');
 			uim.setLeftHint('');
 		},
 
@@ -427,10 +488,26 @@ var sm = {
 			unlistenFor('UIoperationComplete', this);
 
 			gs.restoreOriginalDrawDeck();
+
+			// TODO: start phase two without reshuffling the draw deck!
 			sm.setTransitionState("startPhaseTwo", "phaseTwo");
 
 			// TODO: if this is the final event, go to game over.
 		}
+	},
+
+	eventEndNoDamage: {
+		enter: function(data) {
+			gs.restoreOriginalDrawDeck();
+		},
+
+		update: function() {
+			sm.setTransitionState("startPhaseTwo", "phaseTwo");
+		},
+
+		exit: function() {
+
+		},
 	},
 
 	///////////////////////////////////////////////////////////////////////////
@@ -445,7 +522,6 @@ var sm = {
 		},
 
 		update: function() {
-
 		},
 
 		exit: function() {
@@ -453,8 +529,6 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
-			unlistenFor('UIoperationComplete', this);
-			
 			setState(sm.nextState);
 		},
 	},
@@ -475,8 +549,6 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
-			unlistenFor('UIoperationComplete', this);
-			
 			setState(sm.nextState);
 		},
 	},
@@ -538,8 +610,9 @@ var sm = {
 		bExit: false,
 
 		enter: function(data) {
+			this.bExit = false;
+
 			if (gs.doPlaysRemainInDrawDeck()) {
-				gs.shuffleDrawDeck();
 				uim.syncBannersToCards();
 
 				gs.setPhaseOne(false);
@@ -658,8 +731,8 @@ var sm = {
 		enter: function(data) {
 			assert(gs.doPlaysRemainInDrawDeck(), "phaseTwoReshuffle.enter: no plays remain in draw deck!");
 
-			uim.startOperation('moveBannersOut');
 			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut');
 		},
 
 		update: function() {
@@ -681,8 +754,8 @@ var sm = {
 		enter: function(data) {
 			assert(gs.doPlaysRemainInDrawDeck(), "phaseTwoReshuffle.enter: no plays remain in draw deck!");
 			
-			uim.startOperation('showFocusBanner');
 			listenFor('UIoperationComplete', this);
+			uim.startOperation('showFocusBanner');
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.clearFocusBanner();
 		},
@@ -730,8 +803,8 @@ var sm = {
 
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
 			uim.disableBannerInput();
-			uim.startOperation('moveBannersIn');
 			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersIn');
 		},
 
 		update: function() {
@@ -825,8 +898,8 @@ var sm = {
 	phaseOneDraw: {
 		enter: function(data) {
 			uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
-			uim.startOperation('showFocusBanner');
 			listenFor('UIoperationComplete', this);
+			uim.startOperation('showFocusBanner');
 			uim.clearFocusBanner();
 		},
 
@@ -888,6 +961,8 @@ var sm = {
 			
 			gs.removeInsectsAndNematodes();
 			gs.addPhaseTwoCards();
+			gs.shuffleDrawDeck();
+
 			sm.setTransitionState('startPhaseTwo', 'phaseTwo');
 		},
 	},

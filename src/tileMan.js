@@ -49,7 +49,7 @@
  		return bExclusive;
  	},
 
- 	listNullAndMoveToBack: function(list, item) {
+ 	listNullAndMoveToBack: function(list, item, bTrim) {
  		var i = 0;
 
  		for (i=0; i<list.length; ++i) {
@@ -60,7 +60,7 @@
  		}
  	},
 
- 	listReplaceWithLastNonNull: function(list, iReplace) {
+ 	listReplaceWithLastNonNull: function(list, iReplace, bTrim) {
  		var bReplaced = false;
  		var iLast = -1;
 
@@ -81,6 +81,10 @@
  				// null-out list[iReplace] without moving it.
  				list[iReplace] = null;
  				bReplaced = true;
+ 			}
+
+ 			if (bTrim) {
+ 				this.trimList(list);
  			}
  		}
 
@@ -118,6 +122,22 @@
  				maximaOut.push(i);
  			}
  		}
+ 	},
+
+ 	numberListFindMaxValue: function(list) {
+ 		var i = 0;
+ 		var best = Number.NEGATIVE_INFINITY;
+
+ 		assert(list, "numberListFindMaxValue: invalid list!");
+
+ 		for (i=0; i<list.length; ++i) {
+ 			assert(typeof(list[i]) === 'number', "numberListFindMaxValue: found non-numerical data!");
+ 			if (list[i] > best) {
+ 				best = list[i];
+ 			}
+ 		}
+
+ 		return best;
  	},
 
  	listReturnRandomElement: function(list) {

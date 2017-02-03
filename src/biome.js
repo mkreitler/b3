@@ -82,6 +82,20 @@ bd.biome.prototype.showNextCardHints = function() {
 	}
 }
 
+bd.biome.prototype.convertToNewType = function(newType) {
+	var key = null;
+
+	for (key in this.TYPES) {
+		if (this.TYPES[key].name.toLowerCase() === newType.toLowerCase()) {
+			newType = this.TYPES[key];
+			break;
+		}
+	}
+
+	this.type = newType;
+	this.draw(this.layer, 'ff_world');
+}
+
 bd.biome.prototype.getScore = function() {
 	return this.score;
 }
@@ -243,6 +257,29 @@ bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 	this.tileSet = tileSet;
 	this.layer = layer;
 
+	row = this.latitude * this.type.tiles.length + (this.type.tiles.length - 1);
+
+	x = startOffset * TILE_SIZE;
+	y = row * TILE_SIZE;
+	this.sprNoSelect = uim.getGroup().create(x, y, 'noSelect' + this.noSelectByLatitude[this.latitude]);
+	this.sprNoSelect.kill();
+
+	this.draw(layer, tileSet, type);
+}
+
+bd.biome.prototype.draw = function(layer, tileSet) {
+	var i = 0;
+	var iCol = 0;
+	var iRow = 0;
+	var row = 0;
+	var col = 0;
+	var x = 0;
+	var y = 0;
+	var bLastNiche = false;
+	var bSpacerCell = false;
+	var tile = null;
+	var startOffset = this.getStartOffset();
+
 	for (i=0; i<this.getNumNiches(); ++i) {
 		for (iRow=0; iRow<this.type.tiles.length; ++iRow) {
 			row = this.latitude * this.type.tiles.length + iRow;
@@ -250,8 +287,6 @@ bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 			if (iRow === this.type.tiles.length - 1 && i === 0) {
 				x = startOffset * TILE_SIZE;
 				y = row * TILE_SIZE;
-				this.sprNoSelect = uim.getGroup().create(x, y, 'noSelect' + this.noSelectByLatitude[this.latitude]);
-				this.sprNoSelect.kill();
 			}
 
 			for (iCol=0; iCol<this.type.tiles[0].length; ++iCol) {
@@ -292,7 +327,7 @@ bd.biome.prototype.scoreNichesBy = function(organismType, keyword, bCascade) {
 
 			if (bCascade) {
 				// ...plus 1 point for every card destroyed or displaced.
-				score += this.niches[i].countOrganismsAboveRank(organismRank) - organismRank - 1;
+				score += this.niches[i].scoreOrganismsAboveRank(organismRank, organismType, keyword);
 			}
 		}
 	}

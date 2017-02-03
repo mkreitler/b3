@@ -164,6 +164,10 @@ function create() {
 function startGame() {
 	var bPhaseOneRestore = false;
 
+	// DEBUG!!!
+	listenFor("angiospermRepopulated", gs);
+	listenFor("angiospermMigrated", gs);
+
 	if (gs.doRestoreGame()) {
 		bPhaseOneRestore = gs.restoreGameState();
 		addUiElements();

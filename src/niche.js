@@ -37,17 +37,23 @@ bd.niche.prototype.hasOrganismAtRank = function(rank) {
 	return this.cards[rank] !== null;
 }
 
-bd.niche.prototype.countOrganismsAboveRank = function(rank) {
+bd.niche.prototype.scoreOrganismsAboveRank = function(rank, orgType, keyword) {
 	var i = 0;
-	var nOrgs = 0;
+	var score = 0;
 
 	for (i=rank+1; i<this.cards.length; ++i) {
+		if (this.cards[i] && gs.getCardTitle(this.cards[i]).toLowerCase() === orgType) {
+			if (!keyword || gs.cardHasKeyword(keyword)) {
+				score += 1;
+			}
+		}
+
 		if (this.cards[i]) {
-			nOrgs += 1;
+			score += 1;
 		}
 	}
 
-	return nOrgs;
+	return score;
 }
 
 bd.niche.prototype.getOrganismRank = function(orgType, keyword) {
@@ -55,7 +61,7 @@ bd.niche.prototype.getOrganismRank = function(orgType, keyword) {
 	var i = 0;
 
 	orgType = orgType.toLowerCase();
-	keyword = keyword.toLowerCase();
+	keyword = keyword ? keyword.toLowerCase() : null;
 
 	for (i=0; i<this.cards.length; ++i) {
 		if (this.cards[i] && gs.getCardTitle(this.cards[i]).toLowerCase() === orgType) {
@@ -289,11 +295,26 @@ bd.niche.prototype.tagCardsOfTypeForDestruction = function(organism, keyword, ca
 bd.niche.prototype.tagCardsForDisplacement = function(cardsDisplaced) {
 	var i = 0;
 	var checkedCards = [];
+	var coCard = null;
 
 	for (i=0; i<this.cards.length; ++i) {
 		checkedCards.length = 0;
-		if (this.cards[i] && !this.isCardSupported(this.cards[i], checkedCards)) {
-			cardsDisplaced.push(this.cards[i]);
+		if (this.cards[i]) {
+			if (this.isCardSupported(this.cards[i], checkedCards)) {
+				coCard = gs.getCardCoCard(this.cards[i]);
+				if (coCard && gs.cardHasKeyword(coCard, "angiosperm")) {
+					assert(i === 1, "tagCardsForDisplacement: found angiosperm coCard outside rank 1!");
+					assert(this.cards[0] === null, "tagCardsForDisplacement: angiosperm replacement blocked!");
+					
+					gs.setCardCoCard(this.cards[i], null);
+
+					gs.populateNiche(coCard, this);
+					broadcast("angiospermRepopulated");
+				}
+			}
+			else {
+				cardsDisplaced.push(this.cards[i]);
+			}
 		}
 	}
 };

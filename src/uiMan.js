@@ -36,6 +36,7 @@
  	INFO_EXPAND_TIME: 333,
  	INFO_INFO_SCALE_SMALL: 0.00001,
  	INFO_ALPHA_TIME: 333,
+ 	MIN_OPERATION_DELAY: 100,
 
 	group: null,
 	buttonGroup: null,
@@ -268,7 +269,7 @@
  	onInfoPanelClicked: function() {
  		this.infoDlgShield.inputEnabled = false;
  		this.infoDlgPanel.inputEnabled = false;
- 		
+
 		this.infoDlgTitle.tweenIn.stop();
 		this.infoDlgText.tweenIn.stop();
 		this.infoDlgPrompt.tweenIn.stop();
@@ -352,7 +353,7 @@
  	},
 
  	showEvent: function(biome, title, info) {
- 		var y = biome.getY() + TILE_SIZE / 2 * gs.SPRITE_SCALE;
+ 		var y = biome ? biome.getY() + TILE_SIZE / 2 * gs.SPRITE_SCALE : game.height / 2 - this.eventShield.height / 2;
  		var dt = uim.EVENT_TWEEN_TIME * Math.abs(y - (game.height - this.eventShield.height)) / game.height;
 
  		this.eventMarker.y = -this.eventShield.height;
@@ -786,7 +787,12 @@
  			this[opName]();
  		}
  		else {
- 			broadcast('UIoperationComplete');
+ 			// FILTHY HACK: introduce slight delay to prevent state machines from
+ 			// transitioning multiple times in a single frame. This can happen when
+ 			// a state's enter() method calls startOperation() and the operation
+ 			// immediately broadcasts "UIoperationComplete", triggering a state
+ 			// change in the state's listening method.
+ 			setTimeout(function() { broadcast('UIoperationComplete'); }, this.MIN_OPERATION_DELAY);
  		}
  	},
 
