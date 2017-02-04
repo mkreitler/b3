@@ -634,6 +634,9 @@ var sm = {
 
 		exit: function() {
 			unlistenFor('UIoperationComplete', this);
+
+			gs.postPopulationProgress();
+			gs.postDeckProgress();
 		},
 
 		onPushed: function() {

@@ -177,6 +177,28 @@ bd.biome.prototype.getPrevNiche = function(curNiche) {
 	return prevNiche;
 }
 
+bd.biome.prototype.getCurrentPopulationCount = function() {
+	var i = 0;
+	var count = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		count += this.niches[i].getCurrentPopulationCount();
+	}
+
+	return count;
+}
+
+bd.biome.prototype.getMaxPopulationCount = function() {
+	var i = 0;
+	var count = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		count += this.niches[i].getMaxPopulationCount();
+	}
+
+	return count;
+}
+
 bd.biome.prototype.tileAt = function(x, y) {
 	var tile = null;
 

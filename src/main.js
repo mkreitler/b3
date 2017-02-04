@@ -73,6 +73,29 @@ function broadcast(msg, data) {
 	}
 }
 
+// LOL API ////////////////////////////////////////////////////////////////////
+function onPauseMainScreen() {
+	console.log("<<< Pausing main screen >>>");
+	game.paused = true;
+}
+
+function onResumeMainScreen() {
+	console.log("<<< Resuming main screen >>>");
+	game.paused = false;
+}
+
+function onPauseOther() {
+	console.log("<<< Pausing other stuff >>>");
+	game.paused = true;
+}
+
+function onResumeOther() {
+	console.log("<<< Resuming other stuff >>>");
+	game.paused = false;
+}
+
+// End LOL API ////////////////////////////////////////////////////////////////
+
 function preload() {
 	// Tilemaps
 	game.load.image('world_ff', './res/tilesets/oryx_16bit_fantasy_world_trans.png', false);
@@ -164,11 +187,16 @@ function create() {
 function startGame() {
 	var bPhaseOneRestore = false;
 
-	// DEBUG!!!
-	listenFor("angiospermRepopulated", gs);
-	listenFor("angiospermMigrated", gs);
+	window.LOLSDK.init('com.markkreitler.eggs');
+	window.LOLSDK.addLifecycleListener(onPauseMainScreen, onResumeMainScreen);
+	window.LOLSDK.addLifecycleListener(onPauseOther, onResumeOther);
+
+	// MAY HAVE TO MOVE THIS TO A BUTTON EVENT...
+	window.LOLSDK.allowSound();
 
 	if (gs.doRestoreGame()) {
+		gs.init();
+		
 		bPhaseOneRestore = gs.restoreGameState();
 		addUiElements();
 		events.init();
@@ -190,12 +218,15 @@ function startGame() {
 		events.init();
 		
 		// TEMP: force game into PhaseOne state.
-		gs.initDrawDeck();
-		gs.initDiscardDeck();
+		gs.init();
 		setState(sm.startPhaseOne);
 	}
 
 	uim.raiseGroups();
+}
+
+function quitGame() {
+	window.LOLSDK.completeGame();	
 }
 
 function resetGame() {

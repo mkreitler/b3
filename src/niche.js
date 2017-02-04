@@ -149,6 +149,29 @@ bd.niche.prototype.getNextCard = function(card) {
 	return nextCard;
 };
 
+bd.niche.prototype.getCurrentPopulationCount = function() {
+	var i = 0;
+	var count = 0;
+
+	for (i=0; i<this.cards; ++i) {
+		if (this.cards[i]) {
+			++count;
+		}
+	}
+
+	return count;
+};
+
+bd.niche.prototype.getMaxPopulationCount = function() {
+	// Return the largest possible count. Most games will fall
+	// short of this, because insects and nematodes reduce the
+	// population count of their niches from 4 to 3. The
+	// overestimate is preferable because any other approximation
+	// would cause the 'max progress' metric to either fluctuate
+	// or overflow.
+	return this.MAX_RANK + 1;
+};
+
 bd.niche.prototype.getRankForCard = function(card) {
 	var rank = -1;
 	var i =0 ;
@@ -305,7 +328,7 @@ bd.niche.prototype.tagCardsForDisplacement = function(cardsDisplaced) {
 				if (coCard && gs.cardHasKeyword(coCard, "angiosperm")) {
 					assert(i === 1, "tagCardsForDisplacement: found angiosperm coCard outside rank 1!");
 					assert(this.cards[0] === null, "tagCardsForDisplacement: angiosperm replacement blocked!");
-					
+
 					gs.setCardCoCard(this.cards[i], null);
 
 					gs.populateNiche(coCard, this);

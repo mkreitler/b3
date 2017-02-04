@@ -33,6 +33,7 @@ gs =  {
 	iRestore: 1,
 	logData: '',
 
+	lastPopulationCount: 0,
 	worldPressInfo: {biome: null, niche: null, tile: null},
 	biomeMap: null,
 	baseMap: null,
@@ -240,19 +241,6 @@ gs =  {
 	}
 };
 
-// DEBUG
-gs.angiospermRepopulated = function(data) {
-	console.log("Angiosperm repopulated!");
-};
-
-gs.angiospermDisplaced = function(data) {
-	console.log("Angiosperm displaced!");
-};
-
-gs.angiospermMigrated = function(data) {
-	console.log("Angiosperm migrated!");
-};
-
 gs.getBiomeId = function(biome) {
 	var i = 0;
 	var id = -1;
@@ -421,9 +409,6 @@ gs.populateBiomes = function(cardData) {
 	var bPhaseOneRestore = true;
 	var failMsg = null;
 	var cardsAdded = [];
-
-	gs.initDrawDeck();
-	gs.initDiscardDeck();
 
 	if (cardData.length >= this.getNumNiches()) {
 		bPhaseOneRestore = false;
@@ -1487,6 +1472,12 @@ gs.resetCard = function(card) {
 	card.coCard = null;
 };
 
+gs.init = function() {
+	gs.lastPopulationCount = 0;
+	gs.initDrawDeck();
+	gs.initDiscardDeck();
+};
+
 gs.initDrawDeck = function() {
 	var i = 0;
 
@@ -1539,6 +1530,53 @@ gs.shuffleDrawDeck = function() {
 	tm.scrambleList(gs.drawDeck);
 	tm.scrambleList(gs.drawDeck);
 	tm.scrambleList(gs.drawDeck);
+};
+
+gs.postDeckProgress = function() {
+	var progress = {
+		currentProgress: gs.discardDeck.length,
+		maximumProgress: gs.phaseOneCards.length + gs.phaseTwoCards.length,
+		score: gs.getCurrentPopulationCount()
+	}
+
+	window.LOLSDK.submitProgress(progress);	
+};
+
+gs.postPopulationProgress = function() {
+	var currentPopulationCount = gs.getCurrentPopulationCount();
+	var maxPopulationCount = gs.getMaxPopulationCount();
+
+	var progress = {
+	  currentProgress: Math.max(gs.lastPopulationCount, currentPopulationCount),
+	  maximumProgress: maxPopulationCount,
+	  score: currentPopulationCount
+	};
+
+	gs.lastPopulationCount = Math.max(gs.lastPopulationCount, currentPopulationCount);
+
+	window.LOLSDK.submitProgress(progress);	
+};
+
+gs.getCurrentPopulationCount = function() {
+	var nPopulations = 0;
+	var i = 0;
+
+	for (i=0; i<this.biomes.length; ++i) {
+		nPopulations += this.biomes[i].getCurrentPopulationCount();
+	}
+
+	return nPopulations;
+};
+
+gs.getMaxPopulationCount = function() {
+	var i = 0;
+	var maxPopCount = 0;
+
+	for (i=0; i<this.biomes.length; ++i) {
+		maxPopCount += this.biomes[i].getMaxPopulationCount();
+	}
+
+	return maxPopCount;
 };
 
 gs.initDiscardDeck = function() {
