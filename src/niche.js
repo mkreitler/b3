@@ -287,11 +287,11 @@ bd.niche.prototype.isProtected = function(card) {
 
 	assert(card, "isProtected: invalid card!");
 
-	if (gs.cardsTitleIs(card, 'plantae')) {
+	if (gs.cardTitleIs(card, 'plantae')) {
 		otherNiche = this.prev();
 		otherCard = otherNiche ? otherNiche.cardAtRank(this.getRankForCard(card)) : null;
 
-		bProtected = otherCard && gs.cardsTitleIs(otherCard, 'insecta');
+		bProtected = otherCard && gs.cardTitleIs(otherCard, 'insecta');
 	}
 
 	return bProtected;

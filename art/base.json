@@ -65,7 +65,7 @@
         {
          "columns":35,
          "firstgid":2297,
-         "image":"..\/..\/..\/phaser\/v2\/prototypes\/bioship\/res\/tilesets\/oryx_16bit_scifi_world_trans.png",
+         "image":"..\/res\/tilesets\/oryx_16bit_scifi_world_trans.png",
          "imageheight":984,
          "imagewidth":840,
          "margin":0,

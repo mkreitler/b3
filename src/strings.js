@@ -40,6 +40,10 @@ strings = {
 		CHOOSE_DISPLACED_ORGANISM: "Pick a displaced organism",
 		PLACE_ORGANISM: "Place it in the biosphere",
 	},
+	TUTORIAL: {
+		WELCOME_TERRAFORMER_AND_TAPOUT: "Welcome\nterraformer!\n\n(tap messages\nto clear\nthem.)",
+		THIS_IS_YOUR_BIOSPHERE: "This is your\nbiosphere.\n\nYour mission:\npopulate it!",
+	},
 	EVENTS: {
 		FAMINE: {title: "Famine", info: "Destroy all large birds and mammals."},
 		POLE_SHIFT: {title: "Pole Shift", info: "Destroy all large amphibians and reptiles."},
@@ -78,5 +82,11 @@ strings = {
 		SYMBIOTE: 'A Symbiote protects, and is protected by,\nthe animal to it left.',		
 	},
 	WARNINGS: {
+	},
+	UI: {
+		START_GAME: "Start Game",
+		TUTORIAL: "Play Tutorial",
+		TOGGLE_SOUND: "Toggle Sound",
+		CHOOSE_ONE: "Choose One",
 	}
 }

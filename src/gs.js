@@ -30,7 +30,7 @@ gs =  {
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1"]},
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1","38~0~1","21~1~2","27~1~1","71~2~2","65~0~1","30~4~0","28~3~2","32~3~1","29~4~1","49~0~0","39~1~0","56~1~0","37~4~1","51~4~1","22~2~3","50~1~1","47~1~2","24~2~1","66~0~0","59~1~2","48~2~3","17~2~0","46~2~0","25~3~0","64~1~1","34~2~2","54~2~3","67~2~2","35~4~0","45~2~1","41~3~2","55~2~1","43~3~0","53~4~0","70~3~1","57~3~2","68~3~1"]},
 	],
-	iRestore: 1,
+	iRestore: -1,
 	logData: '',
 
 	lastPopulationCount: 0,
@@ -241,6 +241,29 @@ gs =  {
 	}
 };
 
+gs.startGame = function(data) {
+	uim.clearFocusBanner();
+
+	gs.init();
+	events.init();
+	setState(sm.startPhaseOne);
+};
+
+gs.instructions = function(data) {
+	uim.clearFocusBanner();
+	setState(sm.startTutorial);
+
+	uim.openEggChamber("mammalia", 0);
+	uim.openEggChamber("mammalia", 1);
+	uim.openEggChamber("mammalia", 2);
+	uim.openEggChamber("mammalia", 3);
+	uim.openEggChamber("mammalia", 4);
+};
+
+gs.toggleSound = function(data) {
+	uim.clearFocusBanner();
+};
+
 gs.getBiomeId = function(biome) {
 	var i = 0;
 	var id = -1;
@@ -338,6 +361,18 @@ gs.restoreGameState = function() {
 	}
 
 	return bIsPhaseOneRestore;
+};
+
+gs.getEggIndexFromType = function(typeName) {
+	var iEgg = -1;
+
+	typeName = typeName.toLowerCase();
+
+	if (gs.titleToAnimIndex.hasOwnProperty(typeName)) {
+		iEgg = Object.keys(gs.titleToAnimIndex).indexOf(typeName);
+	}
+
+	return iEgg;
 };
 
 gs.getBiomesOfType = function(typeName, biomesOut) {
@@ -877,7 +912,7 @@ gs.getTileIndexForCardInBiome = function(card, biome) {
 	return gs.indexInfo;
 };
 
-gs.cardsTitleIs = function(card, title) {
+gs.cardTitleIs = function(card, title) {
 	var bTitleIs = false;
 
 	if (card) {
@@ -1137,7 +1172,25 @@ gs.getNextKeywordForCard = function(card) {
 	}
 
 	return keyword;
-}
+};
+
+gs.bannerStateFromIndex = function(index) {
+	var i = 0;
+	var state = null;
+
+	assert(index >= 0 && index < Object.keys(this.titleToAnimIndex).length, "bannerStateFromIndex: invalid index!");
+
+	for (state in this.titleToAnimIndex) {
+		if (index === i) {
+			break;
+		}
+		else {
+			++i;
+		}
+	}
+
+	return state;
+};
 
 gs.getNumTitles = function() {
 	var key = null;
@@ -1530,6 +1583,34 @@ gs.shuffleDrawDeck = function() {
 	tm.scrambleList(gs.drawDeck);
 	tm.scrambleList(gs.drawDeck);
 	tm.scrambleList(gs.drawDeck);
+
+	if (!gs.playerHasLegalMove(gs.isPhaseOne())) {
+		gs.movePlayableCardToTop();
+	}
+};
+
+gs.movePlayableCardToTop = function() {
+	var i = 0;
+	var bPhaseOne = gs.isPhaseOne();
+	var bLargePlant = false;
+	var card = null;
+	var iSwap = -1;
+	var swap = null;
+
+	for (i=uim.getNumBanners(); i<this.drawDeck.length; ++i) {
+		card = this.drawDeck[i];
+
+		bLargePlant = gs.cardTitleIs(card, 'plantae') && gs.cardHasKeyword(card, 'large');
+
+		if (gs.countPlays(card, bLargePlant, bPhaseOne) > 0) {
+			// If we're here, we're guaranteed that i > the current number of banners.
+			iSwap = Math.floor(Math.random() * uim.getNumBanners());
+			swap = gs.drawDeck[iSwap];
+			gs.drawDeck[iSwap] = gs.drawDeck[i];
+			gs.drawDeck[i] = swap;
+			break;
+		}
+	}
 };
 
 gs.postDeckProgress = function() {
@@ -1644,15 +1725,13 @@ gs.discardAndReplace = function(card) {
 
 gs.playerHasLegalMove = function(bPhaseOne) {
 	var bHasLegalMove = false;
-	var showingCards = null;
 	var i = 0;
 	var keywords = null;
 	var bLargePlant = false;
 	var nPlays = 0;
 
-	showingCards = uim.getShowingCards();
-	for (i=0; i<showingCards.length; ++i) {
-		card = showingCards[i];
+	for (i=0; i<Math.min(this.drawDeck.length, uim.getNumBanners()); ++i) {
+		card = this.drawDeck[i];
 		keywords = gs.getCardKeywords(card);
 
 		if (keywords) {

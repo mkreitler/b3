@@ -112,6 +112,16 @@ function preload() {
 	game.load.image('infoShield', './res/ui/infoShield.png', false);
 	game.load.image('infoPanel', './res/ui/infoPanel.png', false);
 
+	// Help System Images
+	game.load.image('helperCenter', './res/ui/helperCenter.png', false);
+	game.load.image('helperRing', './res/ui/helperRing.png', false);
+	game.load.image('helperArrowOut', './res/ui/helperArrowOut.png', false);
+	game.load.image('helperArrowIn', './res/ui/helperArrowIn.png', false);
+	game.load.image('helperTop', './res/ui/helperTop.png', false);
+	game.load.image('helperRight', './res/ui/helperRight.png', false);
+	game.load.image('helperBottom', './res/ui/helperBottom.png', false);
+	game.load.image('helperLeft', './res/ui/helperLeft.png', false);
+
 	// Spritesheets
 	game.load.spritesheet('ui_buttons', './res/ui/buttons.png', 315, 79);
 	game.load.spritesheet('ui_buttons_g', './res/ui/buttons_g.png', 324, 98);
@@ -122,7 +132,7 @@ function preload() {
 
 	// Fonts
 	game.load.bitmapFont('bogboo', './res/fonts/bogboo.png', './res/fonts/bogboo.xml');	
-    game.load.bitmapFont('carrier_command', './res/carrier_command.png', './res/carrier_command.xml');
+    // game.load.bitmapFont('carrier_command', './res/carrier_command.png', './res/carrier_command.xml');
 
     // Sounds
 }
@@ -136,6 +146,7 @@ function create() {
 
 	gs.baseMap = game.add.tilemap('base');
 	gs.baseMap.addTilesetImage('sf_world', 'world_sf', 24, 24);
+	gs.baseMap.addTilesetImage('ff_world', 'world_ff', 24, 24);
 
 //	gs.layers.stars 		= gs.biomeMap.createLayer('StarField');
 //	gs.layers.ocean 		= gs.biomeMap.createLayer('Ocean01');
@@ -196,7 +207,7 @@ function startGame() {
 
 	if (gs.doRestoreGame()) {
 		gs.init();
-		
+
 		bPhaseOneRestore = gs.restoreGameState();
 		addUiElements();
 		events.init();
@@ -215,11 +226,8 @@ function startGame() {
 	else {
 		generateStartingTerrain();
 		addUiElements();
-		events.init();
 		
-		// TEMP: force game into PhaseOne state.
-		gs.init();
-		setState(sm.startPhaseOne);
+		setState(sm.startGame);
 	}
 
 	uim.raiseGroups();

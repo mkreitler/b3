@@ -4,7 +4,7 @@
   <image source="../../../phaser/v2/prototypes/bioship/res/tilesets/oryx_16bit_fantasy_world_trans.png" width="1344" height="984"/>
  </tileset>
  <tileset firstgid="2297" name="sf_world" tilewidth="24" tileheight="24" tilecount="1435" columns="35">
-  <image source="../../../phaser/v2/prototypes/bioship/res/tilesets/oryx_16bit_scifi_world_trans.png" width="840" height="984"/>
+  <image source="../res/tilesets/oryx_16bit_scifi_world_trans.png" width="840" height="984"/>
  </tileset>
  <tileset firstgid="3732" name="ff_creatures" tilewidth="24" tileheight="24" tilecount="540" columns="20">
   <image source="../../../phaser/v2/prototypes/bioship/res/oryx_16bit_fantasy_creatures_trans.png" width="480" height="648"/>

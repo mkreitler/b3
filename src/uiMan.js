@@ -37,6 +37,9 @@
  	INFO_INFO_SCALE_SMALL: 0.00001,
  	INFO_ALPHA_TIME: 333,
  	MIN_OPERATION_DELAY: 100,
+ 	UI_BANNER_INDEX: 1,
+ 	GET_FROM_FUNCTION: -1,
+ 	NOOP: -99,
 
 	group: null,
 	buttonGroup: null,
@@ -51,6 +54,7 @@
 	cursorGroup: null,
 	hint: {group: null, sprite: null, text: null},
 	bInputBlocked: false,	// Filthy hack to make dialog box behave modally.
+	lastOp: null,			// DEBUG: tracks last uiOperation executed.
 
 	// Event dialog
 	eventShield: null,
@@ -74,6 +78,7 @@
  		game.world.bringToTop(this.group);
  		// game.world.bringToTop(this.buttonGroup);
  		game.world.bringToTop(this.infoGroup);
+ 		game.world.bringToTop(this.helperGroup);
  	},
 
  	createHints: function() {
@@ -127,6 +132,21 @@
 	 		this.hideHint();
 	 	}
  	},
+
+	release: function() {
+		var data = null;
+
+		if (this.focusWidget) {
+			data = this.focusWidget.banner.getData();
+			if (data) {
+				this.clearFocusBanner();
+			}
+		}
+
+		if (data && typeof(data) === 'function') {
+			data(this);
+		}
+	},
 
  	hideHint: function() {
  		this.hint.text.visible = false;
@@ -476,7 +496,7 @@
  		var bHandled = false;
 
  		if (this.focusWidget) {
- 			// this.focusWidget.release();
+ 			this.release();
  			bHandled = true;
  		}
 
@@ -519,6 +539,16 @@
  			banner.setSpecial(special);
  			banner.setData(data);
  		}
+ 	},
+
+ 	setupBanner: function(iBanner, iImage, label, callback) {
+ 		assert(iBanner >= 0 && iBanner < this.banners.length, "setupBanner: invalid banner index!");
+
+		this.banners[iBanner].setUiTitle(label, gs.bannerStateFromIndex(iImage));
+		this.banners[iBanner].setValue('');
+		this.banners[iBanner].setKeywords('');
+		this.banners[iBanner].setSpecial('');
+		this.banners[iBanner].setData(callback);
  	},
 
 	syncBannersToCards: function() {
@@ -752,26 +782,50 @@
 	 	}
  	},
 
- 	startOperation: function(opName) {
+ 	startOperation: function(opName, args, bAdditive) {
  		var bDoOperation = true;
+ 		var bVariableOpCount = false;
+
+ 		if (!bAdditive) {
+ 			this.uiOpCounter = 0;
+ 		}
 
  		switch(opName) {
  			case 'moveBannersOut':
- 				this.uiOpCounter = this.getNumBannersWithData();
+ 				this.uiOpCounter += this.getNumBannersWithData();
  			break;
 
  			case 'moveBannersIn': case 'wiggleBanners':
- 				this.uiOpCounter = this.getNumBannersWithData();
+ 				this.uiOpCounter += this.getNumBannersWithData();
  			break;
 
  			case 'hideFocusBanner': case 'showFocusBanner':
- 				this.uiOpCounter = 1;
+ 				this.uiOpCounter += 1;
  				bDoOperation = this.focusWidget;
  			break;
 
  			case 'wiggleFocusBanner':
- 				this.uiOpCounter = 1;
+ 				this.uiOpCounter += 1;
  				bDoOperation = this.focusWidget && this.focusWidget.banner;
+ 			break;
+
+ 			case 'fadeIn': case 'fadeOut':
+ 				bVariableOpCount = true;
+ 			break;
+
+ 			case 'turnRingTo':
+ 				this.uiOpCounter += 1;
+ 			break;
+
+ 			case 'turnRingBy':
+ 				this.uiOpCounter += 1;
+ 			break;
+
+ 			case 'wait':
+ 				assert(!bAdditive, "startOperation: cannot combine 'wait' with additive commands!");
+
+ 				this.uiOpCounter = this.NOOP;
+ 				setTimeout(function() { broadcast('UIoperationComplete'); }, args);
  			break;
 
  			default:
@@ -779,14 +833,32 @@
  			break;
  		}
 
- 		if(this.uiOpCounter === 0) {
+ 		if (!bVariableOpCount && (this.uiOpCounter === 0 || this.uiOpCounter === this.NOOP)) {
  			bDoOperation = false;
  		}
 
  		if (bDoOperation && this.hasOwnProperty(opName)) {
- 			this[opName]();
+ 			if (bVariableOpCount) {
+ 				this.lastOp = opName;
+ 				this.uiOpCounter += this[opName](args);
+ 			}
+ 			else {
+ 				this.lastOp = opName;
+ 				this[opName](args);
+ 			}
  		}
- 		else {
+ 		else if (bDoOperation && this.helper.hasOwnProperty(opName)) {
+ 			if (bVariableOpCount) {
+ 				this.lastOp = opName;
+ 				this.uiOpCounter += this.helper[opName](args);
+ 			}
+ 			else {
+ 				this.lastOp = opName;
+ 				this.helper[opName](args);
+ 			}
+ 		}
+
+ 		if (this.uiOpCounter === 0) {
  			// FILTHY HACK: introduce slight delay to prevent state machines from
  			// transitioning multiple times in a single frame. This can happen when
  			// a state's enter() method calls startOperation() and the operation
@@ -807,9 +879,11 @@
 		this.buttonGroup = game.add.group();
 		this.group = game.add.group();
 		this.infoGroup = game.add.group();
+		this.helperGroup = game.add.group();
 
 		this.createEvents();
 		this.createInfoDialog();
+		this.helper.create();
  	},
 
  	getButtonGroup: function() {
@@ -848,6 +922,20 @@
  		return this.group;
  	},
 
+ 	openEggChamber: function(eggType, iChamber) {
+ 		var iEgg = gs.getEggIndexFromType(eggType);
+
+ 		assert(iEgg > 0, "openEggChange: unknown EGG type!");
+
+ 		tm.addTilesToLayer(gs.baseLayers.objects, 'sf_world', 340, 1 + 3 * iChamber, 11);
+ 		tm.addTilesToLayer(gs.baseLayers.ui, 'sf_world', 285 + iEgg, 1 + 3 * iChamber, 11);
+ 	},
+
+ 	closeEggChamber: function(iChamber) {
+ 		tm.removeTilesToLayer(gs.baseLayers.ui, 1 + 3 * iChamber, 11);
+ 		tm.addTilesToLayer(gs.baseLayers.objects, 'sf_world', 338, 1 + 3 * iChamber, 11);
+ 	},
+
  	enableInput: function() {
 		gs.layers.grid.inputEnabled = true;
 		gs.layers.grid.events.onInputDown.add(onWorldPressCallback, this);
@@ -863,7 +951,7 @@
 
  	clearFocusBanner: function() {
  		if (this.focusWidget instanceof uim.button && uim.focusWidget.banner) {
- 			this.focusWidget.release();
+ 			this.focusWidget.buttonStateClear();
  			this.focusWidget = null;
  		}
  	},
@@ -946,13 +1034,18 @@ uim.banner.prototype.setTitle = function(newTitle) {
 	this.button.setState(newTitle);
 },
 
+uim.banner.prototype.setUiTitle = function(newTitle, newState) {
+	this.title.text = newTitle;
+	this.button.setState(newState);
+},
+
 uim.banner.prototype.setValue = function(newValue) {
 	this.value.text = newValue;
 },
 
 uim.banner.prototype.setKeywords = function(newKeywords) {
 	this.keywords.text = newKeywords;
-	 this.keywords.y = this.keywords.height * (1 + uim.KEYWORDS_NUM / uim.KEYWORDS_DENOM);
+	this.keywords.y = this.keywords.height * (1 + uim.KEYWORDS_NUM / uim.KEYWORDS_DENOM);
 },
 
 uim.banner.prototype.setSpecial = function(newSpecial) {
@@ -1049,24 +1142,34 @@ uim.button.prototype.height = function() {
 }
 
 uim.button.prototype.press = function() {
+	var data = null;
+
 	if (!uim.inputBlocked()) {
 		this.sprOff.kill();
 		this.sprOn.revive(0, this.sprOn.height / 2);
 		this.sprOn.animations.play(this.state + 'On');
 
 		if (uim.focusWidget) {
-			uim.focusWidget.release();
+			uim.focusWidget.buttonStateClear();
 			uim.focusWidget = null;
 		}
 
 		if (this.onPressedCallback) {
-			this.onPressedCallback(this);
+			// Check for overridden callback function.
+			if (this.banner) {
+				data = this.banner.getData();
+			}
+
+			if (!data || typeof(data) !== 'function') {
+				this.onPressedCallback(this);
+			}
+
 			uim.focusWidget = this;
 		}
 	}
 }
 
-uim.button.prototype.release = function() {
+uim.button.prototype.buttonStateClear = function() {
 	if (!uim.inputBlocked()) {
 		this.sprOn.kill();
 		this.sprOff.revive(0, this.sprOff.height / 2);

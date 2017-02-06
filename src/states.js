@@ -59,6 +59,51 @@ var sm = {
 	},
 
 	///////////////////////////////////////////////////////////////////////////
+	// Start Game
+	///////////////////////////////////////////////////////////////////////////
+	startGame: {
+		enter: function(data) {
+			uim.setupBanner(0, uim.UI_BANNER_INDEX, strings.UI.START_GAME, gs.startGame.bind(gs));
+			uim.setupBanner(1, uim.UI_BANNER_INDEX, strings.UI.TUTORIAL, gs.instructions.bind(gs));
+			uim.setupBanner(2, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, gs.toggleSound.bind(gs));
+			uim.setupBanner(3, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, null);
+			uim.setupBanner(4, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, null);
+
+			listenFor('UIoperationComplete', this);
+			uim.disableBannerInput();
+			uim.startOperation('moveBannersIn', this);
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+
+		},
+
+		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+			uim.setLeftHint(strings.UI.CHOOSE_ONE);
+			setState('chooseMenuItem');
+		}
+	},
+
+	chooseMenuItem: {
+		enter: function(data) {
+			uim.enableBannerInput();
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+
+		},
+	},
+
+	///////////////////////////////////////////////////////////////////////////
 	// End Game
 	///////////////////////////////////////////////////////////////////////////
 	startGameEnd: {
