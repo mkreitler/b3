@@ -472,6 +472,12 @@ bd.biome.prototype.getNumNiches = function() {
 	return this.niches ? this.niches.length : 0;
 }
 
+bd.biome.prototype.placeCursor = function(iNiche) {
+	assert(iNiche >= 0 && iNiche < this.niches.length, "placeCursor: invalid niche index!");
+
+	this.niches[iNiche].setCursor(null);
+}
+
 bd.biome.prototype.placeCursors = function(card) {
 	var nNiches = this.getNumNiches();
 	var i = 0;

@@ -75,10 +75,13 @@
  	focusWidget: null,
 
  	raiseGroups: function() {
- 		game.world.bringToTop(this.group);
- 		// game.world.bringToTop(this.buttonGroup);
- 		game.world.bringToTop(this.infoGroup);
+		gs.baseLayers.objects.bringToTop();
+		gs.baseLayers.ui.bringToTop();
  		game.world.bringToTop(this.helperGroup);
+ 		game.world.bringToTop(this.buttonGroup);
+		gs.baseLayers.walls.bringToTop();
+ 		game.world.bringToTop(this.infoGroup);
+ 		game.world.bringToTop(this.group);
  	},
 
  	createHints: function() {
@@ -495,7 +498,7 @@
  	onInputUp: function(gameObject, pointer, bStillOver) {
  		var bHandled = false;
 
- 		if (this.focusWidget) {
+ 		if (this.focusWidget && sm.isMenuState()) {
  			this.release();
  			bHandled = true;
  		}
@@ -795,6 +798,10 @@
  				this.uiOpCounter += this.getNumBannersWithData();
  			break;
 
+ 			case 'moveBannerOut': case 'moveBannerIn':
+ 				this.uiOpCounter += 1;
+ 			break;
+
  			case 'moveBannersIn': case 'wiggleBanners':
  				this.uiOpCounter += this.getNumBannersWithData();
  			break;
@@ -818,6 +825,10 @@
  			break;
 
  			case 'turnRingBy':
+ 				this.uiOpCounter += 1;
+ 			break;
+
+ 			case 'blendTo':
  				this.uiOpCounter += 1;
  			break;
 
@@ -876,10 +887,10 @@
  	},
 
  	init: function() {
+		this.helperGroup = game.add.group();
 		this.buttonGroup = game.add.group();
 		this.group = game.add.group();
 		this.infoGroup = game.add.group();
-		this.helperGroup = game.add.group();
 
 		this.createEvents();
 		this.createInfoDialog();
@@ -922,6 +933,28 @@
  		return this.group;
  	},
 
+ 	getBannerButton: function(index) {
+ 		assert(index >= 0 && index < this.banners.length, "getBannerButton: invalid index!");
+
+ 		return this.banners[index].button;
+ 	},
+
+ 	getFocusControlIndex: function() {
+ 		var index = -1;
+ 		var i = 0;
+
+ 		if (uim.focusWidget) {
+ 			for (i=0; i<this.banners.length; ++i) {
+ 				if (this.banners[i].button === uim.focusWidget) {
+ 					index = i;
+ 					break;
+ 				}
+ 			}
+ 		}
+
+ 		return index;
+ 	},
+
  	openEggChamber: function(eggType, iChamber) {
  		var iEgg = gs.getEggIndexFromType(eggType);
 
@@ -932,7 +965,7 @@
  	},
 
  	closeEggChamber: function(iChamber) {
- 		tm.removeTilesToLayer(gs.baseLayers.ui, 1 + 3 * iChamber, 11);
+ 		tm.removeTileFromLayer(gs.baseLayers.ui, 1 + 3 * iChamber, 11);
  		tm.addTilesToLayer(gs.baseLayers.objects, 'sf_world', 338, 1 + 3 * iChamber, 11);
  	},
 
@@ -997,7 +1030,19 @@
  			}
  		}
  	},
- }
+
+ 	simulateButtonPress: function(iBanner) {
+ 		if (iBanner >= 0 && iBanner < this.banners.length) {
+ 			this.banners[iBanner].button.press();
+ 		}
+ 	},
+
+ 	isBannerFocusControl: function(iBanner) {
+ 		return (iBanner >= 0 && iBanner < this.banners.length) ?
+ 			   this.banners[iBanner].button === this.focusWidget :
+ 			   false;
+ 	}
+ };
 
 // uim.banner /////////////////////////////////////////////////////////////////
 uim.banner.prototype.showKeywordInfo = function() {

@@ -12,6 +12,10 @@ var sm = {
 		this.nextState = null;
 	},
 
+	isMenuState: function() {
+		return currentState === sm.chooseMenuItem;
+	},
+
 	handleBannerPress: function(button) {
 		if (button && button.banner) {
 			uim.clearAllCursors();

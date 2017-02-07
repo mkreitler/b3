@@ -42,7 +42,19 @@ strings = {
 	},
 	TUTORIAL: {
 		WELCOME_TERRAFORMER_AND_TAPOUT: "Welcome\nterraformer!\n\n(tap messages\nto clear\nthem.)",
-		THIS_IS_YOUR_BIOSPHERE: "This is your\nbiosphere.\n\nYour mission:\npopulate it!",
+		THIS_IS_YOUR_BIOSPHERE: "This is your\nbiosphere.\n\nYour mission:",
+		MISSION_OBJECTIVE: "Populate it\nbefore the\nfirst colonists\narrive!",
+		INTRODUCING_THE_EGG: "This is an      \nE.G.G.           \n(Engineered\nGenome      \nGerminator)   ",
+		EGG_PURPOSE: "Using E.G.G.s,   \nyou can build\ncreatures    \nfrom custom\nDNA. Deploy  \nE.G.G.s to      \npopulate your\nworld.             ",
+		INTRODUCING_THE_DATA_CARD: "This is a\ndatacard. It\ntells you what\nthis E.G.G.'s\norganisms\ncan do.",
+		CLICK_DATA_CARD: "Tap the\ncard. When it\nhighlights, look\nfor extra data\nin the window\nbelow.",
+		THIS_IS_A_HABITAT: "This is a\nhabitat.\n\nDrop E.G.G.s here\nto start\npopulating.",
+		POPULATE_EGG_01: "Try it\nnow. With the\ndata card\nhighlighted, tap\nthe selected\nhabitat.",
+		YOU_MADE_A_PLANT: "Great!\nYou made a\n plant! This\nstarts a new\necosystem.",
+		BUILDING_ECOSYSTEMS_01: "An\nEcosystem is\na group of plants\nand animals in\na habitat.",
+		BUILDING_ECOSYSTEMS_02: "Build\necosystems\nlayer by layer.\nProducers first,\nthen...",
+		BUILDING_ECOSYSTEMS_03: "...\nHerbivores,\nCarnivores,\nand Scavengers.\n",
+		// NEW_EGG_AVAILABLE: "When you\nuse an E.G.G.,\na new one will\nappear from\nstorage."
 	},
 	EVENTS: {
 		FAMINE: {title: "Famine", info: "Destroy all large birds and mammals."},
@@ -73,6 +85,7 @@ strings = {
 		LOST: "LOST:",
 	},
 	DESCRIPTIONS: {
+		PRODUCER: 'Producers are the root of all\necosystems.',
 		LARGE_PLANT: 'Large plants cannot grow in deserts or\nplains.',
 		ANGIOSPERM: 'An Angiosperm can regrow from seeds\nconsumed by the animal below it.',
 		POLLINATOR: 'A Pollinator strengthens the plant to its\nright by increasing its genetic diversity.',

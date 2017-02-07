@@ -2,9 +2,11 @@ uim.helperGroup = null;
 
 uim.helper = {
 	OFFSET: 110,
-	VELOCITY: 1024 / 0.5,
+	VELOCITY: 512 / 1.0,
 	ANGULAR_VELOCITY: 360 / 3,
 	MARGIN: 5,
+	MIN_DT: 667,
+	ALPHA_THRESH: 0.1,
 
 	top: null,
 	right: null,
@@ -35,7 +37,7 @@ uim.helper = {
 
 		this.textCenter	= game.add.bitmapText(0, 0, 'bogboo', "Center\nText", uim.INFO_TEXT_SIZE); 		
 		this.textTop	= game.add.bitmapText(0, -this.top.height / 2 + this.MARGIN, 'bogboo', "Top\nText", uim.INFO_TEXT_SIZE); 		
-		this.textRight	= game.add.bitmapText(this.right.width / 2 - this.MARGIN, 0, 'bogboo', "Right\nText", uim.INFO_TEXT_SIZE); 		
+		this.textRight	= game.add.bitmapText(this.right.width / 2 - this.MARGIN, 0, 'bogboo', "Right\nText", uim.INFO_TEXT_SIZE); 
 		this.textBottom	= game.add.bitmapText(0, 0, 'bogboo', "Bottom\nText", uim.INFO_TEXT_SIZE); 		
 		this.textLeft	= game.add.bitmapText(-this.left.width / 2 + this.MARGIN, 0, 'bogboo', "Left\nText", uim.INFO_TEXT_SIZE); 		
 
@@ -49,14 +51,20 @@ uim.helper = {
 		this.arrowOut.anchor.set(0.5, 0.5);
 		this.arrowIn.anchor.set(0.5, 0.5);
 
-		this.center.events.onInputDown.add(this.onHelpTapped, this);
-		this.ring.events.onInputDown.add(this.onHelpTapped, this);
-		this.top.events.onInputDown.add(this.onHelpTapped, this);
-		this.right.events.onInputDown.add(this.onHelpTapped, this);
-		this.bottom.events.onInputDown.add(this.onHelpTapped, this);
-		this.left.events.onInputDown.add(this.onHelpTapped, this);
-		this.arrowOut.events.onInputDown.add(this.onHelpTapped, this);
-		this.arrowIn.events.onInputDown.add(this.onHelpTapped, this);
+		this.center.events.onInputDown.add(this.onHelpTapped, this.center);
+		this.ring.events.onInputDown.add(this.onHelpTapped, this.ring);
+		this.top.events.onInputDown.add(this.onHelpTapped, this.top);
+		this.right.events.onInputDown.add(this.onHelpTapped, this.right);
+		this.bottom.events.onInputDown.add(this.onHelpTapped, this.bottom);
+		this.left.events.onInputDown.add(this.onHelpTapped, this.left);
+		this.arrowOut.events.onInputDown.add(this.onHelpTapped, this.arrowOut);
+		this.arrowIn.events.onInputDown.add(this.onHelpTapped, this.arrowIn);
+
+		this.textCenter.events.onInputDown.add(this.onHelpTapped, this.textCenter);
+		this.textTop.events.onInputDown.add(this.onHelpTapped, this.textTop);
+		this.textRight.events.onInputDown.add(this.onHelpTapped, this.textRight);
+		this.textBottom.events.onInputDown.add(this.onHelpTapped, this.textBottom);
+		this.textLeft.events.onInputDown.add(this.onHelpTapped, this.textLeft);
 
 		this.center.inputEnabled = true;
 		this.ring.inputEnabled = true;
@@ -142,20 +150,20 @@ uim.helper = {
  		this.textBottom.data.tweenFadeIn = game.add.tween(this.textBottom).to({alpha: 1}, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
  		this.textLeft.data.tweenFadeIn = game.add.tween(this.textLeft).to({alpha: 1}, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
 
- 		this.top.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.right.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.bottom.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.left.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.ring.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.center.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.arrowIn.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.arrowOut.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
+ 		this.top.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.top);
+ 		this.right.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.right);
+ 		this.bottom.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.bottom);
+ 		this.left.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.left);
+ 		this.ring.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.ring);
+ 		this.center.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.center);
+ 		this.arrowIn.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.arrowIn);
+ 		this.arrowOut.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.arrowOut);
 
- 		this.textCenter.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.textTop.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.textRight.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.textBottom.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
- 		this.textLeft.data.tweenFadeIn.onComplete.add(uim.onUIopComplete, uim);
+ 		this.textCenter.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.textCenter);
+ 		this.textTop.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.textTop);
+ 		this.textRight.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.textRight);
+ 		this.textBottom.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.textBottom);
+ 		this.textLeft.data.tweenFadeIn.onComplete.add(this.onHelperOpComplete, this.textLeft);
 
  		this.top.data.tweenFadeOut 		= game.add.tween(this.top).to({alpha: 0}, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
  		this.right.data.tweenFadeOut 	= game.add.tween(this.right).to({alpha: 0}, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
@@ -172,40 +180,48 @@ uim.helper = {
  		this.textBottom.data.tweenFadeOut = game.add.tween(this.textBottom).to({alpha: 0}, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
  		this.textLeft.data.tweenFadeOut = game.add.tween(this.textLeft).to({alpha: 0}, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
 
- 		this.top.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.right.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.bottom.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.left.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.ring.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.center.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.arrowIn.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.arrowOut.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
+ 		this.top.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.top);
+ 		this.right.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.right);
+ 		this.bottom.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.bottom);
+ 		this.left.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.left);
+ 		this.ring.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.ring);
+ 		this.center.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.center);
+ 		this.arrowIn.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.arrowIn);
+ 		this.arrowOut.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.arrowOut);
 
- 		this.textCenter.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.textTop.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.textRight.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.textBottom.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
- 		this.textLeft.data.tweenFadeOut.onComplete.add(uim.onUIopComplete, uim);
+ 		this.textCenter.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.textCenter);
+ 		this.textTop.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.textTop);
+ 		this.textRight.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.textRight);
+ 		this.textBottom.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.textBottom);
+ 		this.textLeft.data.tweenFadeOut.onComplete.add(this.onHelperOpComplete, this.textLeft);
+	},
+
+	onHelperOpComplete: function(data) {
+		if (this.alpha < uim.helper.ALPHA_THRESH) {
+			this.inputEnabled = false;
+		}
+		else {
+			this.inputEnabled = true;
+		}
+
+		uim.onUIopComplete(this);
 	},
 
 	onHelpTapped: function(data) {
-		broadcast('onHelpTapped');
+		if (this.alpha > uim.helper.ALPHA_THRESH) {
+			broadcast('onHelpTapped');
+		}
 	},
 
-	blendTo: function(x, y) {
+	blendTo: function(args) {
 		var dt = 0;
-
-		if (typeof(x) !== "number") {
-			x = this.node.x;
-		}
-
-		if (typeof(y) !== "number") {
-			y = this.node.y;
-		}
+		var x = args.hasOwnProperty('x') ? args.x : this.node.x;
+		var y = args.hasOwnProperty('y') ? args.y : this.node.y;
 
 		dt = 1000 * Math.sqrt((x - this.node.x) * (x - this.node.x) + (y - this.node.y) * (y - this.node.y)) / this.VELOCITY;
+		dt = Math.max(dt, this.MIN_DT);
 
- 		this.node.data.tweenTranslate.updateTweenData('vEnd', {x: y, y: y});
+ 		this.node.data.tweenTranslate.updateTweenData('vEnd', {x: x, y: y});
  		this.node.data.tweenTranslate.updateTweenData('duration', dt);
 
  		this.node.data.tweenTranslate.start();
@@ -238,21 +254,49 @@ uim.helper = {
 	snapArrowsOn: function(bIn, bOut) {
 		if (bIn) {
 			this.arrowIn.alpha = 1.0;
+			this.arrowIn.inputEnabled = true;
+		}
+		else {
+			this.arrowIn.alpha = 0.0;
+			this.arrowIn.inputEnabled = false;
 		}
 
 		if (bOut) {
 			this.arrowOut.alpha = 1.0;
+			this.arrowOut.inputEnabled = true;
+		}
+		else {
+			this.arrowOut.alpha = 0.0;
+			this.arrowOut.inputEnabled = false;
 		}
 	},
 
 	snapArrowsOff: function(bIn, bOut) {
 		if (bIn) {
 			this.arrowIn.alpha = 0.0;
+			this.arrowIn.inputEnabled = false;
+		}
+		else {
+			this.arrowIn.alpha = 1.0;
+			this.arrowIn.inputEnabled = true;
 		}
 
 		if (bOut) {
 			this.arrowOut.alpha = 0.0;
+			this.arrowOut.inputEnabled = false;
 		}
+		else {
+			this.arrowOut.alpha = 1.0;
+			this.arrowOut.inputEnabled = true;
+		}
+	},
+
+	snapRingTo: function(angle) {
+		this.ring.angle = angle;
+	},
+
+	snapRingBy: function(dAngle) {
+		this.ring.angle += dAngle;
 	},
 
 	snapTo: function(x, y) {
@@ -303,8 +347,7 @@ uim.helper = {
 		}
 
 		dt = 1000 * Math.abs(dAngle) / this.ANGULAR_VELOCITY;
-		console.log("Duration: " + dt);
-
+		dt = Math.max(dt, this.MIN_DT);
  		this.ring.data.tweenRotate.updateTweenData('vEnd', {angle: newAngle});
  		this.ring.data.tweenRotate.updateTweenData('duration', dt);
 

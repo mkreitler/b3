@@ -224,7 +224,7 @@ function startGame() {
 		setTimeout(function() {setState(sm.chooseEvent);}, 1000);
 	}
 	else {
-		generateStartingTerrain();
+		// generateStartingTerrain();
 		addUiElements();
 		
 		setState(sm.startGame);
@@ -366,10 +366,6 @@ function addUiElements() {
 		btn = new uim.button(btnGroup, 'ui_buttons', 'ui_buttons_g', x, _y, onBannerPressedCallback.bind(this), gs.titleToAnimIndex, {buttonIndex: i})
 		bnr = new uim.banner(btn, '', 0, '', '', gs.specialToAnimIndex, {bannerIndex: i});
 	}
-
-	gs.baseLayers.walls.bringToTop();
-	gs.baseLayers.objects.bringToTop();
-	gs.baseLayers.ui.bringToTop();
 
 	x = game.width - game.cache.getImage('ui_frame_top').width;
 	uim.frameTop = uim.group.create(0, 0, 'ui_frame_top');

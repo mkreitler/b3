@@ -27,6 +27,7 @@ gs =  {
 	bLogging: true,
 	cardLog: [],
 	debugLog: [
+		{"biomes":"{~Mountains~0~3~2~}{~Plains~1~2~3~}{~Wetlands~2~2~4~}{~Desert~3~2~3~}{~Forest~4~3~2~}","cards":[]},
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1"]},
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1","38~0~1","21~1~2","27~1~1","71~2~2","65~0~1","30~4~0","28~3~2","32~3~1","29~4~1","49~0~0","39~1~0","56~1~0","37~4~1","51~4~1","22~2~3","50~1~1","47~1~2","24~2~1","66~0~0","59~1~2","48~2~3","17~2~0","46~2~0","25~3~0","64~1~1","34~2~2","54~2~3","67~2~2","35~4~0","45~2~1","41~3~2","55~2~1","43~3~0","53~4~0","70~3~1","57~3~2","68~3~1"]},
 	],
@@ -57,6 +58,7 @@ gs =  {
 
  	cardInfo: {
 		plantae: {
+			producer: [strings.DESCRIPTIONS.PRODUCER],
 			large: [strings.DESCRIPTIONS.LARGE_PLANT],
 			small: [strings.DESCRIPTIONS.SMALL_PLANT],
 			angiosperm: [strings.DESCRIPTIONS.ANGIOSPERM],
@@ -251,13 +253,21 @@ gs.startGame = function(data) {
 
 gs.instructions = function(data) {
 	uim.clearFocusBanner();
+	this.restoreGameState(0);
 	setState(sm.startTutorial);
 
-	uim.openEggChamber("mammalia", 0);
-	uim.openEggChamber("mammalia", 1);
-	uim.openEggChamber("mammalia", 2);
-	uim.openEggChamber("mammalia", 3);
-	uim.openEggChamber("mammalia", 4);
+	gs.seedTutorialDeck();
+};
+
+gs.seedTutorialDeck = function() {
+	this.drawDeck.length = 0;
+	this.drawDeck.push(this.phaseOneCards[5]);
+	this.drawDeck.push(this.phaseOneCards[6]);
+	this.drawDeck.push(this.phaseOneCards[11]);
+	this.drawDeck.push(this.phaseOneCards[12]);
+	this.drawDeck.push(this.phaseOneCards[13]);
+	this.drawDeck.push(this.phaseOneCards[14]);
+	this.drawDeck.push(this.phaseOneCards[15]);
 };
 
 gs.toggleSound = function(data) {
@@ -347,9 +357,14 @@ gs.doRestoreGame = function() {
 	return this.iRestore !== -1;
 };
 
-gs.restoreGameState = function() {
+gs.restoreGameState = function(iSave) {
 	var gameData = null;
 	var bIsPhaseOneRestore = false;
+	var iOldRestore = this.iRestore;
+
+	if (typeof(iSave) !== "undefined") {
+		this.iRestore = iSave;
+	}
 
 	if (this.iRestore >= 0 && this.iRestore < this.debugLog.length) {
 		gameData = gs.debugLog[this.iRestore];
@@ -360,6 +375,8 @@ gs.restoreGameState = function() {
 		assert(false, "restoreGameState: invalid restore ID!");
 	}
 
+	this.iRestore = iOldRestore;
+
 	return bIsPhaseOneRestore;
 };
 
@@ -369,7 +386,7 @@ gs.getEggIndexFromType = function(typeName) {
 	typeName = typeName.toLowerCase();
 
 	if (gs.titleToAnimIndex.hasOwnProperty(typeName)) {
-		iEgg = Object.keys(gs.titleToAnimIndex).indexOf(typeName);
+		iEgg = gs.titleToAnimIndex[typeName];
 	}
 
 	return iEgg;
@@ -489,6 +506,12 @@ gs.populateBiomes = function(cardData) {
 	assert(tm.listsExclusive(this.drawDeck, cardsAdded), "populateBiomes: drawDeck and world share cards!");
 
 	return bPhaseOneRestore;
+};
+
+gs.getNiche = function(iBiome, iNiche) {
+	assert(iBiome >= 0 && iBiome < this.biomes.length, "getNiche: invalid biome index!");
+
+	return this.biomes[iBiome].getNicheAt(iNiche);
 };
 
 gs.addLogData = function(data) {
@@ -1296,6 +1319,12 @@ gs.showTargetableNiches = function(card) {
 
 gs.resolvingEvents = function() {
 	return currentState === sm.eventResolveDisplacement;
+};
+
+gs.selectNiche = function(iBiome, iNiche) {
+	assert(iBiome >= 0 && iBiome < this.biomes.length, "placeCursor: invalid biome index!");
+
+	this.biomes[iBiome].placeCursor(iNiche);	
 };
 
 gs.placeCursors = function(card) {
