@@ -255,19 +255,48 @@ gs.instructions = function(data) {
 	uim.clearFocusBanner();
 	this.restoreGameState(0);
 	setState(sm.startTutorial);
-
-	gs.seedTutorialDeck();
 };
 
-gs.seedTutorialDeck = function() {
+gs.seedTutorialDeck = function(iDeck) {
 	this.drawDeck.length = 0;
-	this.drawDeck.push(this.phaseOneCards[5]);
-	this.drawDeck.push(this.phaseOneCards[6]);
-	this.drawDeck.push(this.phaseOneCards[11]);
-	this.drawDeck.push(this.phaseOneCards[12]);
-	this.drawDeck.push(this.phaseOneCards[13]);
-	this.drawDeck.push(this.phaseOneCards[14]);
-	this.drawDeck.push(this.phaseOneCards[15]);
+
+	switch (iDeck) {
+		case 0:
+			this.drawDeck.push(this.phaseOneCards[5]);
+			this.drawDeck.push(this.phaseOneCards[5]);
+			this.drawDeck.push(this.phaseOneCards[5]);
+			this.drawDeck.push(this.phaseOneCards[5]);
+			this.drawDeck.push(this.phaseOneCards[5]);
+			this.drawDeck.push(this.phaseOneCards[5]);
+		break;
+
+		case 1:
+			this.drawDeck.push(this.phaseTwoCards[6]);
+			this.drawDeck.push(this.phaseTwoCards[6]);
+			this.drawDeck.push(this.phaseTwoCards[6]);
+			this.drawDeck.push(this.phaseTwoCards[6]);
+			this.drawDeck.push(this.phaseTwoCards[6]);
+			this.drawDeck.push(this.phaseTwoCards[6]);
+		break;
+
+		case 2:
+			this.drawDeck.push(this.phaseTwoCards[21]);
+			this.drawDeck.push(this.phaseTwoCards[21]);
+			this.drawDeck.push(this.phaseTwoCards[21]);
+			this.drawDeck.push(this.phaseTwoCards[21]);
+			this.drawDeck.push(this.phaseTwoCards[21]);
+			this.drawDeck.push(this.phaseTwoCards[21]);
+		break;
+
+		case 3:
+			this.drawDeck.push(this.phaseTwoCards[52]);
+			this.drawDeck.push(this.phaseTwoCards[52]);
+			this.drawDeck.push(this.phaseTwoCards[52]);
+			this.drawDeck.push(this.phaseTwoCards[52]);
+			this.drawDeck.push(this.phaseTwoCards[52]);
+			this.drawDeck.push(this.phaseTwoCards[52]);
+		break;
+	}
 };
 
 gs.toggleSound = function(data) {

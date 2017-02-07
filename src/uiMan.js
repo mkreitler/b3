@@ -958,7 +958,7 @@
  	openEggChamber: function(eggType, iChamber) {
  		var iEgg = gs.getEggIndexFromType(eggType);
 
- 		assert(iEgg > 0, "openEggChange: unknown EGG type!");
+ 		assert(iEgg >= 0, "openEggChamber: unknown EGG type!");
 
  		tm.addTilesToLayer(gs.baseLayers.objects, 'sf_world', 340, 1 + 3 * iChamber, 11);
  		tm.addTilesToLayer(gs.baseLayers.ui, 'sf_world', 285 + iEgg, 1 + 3 * iChamber, 11);

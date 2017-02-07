@@ -21,6 +21,7 @@ uim.helper = {
 	textRight: null,
 	textBottom: null,
 	textLeft: null,
+	bInputBlocked: false,
 
 	node: null,
 
@@ -208,9 +209,17 @@ uim.helper = {
 	},
 
 	onHelpTapped: function(data) {
-		if (this.alpha > uim.helper.ALPHA_THRESH) {
+		if (this.alpha > uim.helper.ALPHA_THRESH && !uim.helper.bInputBlocked) {
 			broadcast('onHelpTapped');
 		}
+	},
+
+	blockInput: function() {
+		this.bInputBlocked = true;
+	},
+
+	unblockInput: function() {
+		this.bInputBlocked = false;
 	},
 
 	blendTo: function(args) {

@@ -51,6 +51,7 @@ sm.doAction12 = function(bFromEvent) {
 
 	button.banner.showKeywordInfo();
 	uim.simulateButtonPress(1);
+	sm.startTutorialIntro.nextStage();
 };
 
 sm.doAction16 = function(bFromEvent) {
@@ -67,9 +68,7 @@ sm.doAction16 = function(bFromEvent) {
 		assert(!failMsg, "handleTutorialWorldPress: EGG population failed!");
 
 		uim.clearInfoText();
-
 		uim.clearAllCursors();
-
 		sm.startTutorialIntro.nextStage();
 	}
 };
@@ -95,6 +94,8 @@ sm.startTutorialIntro = {
 		this.worldInputStages.length = 0;
 		this.bAcceptingInput = false;
 		this.bWantsNextStage = false;
+
+		gs.seedTutorialDeck(0);
 
 		uim.setLeftHint(null);
 		uim.helper.snapTo(720, 400);
@@ -143,6 +144,7 @@ sm.startTutorialIntro = {
 		}
 
 		uim.disableBannerInput();
+		uim.helper.unblockInput();
 
 		++this.stage;
 
@@ -216,7 +218,8 @@ sm.startTutorialIntro = {
 
 			case 12:
 				this.acceptBannerInput();
-				this.stageAction = sm.doAction12.bind(sm);
+				uim.helper.blockInput();
+				this.stageAction = sm.doAction12;
 				uim.helper.setText('center', strings.TUTORIAL.CLICK_DATA_CARD);
 				uim.startOperation('fadeIn', ['textCenter']);
 				uim.startOperation('turnRingTo', {angle:90, bShortest: true}, true);
@@ -247,7 +250,8 @@ sm.startTutorialIntro = {
 				uim.startOperation('fadeIn', ['textCenter']);
 				gs.selectNiche(1, 0);
 				this.acceptWorldInput();
-				this.stageAction = sm.doAction16.bind(sm);
+				uim.helper.blockInput();
+				this.stageAction = sm.doAction16;
 			break;
 
 			case 17:
@@ -276,7 +280,7 @@ sm.startTutorialIntro = {
 				uim.startOperation('fadeIn', ['textBottom', 'bottom']);
 			break;
 
-			case 21: case 23:
+			case 21: case 23: case 25:
 				uim.startOperation('fadeOut', ['textBottom']);
 				this.autoAdvance();
 			break;
@@ -289,6 +293,196 @@ sm.startTutorialIntro = {
 			case 24:
 				uim.helper.setText('bottom', strings.TUTORIAL.BUILDING_ECOSYSTEMS_03);
 				uim.startOperation('fadeIn', ['textBottom']);
+			break;
+
+			case 26:
+				uim.helper.setText('bottom', strings.TUTORIAL.BUILDING_ECOSYSTEMS_04);
+				uim.startOperation('fadeIn', ['textBottom']);
+				gs.getNiche(1, 0).showNextCardHint();
+				uim.startOperation('turnRingBy', {angle:50, bShortest: true}, true);
+			break;
+
+			case 27:
+				uim.startOperation('fadeOut', ['textBottom', 'bottom', 'arrowIn']);
+				uim.startOperation('blendTo', {x: 550, y: 260}, true);
+				uim.startOperation('fadeIn', ['center', 'arrowOut'], true);
+				uim.startOperation('turnRingBy', {angle:-50, bShortest: true}, true);
+				this.autoAdvance();
+			break;
+
+			case 28:
+				uim.helper.setText('center', strings.TUTORIAL.TRY_IT_NOW);
+				uim.startOperation('fadeIn', ['textCenter']);
+				uim.startOperation('turnRingBy', {angle:-170, bShortest: true}, true);
+
+				gs.seedTutorialDeck(1);
+				uim.syncBannersToCards();
+				uim.startOperation('moveBannerIn', 1);
+				uim.clearFocusBanner();
+
+				this.acceptBannerInput();
+				uim.helper.blockInput();
+				uim.openEggChamber("aves", 1);
+
+				this.stageAction = sm.doAction12;
+			break;
+
+			case 29:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 30:
+				gs.selectNiche(1, 0);
+				this.acceptWorldInput();
+				uim.helper.blockInput();
+
+				uim.helper.setText('center', strings.TUTORIAL.POPULATE_HERBIVORE);
+				uim.startOperation('fadeIn', ['textCenter']);
+				uim.startOperation('turnRingBy', {angle:170, bShortest: true}, true);
+
+				this.stageAction = sm.doAction16;
+			break;
+
+			case 31:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 32:
+				uim.helper.setText('center', strings.TUTORIAL.POPULATION_DEFINITION_01);
+				uim.startOperation('hideFocusBanner');
+				uim.startOperation('fadeIn', ['textCenter'], true);
+				uim.closeEggChamber(1);
+			break;
+
+			case 33:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 34:
+				uim.helper.setText('center', strings.TUTORIAL.POPULATION_DEFINITION_02);
+				uim.startOperation('fadeIn', ['textCenter']);
+			break;
+
+			case 35:
+				uim.startOperation('fadeOut', ['textCenter']);
+				uim.startOperation('blendTo', {x:312, y:Math.round(11 * TILE_SIZE * gs.SPRITE_SCALE)});
+				uim.startOperation('turnRingBy', {angle:-90, bShortest:true}, true);
+
+				gs.seedTutorialDeck(2);
+				uim.syncBannersToCards();
+				uim.startOperation('moveBannerIn', 1);
+				uim.clearFocusBanner();
+				uim.openEggChamber("aves", 1);
+				gs.getNiche(1, 0).showNextCardHint();
+
+				this.autoAdvance();
+			break;
+
+			case 36:
+				uim.helper.setText('center', strings.TUTORIAL.POPULATE_CARNIVORE_01);
+				uim.startOperation('fadeIn', ['textCenter']);
+			break;
+
+			case 37:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 38:
+				uim.helper.setText('center', strings.TUTORIAL.POPULATE_CARNIVORE_02);
+				uim.startOperation('fadeIn', ['textCenter']);
+				this.acceptBannerInput();
+				uim.helper.blockInput();
+				this.stageAction = sm.doAction12;
+			break;
+
+			case 39:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 40:
+				uim.helper.setText('center', strings.TUTORIAL.POPULATE_CARNIVORE_03);
+				uim.startOperation('fadeIn', ['textCenter']);
+				uim.startOperation('turnRingBy', {angle:180, bShortest:true}, true);
+			break;
+
+			case 41:
+				uim.startOperation('blendTo', {x: 550, y: 260});
+				uim.startOperation('fadeOut', ['textCenter'], true);
+				uim.startOperation('turnRingBy', {angle:-90, bShortest: true}, true);
+				this.autoAdvance();
+			break;
+
+			case 42:
+				uim.helper.setText('center', strings.TUTORIAL.POPULATE_CARNIVORE_04);
+				uim.startOperation('fadeIn', ['textCenter']);
+
+				gs.selectNiche(1, 0);
+				this.acceptWorldInput();
+				uim.helper.blockInput();
+				this.stageAction = sm.doAction16;
+			break;
+
+			case 43:
+				uim.startOperation('hideFocusBanner');
+				uim.startOperation('turnRingBy', {angle:-170, bShortest:true}, true);
+				uim.startOperation('fadeOut', ['textCenter'], true);
+				gs.getNiche(1, 0).showNextCardHint();
+
+				uim.closeEggChamber(1);
+				this.autoAdvance();
+			break;
+
+			case 44:
+				uim.helper.setText('center', strings.TUTORIAL.POPULATE_OMNIVORE_01);
+
+				gs.seedTutorialDeck(3);
+				uim.syncBannersToCards();
+				uim.clearFocusBanner();
+
+				uim.startOperation('fadeIn', ['textCenter']);
+				uim.startOperation('moveBannerIn', 1, true);
+
+				uim.openEggChamber('reptilia', 1);
+			break;
+
+			case 45:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 46:
+				uim.helper.setText('center', strings.TUTORIAL.POPULATE_OMNIVORE_02);
+				uim.startOperation('fadeIn', ['textCenter']);
+
+				this.acceptBannerInput();
+				uim.helper.blockInput();
+				this.stageAction = sm.doAction12;
+			break;
+
+			case 47:
+				gs.selectNiche(1, 0);
+				this.acceptWorldInput();
+				uim.helper.blockInput();
+
+				uim.helper.setText('center', strings.TUTORIAL.POPULATE_OMNIVORE_03);
+				uim.startOperation('fadeIn', ['textCenter']);
+				uim.startOperation('turnRingBy', {angle:170, bShortest: true}, true);
+
+				this.stageAction = sm.doAction16;
+			break;
+
+			case 48:
+				uim.startOperation('hideFocusBanner');
+				uim.closeEggChamber(uim.getFocusControlIndex());
+				uim.startOperation('fadeOut', ['textCenter']);
+				uim.startOperation('blendTo', {x:312, y:Math.round(11 * TILE_SIZE * gs.SPRITE_SCALE)});
+
+				this.autoAdvance();
 			break;
 
 			/*
