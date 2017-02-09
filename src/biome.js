@@ -58,12 +58,15 @@ bd.biome.prototype.TYPES = {
 			},
 };
 
-bd.biome.prototype.reset = function() {
+bd.biome.prototype.reset = function(layer) {
 	var i = 0;
 
 	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].reset();
 		this.niches[i].init();
 	}
+
+	this.erase(layer);
 }
 
 bd.biome.prototype.getStartColumn = function() {
@@ -82,6 +85,14 @@ bd.biome.prototype.showNextCardHints = function() {
 	}
 }
 
+bd.biome.prototype.hideCardHints = function() {
+	var i = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].hideCardHint();
+	}
+}
+
 bd.biome.prototype.convertToNewType = function(newType) {
 	var key = null;
 
@@ -93,7 +104,7 @@ bd.biome.prototype.convertToNewType = function(newType) {
 	}
 
 	this.type = newType;
-	this.draw(this.layer, 'ff_world');
+	this.draw(this.layer);
 }
 
 bd.biome.prototype.getScore = function() {
@@ -286,10 +297,10 @@ bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 	this.sprNoSelect = uim.getGroup().create(x, y, 'noSelect' + this.noSelectByLatitude[this.latitude]);
 	this.sprNoSelect.kill();
 
-	this.draw(layer, tileSet, type);
+	this.draw(layer);
 }
 
-bd.biome.prototype.draw = function(layer, tileSet) {
+bd.biome.prototype.draw = function(layer) {
 	var i = 0;
 	var iCol = 0;
 	var iRow = 0;
@@ -327,6 +338,52 @@ bd.biome.prototype.draw = function(layer, tileSet) {
 						tile = tm.addTilesToLayer(layer, 'ff_world', this.type.tiles[iRow][iCol], row + bd.ROW_OFFSET, col);
 						if (tile) {
 							tile.properties = this.niches[i];
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+bd.biome.prototype.erase = function(layer) {
+	var i = 0;
+	var iCol = 0;
+	var iRow = 0;
+	var row = 0;
+	var col = 0;
+	var x = 0;
+	var y = 0;
+	var bLastNiche = false;
+	var bSpacerCell = false;
+	var tile = null;
+	var startOffset = this.getStartOffset();
+
+	for (i=0; i<this.getNumNiches(); ++i) {
+		for (iRow=0; iRow<this.type.tiles.length; ++iRow) {
+			row = this.latitude * this.type.tiles.length + iRow;
+
+			if (iRow === this.type.tiles.length - 1 && i === 0) {
+				x = startOffset * TILE_SIZE;
+				y = row * TILE_SIZE;
+			}
+
+			for (iCol=0; iCol<this.type.tiles[0].length; ++iCol) {
+				col = (this.startCol + i) * this.type.tiles[0].length + iCol + startOffset;
+
+				bLastNiche = i === this.getNumNiches() - 1;
+				bSpacerCell = iCol === this.type.tiles[0].length - 1;
+				if (!bLastNiche || !bSpacerCell) {
+					if (bSpacerCell) {
+						tile = tm.removeTileFromLayer(layer, row + bd.ROW_OFFSET, col);
+						if (tile) {
+							tile.properties = null;
+						}
+					}
+					else {
+						tile = tm.removeTileFromLayer(layer, row + bd.ROW_OFFSET, col);
+						if (tile) {
+							tile.properties = null;
 						}
 					}
 				}

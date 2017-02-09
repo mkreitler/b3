@@ -1,3 +1,6 @@
+sm.bannerInputStages = [],
+sm.worldInputStages = [],
+
 sm.startTutorial = {
 	enter: function(data) {
 		uim.disableBannerInput();
@@ -20,7 +23,7 @@ sm.startTutorial = {
 };
 
 sm.handleTutorialBannerPress = function(button, stage) {
-	if (button && button.banner && sm.startTutorialIntro.bannerInputStages.indexOf(sm.startTutorialIntro.stage) >= 0) {
+	if (button && button.banner && sm.bannerInputStages.indexOf(sm.startTutorialIntro.stage) >= 0) {
 		if (sm.startTutorialIntro.stageAction) {
 			sm.startTutorialIntro.stageAction(true);
 		}
@@ -36,10 +39,35 @@ sm.handleTutorialBannerPress = function(button, stage) {
 sm.handleTutorialWorldPress = function(arg1, arg2) {
 	console.log("Mouse: (" + game.input.mousePointer.x + ", " + game.input.mousePointer.y + ")");
 	
-	if (sm.startTutorialIntro.worldInputStages.indexOf(sm.startTutorialIntro.stage) >= 0) {
+	if (sm.worldInputStages.indexOf(sm.startTutorialIntro.stage) >= 0) {
 
 		if (sm.startTutorialIntro.stageAction) {
 			sm.startTutorialIntro.stageAction(true);
+		}
+	}
+};
+
+sm.handleTutorialBannerPress02 = function(button, stage) {
+	if (button && button.banner && sm.bannerInputStages.indexOf(sm.continueTutorial01.stage) >= 0) {
+		if (sm.continueTutorial01.stageAction) {
+			sm.continueTutorial01.stageAction(true);
+		}
+
+		if (stage > 99) {
+			uim.setRightHint(strings.HINTS.PLACE_ORGANISM);
+			gs.showAvailableBiomes(button.banner.data);
+			gs.showTargetableNiches(button.banner.data);
+		}
+	}
+};
+
+sm.handleTutorialWorldPress02 = function(arg1, arg2) {
+	console.log("Mouse: (" + game.input.mousePointer.x + ", " + game.input.mousePointer.y + ")");
+	
+	if (sm.worldInputStages.indexOf(sm.continueTutorial01.stage) >= 0) {
+
+		if (sm.continueTutorial01.stageAction) {
+			sm.continueTutorial01.stageAction(true);
 		}
 	}
 };
@@ -73,25 +101,52 @@ sm.doAction16 = function(bFromEvent) {
 	}
 };
 
+sm.doAction1202 = function(bFromEvent) {
+	var button = uim.getBannerButton(0);
+
+	sm.continueTutorial01.stageAction = null;
+
+	button.banner.showKeywordInfo();
+	uim.simulateButtonPress(0);
+	sm.continueTutorial01.nextStage();
+};
+
+sm.doAction1602 = function(bFromEvent) {
+	var worldPressInfo = null;
+	var failMsg = null;
+
+	worldPressInfo = gs.getWorldPressInfo(game.input.activePointer.x, game.input.activePointer.y);
+
+	 if (!bFromEvent || (worldPressInfo && worldPressInfo.niche == gs.getNiche(1, 0))) {
+		sm.continueTutorial01.stageAction = null;
+
+		failMsg = gs.populateNiche(uim.getFocusCard(), gs.getNiche(1, 0));
+
+		assert(!failMsg, "handleTutorialWorldPress: EGG population failed!");
+
+		uim.clearInfoText();
+		uim.clearAllCursors();
+		sm.continueTutorial01.nextStage();
+	}
+};
+
 sm.startTutorialIntro = {
 	bAcceptingInput: false,
 	bWantsNextStage: false,
 	stage: 0,
 	skipStage: [],
-	bannerInputStages: [],
-	worldInputStages: [],
 	stageAction: null,
+	eventBiome:null,
 
 	enter: function(data) {
-		uim.enableBannerInput();
 		listenFor('UIoperationComplete', this);
 		listenFor("onHelpTapped", this);
 
 		this.stage = 0;
 		this.inputStage = 0;
 		this.skipStage.length = 0;
-		this.bannerInputStages.length = 0;
-		this.worldInputStages.length = 0;
+		sm.bannerInputStages.length = 0;
+		sm.worldInputStages.length = 0;
 		this.bAcceptingInput = false;
 		this.bWantsNextStage = false;
 
@@ -126,15 +181,18 @@ sm.startTutorialIntro = {
 	},
 
 	acceptBannerInput: function() {
-		this.bannerInputStages.push(this.stage);
+		sm.bannerInputStages.push(this.stage);
 		uim.enableBannerInput();
 	},
 
 	acceptWorldInput: function() {
-		this.worldInputStages.push(this.stage);
+		sm.worldInputStages.push(this.stage);
 	},
 
 	nextStage: function() {
+		var nBiomesAffected = null;
+		var nCardsDestroyed = null;
+
 		this.bAcceptingInput = false;
 		this.bWantsNextStage = false;
 
@@ -465,6 +523,11 @@ sm.startTutorialIntro = {
 			break;
 
 			case 47:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 48:
 				gs.selectNiche(1, 0);
 				this.acceptWorldInput();
 				uim.helper.blockInput();
@@ -476,13 +539,75 @@ sm.startTutorialIntro = {
 				this.stageAction = sm.doAction16;
 			break;
 
-			case 48:
+			case 49:
 				uim.startOperation('hideFocusBanner');
 				uim.closeEggChamber(uim.getFocusControlIndex());
-				uim.startOperation('fadeOut', ['textCenter']);
+				uim.startOperation('fadeOut', ['textCenter', 'arrowOut']);
 				uim.startOperation('blendTo', {x:312, y:Math.round(11 * TILE_SIZE * gs.SPRITE_SCALE)});
 
 				this.autoAdvance();
+			break;
+
+			case 50:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_01);
+				uim.startOperation('fadeIn', ['textCenter']);
+				events.seedTutorialEvent();
+			break;
+
+			case 51:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 52:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_02);
+				uim.startOperation('fadeIn', ['textCenter']);
+				uim.helper.blockInput();
+
+				this.eventBiome = gs.getEventBiome();
+
+				events.setBiome(this.eventBiome);
+				uim.showEvent(this.eventBiome, events.getCurrentEventTitle(), events.getCurrentEventInfo());
+				listenFor('eventExited', this);
+			break;
+
+			case 53:
+				events.tagCardsForDestruction();
+				listenFor('allCardsRemoved', this);
+				events.destroyCards();
+			break;
+
+			case 54: case 56: case 58: case 60:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 55:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_03);
+				uim.startOperation('fadeIn', ['textCenter']);
+			break;
+
+			case 57:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_04);
+				uim.startOperation('fadeIn', ['textCenter']);
+			break;
+
+			case 59:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_05);
+				uim.startOperation('fadeIn', ['textCenter']);
+			break;
+
+			case 61:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_06);
+				uim.startOperation('fadeIn', ['textCenter']);
+			break;
+
+			case 62:
+				nBiomesAffected = events.getNumBiomesAffected();
+				nCardsDestroyed = events.getNumCardsDestroyed();
+				uim.showInfoDialog(strings.EVENTS.BIOME_DAMAGED,
+								   strings.construct(strings.EVENTS.BIOME_DAMAGE_REPORT_PLURAL, [nBiomesAffected, nCardsDestroyed]),
+								   'continueTutorial01');
 			break;
 
 			/*
@@ -505,10 +630,22 @@ sm.startTutorialIntro = {
 			default:
 				unlistenFor("onHelpTapped", this);
 				unlistenFor('UIoperationComplete', this);
+				unlistenFor('eventExited', this);
 
 				// TODO: transition to next state.
 			break;
 		}
+	},
+
+	allCardsRemoved: function(data) {
+		unlistenFor('allCardsRemoved', this);
+		this.nextStage();
+	},
+
+	eventExited: function(data) {
+		unlistenFor('eventExited', this);
+		gs.makeDisplacementDeckDrawDeck();
+		this.nextStage();
 	},
 
 	UIoperationComplete: function(data) {
@@ -536,6 +673,269 @@ sm.startTutorialIntro = {
 		}
 		else {
 			this.bWantsNextStage = true;
+		}
+	},
+};
+
+sm.tutorialEndEvent = {
+	enter: function(data) {
+
+	},
+
+	update: function() {
+		gs.unblockAllBiomes();
+		uim.showInfoDialog(strings.EVENTS.RESOLVED,
+						   strings.EVENTS.RESOLUTION_MESSAGE,
+						   "tutorialEnd");
+	},
+
+	exit: function() {
+
+	}
+};
+
+sm.tutorialEnd = {
+	bAcceptingInput: false,
+	bWantsNextStage: false,
+	stage: 0,
+	skipStage: [],
+	stageAction: null,
+
+	enter: function(data) {
+		var nextBiome = null;
+
+		listenFor('UIoperationComplete', this);
+		listenFor("onHelpTapped", this);
+
+		this.stage = -1;
+		this.inputStage = 0;
+		this.skipStage.length = 0;
+		sm.bannerInputStages.length = 0;
+		sm.worldInputStages.length = 0;
+		this.bAcceptingInput = false;
+		this.bWantsNextStage = false;
+
+		this.UIoperationComplete = sm.startTutorialIntro.UIoperationComplete.bind(this);
+		this.onHelpTapped = sm.startTutorialIntro.onHelpTapped.bind(this);
+		this.autoAdvance = sm.startTutorialIntro.autoAdvance.bind(this);
+
+		this.nextStage();
+	},
+
+	update: function() {
+
+	},
+
+	exit: function() {
+
+	},
+
+	nextStage: function() {
+		this.bAcceptingInput = false;
+		this.bWantsNextStage = false;
+
+		if (this.stageAction) {
+			this.stageAction(false);
+			this.stageAction = null;
+		}
+
+		uim.disableBannerInput();
+		uim.helper.unblockInput();
+
+		++this.stage;
+
+		switch(this.stage) {
+			case 0:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 1:
+				uim.helper.setText('center', strings.TUTORIAL.END_01);
+				uim.startOperation('fadeIn', ['textCenter']);
+			break;
+
+			case 2:
+				uim.startOperation('fadeOut', ['textCenter', 'center', 'ring']);
+				this.autoAdvance();
+			break;
+
+			case 3:
+				uim.helper.restNode();
+				setState(sm.startGame);
+			break;
+		}
+	},
+};
+
+sm.continueTutorial01 = {
+	bAcceptingInput: false,
+	bWantsNextStage: false,
+	stage: 0,
+	skipStage: [],
+	stageAction: null,
+
+	enter: function(data) {
+		var nextBiome = null;
+
+		listenFor('UIoperationComplete', this);
+		listenFor("onHelpTapped", this);
+
+		this.stage = -1;
+		this.inputStage = 0;
+		this.skipStage.length = 0;
+		sm.bannerInputStages.length = 0;
+		sm.worldInputStages.length = 0;
+		this.bAcceptingInput = false;
+		this.bWantsNextStage = false;
+
+		this.UIoperationComplete = sm.startTutorialIntro.UIoperationComplete.bind(this);
+		this.onHelpTapped = sm.startTutorialIntro.onHelpTapped.bind(this);
+		this.autoAdvance = sm.startTutorialIntro.autoAdvance.bind(this);
+		this.acceptBannerInput = sm.startTutorialIntro.acceptBannerInput.bind(this);
+		this.acceptWorldInput = sm.startTutorialIntro.acceptWorldInput.bind(this);
+		this.doAction12 = sm.doAction12.bind(this);
+		this.doAction16 = sm.doAction16.bind(this);
+
+		nextBiome = events.getNextAffectedBiome();
+
+		gs.clearDisplacementDeck();
+
+		listenFor('allCardsDisplaced', this);
+
+		gs.isolateBiome(nextBiome);
+		events.tagCardsForDisplacement(nextBiome);
+		events.displaceCards(nextBiome);
+	},
+
+	update: function() {
+
+	},
+
+	exit: function() {
+
+	},
+
+	onBannerPressedCallback: function(button) {
+		sm.handleTutorialBannerPress02(button, this.stage);
+	},
+
+	onWorldPressCallback: function() {
+		sm.handleTutorialWorldPress02(null, null);
+	},
+
+	allCardsDisplaced: function(data) {
+		unlistenFor('allCardsDisplaced', this);
+		this.nextStage();
+	},
+
+	nextStage: function() {
+		this.bAcceptingInput = false;
+		this.bWantsNextStage = false;
+
+		if (this.stageAction) {
+			this.stageAction(false);
+			this.stageAction = null;
+		}
+
+		uim.disableBannerInput();
+		uim.helper.unblockInput();
+
+		++this.stage;
+
+		switch(this.stage) {
+			case 0:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 1:
+				uim.syncBannersToCards();
+				uim.disableBannerInput();
+
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_07);
+				uim.startOperation('fadeIn', ['textCenter']);
+				uim.startOperation('moveBannerIn', 0, true);
+			break;
+
+			case 2:
+				uim.startOperation('fadeOut', ['textCenter']);
+				this.autoAdvance();
+			break;
+
+			case 3:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_08);
+				uim.startOperation('fadeIn', ['textCenter']);
+			break;
+
+			case 4:
+				uim.startOperation('blendTo', {x: 312, y: 300});
+				uim.startOperation('fadeOut', ['textCenter'], true);
+				uim.startOperation('fadeIn', ['arrowOut'], true);
+				uim.startOperation('turnRingBy', {angle: -90, bShortest: true}, true);
+				this.autoAdvance();
+			break;
+
+			case 5:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_09);
+				uim.startOperation('fadeIn', ['textCenter']);
+				gs.showNextCardHints();
+				this.acceptBannerInput();
+				uim.helper.blockInput();
+				this.stageAction = sm.doAction1202;
+
+				// TODO: show omnivore in egg case.
+			break;
+
+			case 6:
+				uim.startOperation('fadeOut', ['textCenter']);
+				uim.startOperation('turnRingBy', {angle: 90, bShortest: true}, true);
+				this.autoAdvance();
+			break;
+
+			case 7:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_10);
+				uim.startOperation('fadeIn', ['textCenter']);
+				
+				gs.selectNiche(1, 0);
+				this.acceptWorldInput();
+				uim.helper.blockInput();
+				this.stageAction = sm.doAction1602;
+			break;
+
+			case 8:
+				uim.startOperation('fadeOut', ['textCenter', 'arrowOut']);
+				uim.startOperation('hideFocusBanner', true);
+				this.autoAdvance();
+
+				// TODO: close egg case.
+			break;
+
+			case 9:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_11);
+				uim.startOperation('fadeIn', ['textCenter']);
+				uim.clearFocusBanner();
+			break;
+
+			case 10:
+				uim.startOperation('fadeOut', ['textCenter', 'arrowOut']);
+				this.autoAdvance();
+			break;
+
+			case 11:
+				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_12);
+				uim.startOperation('fadeIn', ['textCenter']);
+				gs.unblockAllBiomes();
+				gs.hideCardHints();
+			break;
+
+			case 12:
+				gs.restoreOriginalDrawDeck();
+
+				uim.showInfoDialog(strings.EVENTS.WELL_DONE,
+								   strings.EVENTS.PLACED_ALL_ORGANISMS,
+								   "tutorialEndEvent");
+			break;
 		}
 	},
 };

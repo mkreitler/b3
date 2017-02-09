@@ -105,7 +105,7 @@ uim.helper = {
 		this.left.addChild(this.textLeft);
 
 		this.node.x = game.width / 2;
-		this.node.y = game.height / 2;
+		this.node.y = -game.height / 2;
 
 		this.left.x = -this.OFFSET;
 		this.top.y = -this.OFFSET;
@@ -212,6 +212,11 @@ uim.helper = {
 		if (this.alpha > uim.helper.ALPHA_THRESH && !uim.helper.bInputBlocked) {
 			broadcast('onHelpTapped');
 		}
+	},
+
+	resetNode: function() {
+		this.node.x = game.width / 2;
+		this.node.y = -game.height / 2;
 	},
 
 	blockInput: function() {

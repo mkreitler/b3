@@ -174,8 +174,13 @@
  	},
 
  	removeTileFromLayer: function(layer, row, col) {
+ 		var tileObj = null;
+
 		if (layer && layer.map) {
 			layer.map.putTile(null, col, row, layer);
+ 			tileObj = layer.map.getTile(col, row, layer);
 		} 		
+
+		return tileObj;
  	}
  }

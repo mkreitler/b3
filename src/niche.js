@@ -24,10 +24,17 @@ bd.niche.prototype.ERR_INVALID_PLACEMENT = -99;
 bd.niche.prototype.init = function() {
 	var i = 0;
 
-	this.cards.length = 0;
+	if (this.cards.length === 0) {
+		for (i=0; i<=this.MAX_RANK; ++i) {
+			this.cards.push(null);
+		}
+	}
+	else {
+		assert(this.cards.length === this.MAX_RANK + 1, "niche.init: invalid card array!");
 
-	for (i=0; i<=this.MAX_RANK; ++i) {
-		this.cards.push(null);
+		for (i=0; i<=this.MAX_RANK; ++i) {
+			this.cards[i] = null;
+		}
 	}
 }
 
@@ -162,6 +169,18 @@ bd.niche.prototype.getCurrentPopulationCount = function() {
 	return count;
 };
 
+bd.niche.prototype.reset = function() {
+	var i = 0;
+
+	for (i=0; i<this.cards.length; ++i) {
+		if (this.cards[i]) {
+			gs.eraseCard(this.cards[i]);
+		}
+
+		this.cards[i] = null;
+	}
+};
+
 bd.niche.prototype.getMaxPopulationCount = function() {
 	// Return the largest possible count. Most games will fall
 	// short of this, because insects and nematodes reduce the
@@ -278,6 +297,10 @@ bd.niche.prototype.showNextCardHint = function() {
 	else {
 		this.text.visible = false;
 	}
+};
+
+bd.niche.prototype.hideCardHint = function() {
+	this.text.visible = false;
 };
 
 bd.niche.prototype.isProtected = function(card) {

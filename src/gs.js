@@ -248,6 +248,7 @@ gs.startGame = function(data) {
 
 	gs.init();
 	events.init();
+	generateStartingTerrain();
 	setState(sm.startPhaseOne);
 };
 
@@ -1553,7 +1554,7 @@ gs.resetBiomes = function() {
 	var i = 0;
 
 	for (i=0; i<this.biomes.length; ++i) {
-		this.biomes[i].reset();
+		this.biomes[i].reset(gs.layers.terrain);
 	}
 }
 
@@ -1584,7 +1585,10 @@ gs.resetCard = function(card) {
 };
 
 gs.init = function() {
+	gs.resetWorld();
+
 	gs.lastPopulationCount = 0;
+	
 	gs.initDrawDeck();
 	gs.initDiscardDeck();
 };
@@ -2054,6 +2058,19 @@ gs.executeCardSpecialFunction = function(card, fnType) {
 		if (gs.cardSpecialFunctionTable[fnType].hasOwnProperty(key)) {
 			gs[gs.cardSpecialFunctionTable[fnType][key]](card, gs.getCardNiche(card), false);
 		}
+	}
+};
+
+gs.resetWorld = function() {
+	this.resetBiomes();
+	this.resetCards();
+};
+
+gs.hideCardHints = function() {
+	var i = 0;
+
+	for (i=0; i<this.biomes.length; ++i) {
+		this.biomes[i].hideCardHints();
 	}
 };
 

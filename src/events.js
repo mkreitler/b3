@@ -13,9 +13,6 @@ events = {
 		this.remaining.length = 0;
 
 		this.buildDeck();
-
-		// DEBUG
-		this.remaining.unshift(this.all['blight']);
 	},
 
 	buildDeck: function() {
@@ -28,6 +25,10 @@ events = {
 		tm.scrambleList(this.remaining);
 		tm.scrambleList(this.remaining);
 		tm.scrambleList(this.remaining);
+	},
+
+	seedTutorialEvent: function() {
+		this.remaining.unshift(this.all['disease']);
 	},
 
 	getNextAffectedBiome: function() {
@@ -373,8 +374,8 @@ events = {
 				var key = null;
 				var iMax = [];
 				var iTargetBiome = -1;
-				var test = Number.NEGATIVE_INFINITY;
-				var best = Number.NEGATIVE_INFINITY;
+				var test = 0;
+				var best = 0;
 
 				for (key in biomeScores) {
 					gs.scoreBiomesBy(key, null, true, true, biomeScores[key]);
@@ -383,8 +384,9 @@ events = {
 					if (test > best) {
 						bestBiomes.length = 0;
 						bestBiomes.push(key);
+						best = test;
 					}
-					else if (test === best) {
+					else if (test === best && test > 0) {
 						bestBiomes.push(key);
 					}
 				}

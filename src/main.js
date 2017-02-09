@@ -224,7 +224,6 @@ function startGame() {
 		setTimeout(function() {setState(sm.chooseEvent);}, 1000);
 	}
 	else {
-		// generateStartingTerrain();
 		addUiElements();
 		
 		setState(sm.startGame);

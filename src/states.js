@@ -73,6 +73,8 @@ var sm = {
 			uim.setupBanner(3, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, null);
 			uim.setupBanner(4, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, null);
 
+			gs.resetWorld();
+
 			listenFor('UIoperationComplete', this);
 			uim.disableBannerInput();
 			uim.startOperation('moveBannersIn', this);
@@ -150,10 +152,10 @@ var sm = {
 		eventBiome: null,
 
 		enter: function(data) {
-			eventBiome = gs.getEventBiome();
+			this.eventBiome = gs.getEventBiome();
 
-			events.setBiome(eventBiome);
-			uim.showEvent(eventBiome, events.getCurrentEventTitle(), events.getCurrentEventInfo());
+			events.setBiome(this.eventBiome);
+			uim.showEvent(this.eventBiome, events.getCurrentEventTitle(), events.getCurrentEventInfo());
 			listenFor('eventExited', this);
 		},
 
@@ -168,7 +170,7 @@ var sm = {
 			unlistenFor('eventExited', this);
 			gs.makeDisplacementDeckDrawDeck();
 
-			if (eventBiome === null) {
+			if (this.eventBiome === null) {
 				uim.showInfoDialog(strings.EVENTS.BIOSPHERE_SAFE,
 								   strings.EVENTS.BIOME_DAMAGE_REPORT_NONE,
 								   'eventEndNoDamage');
