@@ -1,7 +1,11 @@
 // Contains the enter/update/exit code for all game states.
 
 var sm = {
+	TURNS_UNTIL_EVENT: 7,
+
 	nextState: null,
+	bLastEvent: false,
+	eventTimer: 0,
 
 	setTransitionState: function(state, nextState, stateData) {
 		this.nextState = nextState;
@@ -67,7 +71,7 @@ var sm = {
 	///////////////////////////////////////////////////////////////////////////
 	startGame: {
 		enter: function(data) {
-			uim.setupBanner(0, uim.UI_BANNER_INDEX, strings.UI.START_GAME, gs.startGame.bind(gs));
+			uim.setupBanner(0, uim.UI_BANNER_INDEX, strings.UI.START_GAME, function() {setState("outroToStartGame"); });
 			uim.setupBanner(1, uim.UI_BANNER_INDEX, strings.UI.TUTORIAL, gs.instructions.bind(gs));
 			uim.setupBanner(2, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, gs.toggleSound.bind(gs));
 			uim.setupBanner(3, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, null);
@@ -109,6 +113,25 @@ var sm = {
 		},
 	},
 
+	outroToStartGame: {
+		enter: function(data) {
+			listenFor("UIoperationComplete", this);
+			uim.startOperation("moveBannersOut", this);
+		},
+
+		update: function() {
+		},
+
+		exit: function() {
+
+		},
+
+		UIoperationComplete: function(data) {
+			unlistenFor("UIoperationComplete", this);
+			gs.startGame();
+		}
+	},
+
 	///////////////////////////////////////////////////////////////////////////
 	// End Game
 	///////////////////////////////////////////////////////////////////////////
@@ -127,17 +150,27 @@ var sm = {
 
 		UIoperationComplete: function(data) {
 			unlistenFor('UIoperationComplete', this);
-			uim.showInfoDialog(strings.INFO.GAME_OVER, strings.INFO.NO_MORE_PLAYS, 'endGame');
+			uim.showInfoDialog(strings.INFO.HUMANS_ARRIVE, strings.INFO.SEE_THEIR_IMPACT, 'endGame');
 		}
 	},
 
 	endGame: {
+		bExit: false,
+
 		enter: function(data) {
-			console.log("GAME OVER!");
+			this.bExit = false;
+
+			if (!sm.bLastEvent) {
+				sm.bLastEvent = true;
+				events.seedTutorialEvent('humanSettlement');
+				this.bExit = true;
+			}
 		},
 
 		update: function() {
-
+			if (this.bExit) {
+				setState(sm.chooseEvent);
+			}
 		},
 
 		exit: function() {
@@ -153,6 +186,7 @@ var sm = {
 
 		enter: function(data) {
 			this.eventBiome = gs.getEventBiome();
+			gs.hideCardHints();
 
 			events.setBiome(this.eventBiome);
 			uim.showEvent(this.eventBiome, events.getCurrentEventTitle(), events.getCurrentEventInfo());
@@ -171,9 +205,14 @@ var sm = {
 			gs.makeDisplacementDeckDrawDeck();
 
 			if (this.eventBiome === null) {
-				uim.showInfoDialog(strings.EVENTS.BIOSPHERE_SAFE,
-								   strings.EVENTS.BIOME_DAMAGE_REPORT_NONE,
-								   'eventEndNoDamage');
+				if (sm.bLastEvent) {
+					setState(sm.endFinalEvent);
+				}
+				else {
+					uim.showInfoDialog(strings.EVENTS.BIOSPHERE_SAFE,
+									   strings.EVENTS.BIOME_DAMAGE_REPORT_NONE,
+									   'eventEndNoDamage');
+				}
 			}
 			else {
 				setState(sm.eventDestroyCards);
@@ -301,9 +340,16 @@ var sm = {
 			if (this.bExit) {
 				// Set up next state here.
 				gs.unblockAllBiomes();
-				uim.showInfoDialog(strings.EVENTS.RESOLVED,
-								   strings.EVENTS.RESOLUTION_MESSAGE,
-								   "eventEnd");
+				if (sm.bLastEvent) {
+					uim.showInfoDialog(strings.EVENTS.RESOLVED,
+									   strings.EVENTS.RESOLUTION_MESSAGE,
+									   "endFinalEvent");
+				}
+				else {
+					uim.showInfoDialog(strings.EVENTS.RESOLVED,
+									   strings.EVENTS.RESOLUTION_MESSAGE,
+									   "eventEnd");
+				}
 			}
 		},
 
@@ -455,34 +501,39 @@ var sm = {
 		UIoperationComplete: function(data) {
 			unlistenFor('UIoperationComplete', this);
 
-			if (gs.discardAndReplace(uim.getFocusCard())) {
-				setState('eventDraw');
-			}
-			else {
-				// No cards left in deck. Check to see if legal
-				// plays remain.
-				uim.clearFocusBanner();
-
-				if (gs.playerHasLegalMove(false)) {
-					uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
-					uim.enableBannerInput();
-					setState('eventResolveDisplacement');
+			if (gs.doPlaysRemainInDrawDeck()) {
+				if (gs.discardAndReplace(uim.getFocusCard())) {
+					setState('eventDraw');
 				}
 				else {
-					if (gs.drawDeckExhausted()) {
-						uim.showInfoDialog(strings.EVENTS.WELL_DONE,
-										   strings.EVENTS.PLACED_ALL_ORGANISMS,
-										   "eventDisplaceCards");
+					// No cards left in deck. Check to see if legal
+					// plays remain.
+					uim.clearFocusBanner();
+
+					if (gs.playerHasLegalMove(false)) {
+						uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
+						uim.enableBannerInput();
+						setState('eventResolveDisplacement');
 					}
 					else {
-						// TODO: transition to next biome.
-						// If this is the last biome, transition
-						// back to normal game.
-						uim.setLeftHint('');
-						gs.shuffleDrawDeck();
-						uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'eventResolveDisplacement');
+						if (gs.drawDeckExhausted()) {
+							uim.showInfoDialog(strings.EVENTS.WELL_DONE,
+											   strings.EVENTS.PLACED_ALL_ORGANISMS,
+											   "eventDisplaceCards");
+						}
+						else {
+							// TODO: transition to next biome.
+							// If this is the last biome, transition
+							// back to normal game.
+							uim.setLeftHint('');
+							gs.shuffleDrawDeck();
+							uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'eventResolveDisplacement');
+						}
 					}
 				}
+			}
+			else {
+				uim.showInfoDialog(strings.INFO.NO_MORE_MOVES, strings.EVENTS.WILL_DISCARD_REMAINING_ORGANISMS, 'eventCloseBannersAndDisplace');
 			}
 		},
 	},
@@ -518,6 +569,30 @@ var sm = {
 			uim.enableBannerInput();
 			setState('eventResolveDisplacement');
 		},
+	},
+
+	endFinalEvent: {
+		enter: function(data) {
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut');
+			uim.setLeftHint('');
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+
+		},
+
+		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+
+			gs.restoreOriginalDrawDeck();
+
+			// TODO: show end game report.
+		}
 	},
 
 	eventEnd: {
@@ -662,9 +737,11 @@ var sm = {
 
 		enter: function(data) {
 			this.bExit = false;
+			sm.eventTimer = 0;
 
 			if (gs.doPlaysRemainInDrawDeck()) {
 				uim.syncBannersToCards();
+				uim.clearFocusBanner();
 
 				gs.setPhaseOne(false);
 
@@ -732,6 +809,7 @@ var sm = {
 			uim.disableBannerInput();
 			listenFor('UIoperationComplete', this);
 			uim.startOperation('hideFocusBanner', this);
+			sm.eventTimer += 1;
 		},
 
 		update: function() {
@@ -765,9 +843,14 @@ var sm = {
 
 				if (gs.doPlaysRemainInDrawDeck()) {
 					if (gs.playerHasLegalMove(false)) {
-						uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
-						uim.enableBannerInput();
-						setState('phaseTwo');
+						if (sm.eventTimer === sm.TURNS_UNTIL_EVENT) {
+							setState(sm.chooseEvent);
+						}
+						else {
+							uim.setLeftHint(strings.HINTS.CHOOSE_EGG);
+							uim.enableBannerInput();
+							setState('phaseTwo');
+						}
 					}
 					else {
 						uim.setLeftHint('');
@@ -800,7 +883,12 @@ var sm = {
 			unlistenFor('UIoperationComplete', this);
 
 			gs.shuffleDrawDeck();
-			sm.setTransitionState('startPhaseTwo', 'phaseTwo');
+			if (sm.eventTimer === sm.TURNS_UNTIL_EVENT) {
+				setState(sm.chooseEvent);
+			}
+			else {
+				sm.setTransitionState('startPhaseTwo', 'phaseTwo');
+			}
 		}
 	},
 
@@ -835,8 +923,13 @@ var sm = {
 			unlistenFor('UIoperationComplete', this);
 			
 			if (gs.playerHasLegalMove(false)) {
-				uim.enableBannerInput();
-				setState('phaseTwo');
+				if (sm.eventTimer === sm.TURNS_UNTIL_EVENT) {
+					setState(sm.chooseEvent);
+				}
+				else {
+					uim.enableBannerInput();
+					setState('phaseTwo');
+				}
 			}
 			else {
 				uim.setLeftHint('');
@@ -852,6 +945,8 @@ var sm = {
 		enter: function(data) {
 			gs.shuffleDrawDeck();
 			uim.syncBannersToCards();
+
+			sm.bLastEvent = false;
 
 			gs.setPhaseOne(true);
 
@@ -933,7 +1028,18 @@ var sm = {
 			unlistenFor('UIoperationComplete', this);
 			
 			if (gs.discardAndReplace(uim.getFocusCard())) {
-				setState('phaseOneDraw');
+				if (gs.doPlaysRemainInDrawDeck()) {
+					if (gs.playerHasLegalMove(true)) {
+						setState('phaseOneDraw');
+					}
+					else {
+						uim.setLeftHint('');
+						uim.showInfoDialog(strings.INFO.OUT_OF_PLAYS, strings.INFO.RESHUFFLE_AND_TRY_AGAIN, 'phaseOneReshuffle');
+					}
+				}
+				else {
+					setState('endPhaseOne');
+				}
 			}
 			else {
 				if (gs.playerHasLegalMove(true)) {
@@ -947,6 +1053,34 @@ var sm = {
 				}
 			}
 		},
+	},
+
+	phaseOneReshuffle: {
+		enter: function(data) {
+			assert(gs.doPlaysRemainInDrawDeck(), "phaseOneReshuffle.enter: no plays remain in draw deck!");
+
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut');
+		},
+
+		update: function() {
+		},
+
+		exit: function() {
+
+		},
+
+		UIoperationComplete: function() {
+			unlistenFor('UIoperationComplete', this);
+
+			gs.shuffleDrawDeck();
+			if (sm.eventTimer === sm.TURNS_UNTIL_EVENT) {
+				setState(sm.chooseEvent);
+			}
+			else {
+				sm.setTransitionState('startPhaseOne', 'phaseOne');
+			}
+		}
 	},
 
 	phaseOneDraw: {

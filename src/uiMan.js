@@ -53,6 +53,7 @@
 	showingCards: [],
 	cursorGroup: null,
 	hint: {group: null, sprite: null, text: null},
+	cardHintGroup: null,
 	bInputBlocked: false,	// Filthy hack to make dialog box behave modally.
 	lastOp: null,			// DEBUG: tracks last uiOperation executed.
 
@@ -80,11 +81,14 @@
  		game.world.bringToTop(this.helperGroup);
  		game.world.bringToTop(this.buttonGroup);
 		gs.baseLayers.walls.bringToTop();
- 		game.world.bringToTop(this.infoGroup);
  		game.world.bringToTop(this.group);
+ 		game.world.bringToTop(this.hint.group);
+ 		game.world.bringToTop(this.cardHintGroup);
+ 		game.world.bringToTop(this.infoGroup);
  	},
 
  	createHints: function() {
+ 		this.cardHintGroup = game.add.group();
  		this.hint.group = game.add.group();
  		this.hint.sprite = this.hint.group.create(0, Math.round(TILE_SIZE / 3), 'ui_specials');
  		this.hint.sprite.animations.add('point', [1], 1, false);
@@ -96,6 +100,10 @@
  		this.hint.text = game.add.bitmapText(0, uim.HINT_TEXT_SIZE / 2, 'bogboo', '', uim.HINT_TEXT_SIZE);
  		this.hint.text.visible = false;
  		this.hint.group.addChild(this.hint.text);
+ 	},
+
+ 	addToCardHintGroup: function(item) {
+ 		this.cardHintGroup.addChild(item);
  	},
 
  	leftHintCenter: function() {
@@ -233,6 +241,7 @@
  	},
 
  	showInfoDialog: function(title, text, nextState) {
+ 		// gs.hideCardHints();
  		if (nextState) {
  			sm.setTransitionState('showInfoDialog', nextState, {title: title, text: text});
  		}
@@ -280,6 +289,8 @@
  		this.infoDlgText.visible = false;
  		this.infoDlgPrompt.visible = false;
  		this.infoDlgMarker.visible = false;
+
+ 		// gs.showNextCardHints();
 
  		broadcast("infoDialogOut");
  	},
@@ -379,6 +390,8 @@
  		var y = biome ? biome.getY() + TILE_SIZE / 2 * gs.SPRITE_SCALE : game.height / 2 - this.eventShield.height / 2;
  		var dt = uim.EVENT_TWEEN_TIME * Math.abs(y - (game.height - this.eventShield.height)) / game.height;
 
+ 		// gs.hideCardHints();
+
  		this.eventMarker.y = -this.eventShield.height;
 
  		this.eventTitle.text = title;
@@ -436,6 +449,7 @@
  	onEventExited: function() {
  		this.eventMarker.visible = false;
  		broadcast('eventExited');
+ 		// gs.showNextCardHints();
  	},
 
  	blockInput: function() {

@@ -551,7 +551,7 @@ sm.startTutorialIntro = {
 			case 50:
 				uim.helper.setText('center', strings.TUTORIAL.PROCESS_EVENT_01);
 				uim.startOperation('fadeIn', ['textCenter']);
-				events.seedTutorialEvent();
+				events.seedTutorialEvent('disease');
 			break;
 
 			case 51:

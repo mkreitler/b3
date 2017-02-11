@@ -465,6 +465,28 @@ bd.biome.prototype.tagCardsOfTypeForDestruction = function(organism, keyword, bC
 	}
 }
 
+bd.biome.prototype.untagDestroyedCardsWithKeyword = function(keyword) {
+	var i = 0;
+	var temp = [];
+
+	keyword = keyword.toLowerCase();
+
+	for (i=0; i<this.cardsDestroyed.length; ++i) {
+		if (this.cardsDestroyed[i] && gs.cardHasKeyword(this.cardsDestroyed[i], keyword)) {
+			this.cardsDestroyed[i] = null;
+		}
+		else {
+			temp.push(this.cardsDestroyed[i]);
+		}
+	}
+
+	this.cardsDestroyed.length = 0;
+
+	for (i=0; i<temp.length; ++i) {
+		this.cardsDestroyed.push(temp[i]);
+	}
+}
+
 bd.biome.prototype.buildAdditionalNiche = function(type, newNiche) {
 	var iCol = 0;
 	var iRow = 0;

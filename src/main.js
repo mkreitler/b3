@@ -208,9 +208,9 @@ function startGame() {
 	if (gs.doRestoreGame()) {
 		gs.init();
 
-		bPhaseOneRestore = gs.restoreGameState();
 		addUiElements();
 		events.init();
+		bPhaseOneRestore = gs.restoreGameState();
 		
 		// TEMP: force game into PhaseOne state.
 		if (bPhaseOneRestore && gs.playerHasLegalMove(true)) {

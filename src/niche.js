@@ -8,6 +8,7 @@ bd.niche = function(topRow, leftCol) {
 	this.topRow = topRow;
 	this.leftCol = leftCol;
 	this.text = game.add.bitmapText(this.leftCol * TILE_SIZE, this.topRow * TILE_SIZE, 'bogboo', uim.INFO_TEXT_SIZE * gs.SPRITE_SCALE);
+	uim.addToCardHintGroup(this.text);
 	this.text.anchor.setTo(0.5, 0.5);
 	this.text.visible = false;
 	this.biome = null;

@@ -18,8 +18,8 @@ events = {
 	buildDeck: function() {
 		var key = null;
 
-		for (key in this.all) {
-			this.remaining.push(this.all[key]);
+		for (key in this.normal) {
+			this.remaining.push(this.normal[key]);
 		}
 
 		tm.scrambleList(this.remaining);
@@ -27,8 +27,16 @@ events = {
 		tm.scrambleList(this.remaining);
 	},
 
-	seedTutorialEvent: function() {
-		this.remaining.unshift(this.all['disease']);
+	seedTutorialEvent: function(event) {
+		if (this.normal.hasOwnProperty(event)) {
+			this.remaining.unshift(this.normal[event]);
+		}
+		else if (this.endGame.hasOwnProperty(event)) {
+			this.remaining.unshift(this.endGame[event]);
+		}
+		else {
+			assert(false, "seedTutorialEvent: unknown event!");
+		}
 	},
 
 	getNextAffectedBiome: function() {
@@ -151,9 +159,55 @@ events = {
 	},
 
 	// Events /////////////////////////////////////////////////////////////////
-	all: {
-		that: null,
+	endGame: {
+		humanSettlement: {
+			// Destroy all 'normal' plants in a single biome.
+			getTitle: function() {
+				return strings.EVENTS.HUMAN_SETTLEMENT.title;
+			},
 
+			getInfo: function() {
+				return strings.EVENTS.HUMAN_SETTLEMENT.info;
+			},
+
+			getPrimaryBiome: function() {
+				var biomeScores = [];
+				var biomeAntiScores = [];
+				var maxIndeces = [];
+				var i = 0;
+				var iMax = -1;
+
+				gs.scoreBiomesBy('plantae', null, true, true, biomeScores);
+				gs.scoreBiomesBy('plantae', 'large', true, true, biomeAntiScores);
+				gs.scoreBiomesBy('plantae', 'small', false, true, biomeAntiScores);
+
+				for (i=0; i<biomeScores.length; ++i) {
+					biomeScores[i] = biomeScores[i] - biomeAntiScores[i];
+				}
+
+				tm.numberListFindMaxima(biomeScores, maxIndeces);
+				iMax = tm.listReturnRandomElement(maxIndeces);
+
+				return iMax >= 0 && iMax < biomeScores.length ? gs.getIthBiome(iMax) : null;
+			},
+
+			tagCardsForDestruction: function(targetBiome) {
+				assert(gs.displacementDeckEmpty(), "events.humanSettlement.tagCardsForDestruction: displacementDeck not empty!");
+
+				targetBiome.tagCardsOfTypeForDestruction('plantae', null, true);
+				targetBiome.untagDestroyedCardsWithKeyword('large');
+				targetBiome.untagDestroyedCardsWithKeyword('small');
+
+				if (targetBiome.getNumCardsDestroyed() > 0) {
+					events.affectedBiomes.push(targetBiome);
+				}
+
+				broadcast('cardsDestroyed');
+			}
+		},
+	},
+
+	normal: {
 		famine: {
 			// Destroy all 'large' birds and mammals.
 			getTitle: function() {

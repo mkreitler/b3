@@ -34,6 +34,8 @@ strings = {
 		INVALID_PLACEMENT_HERBIVORE: "Herbivores must be placed beneath\na Producer.",
 		INVALID_PLACEMENT_CARNIVORE: "Carnivores must be placed beneath\nherbivores, insects, or nematodes.",
 		INVALID_PLACEMENT_SCAVENGER: "Scavengers must be placed beneath\ncarnivores.",
+		HUMANS_ARRIVE: "Humans Arrive!",
+		SEE_THEIR_IMPACT: "They build their colony into\nthe biosphere you have created."
 	},
 	HINTS: {
 		CHOOSE_EGG: "          Choose an E.G.G.        ",
@@ -64,7 +66,7 @@ strings = {
 		POPULATE_CARNIVORE_03: "...then\nlook in the\ndata window to\nsee what the\ncreature can\ndo.",
 		POPULATE_CARNIVORE_04: "Tap on\nthe habitat to\npopulate the\nCarnivore.",
 		POPULATE_OMNIVORE_01: "Now,\nplace the\nfinal population\ninto your\nEcosystem.",
-		POPULATE_OMNIVORE_02: "Tap\nthe datacard.\nNotice that the\nOmnivore can\nfill any\nniche!",
+		POPULATE_OMNIVORE_02: "Tap\nthe datacard.\nNotice that the\nOmnivore is\na wild\ncard!",
 		POPULATE_OMNIVORE_03: "Tap\nthe habitat to\npopulate the\nOmnivore.",
 		PROCESS_EVENT_01: "As you\nbuild the\nbiosphere,\nEvents will\ntake place.",
 		PROCESS_EVENT_02: "Events\nchange the\nbiosphere, often\ndestroying\npopulations.",
@@ -92,7 +94,8 @@ strings = {
 		CUMULATIVE_TOXINS: {title: "Cumulative Toxins", info: "Destroy all small birds and mammals."},
 		GLOBAL_WARMING: {title: "Global Warming", info: "One wetland becomes a desert,\ndestroying large plants\nand insects."},
 		SUPER_PARASITE: {title: "Super Parasite", info: "Destroy all carnivores\nin one biome."},
-		GLOBAL_COOLING: {title: "Global Cooling", info: "One desert becomes a wetland,\ndestroyed small plants\nand nematodes."},
+		GLOBAL_COOLING: {title: "Global Cooling", info: "One desert becomes a wetland,\ndestroying small plants\nand nematodes."},
+		HUMAN_SETTLEMENT: {title: "Human Settlement", info: "Humans build a colony,\ndestroying mid-sized plants."},
 
 		BIOSPHERE_SAFE: "Biosphere safe!",
 		BIOME_DAMAGED: "Biome damaged!",
@@ -102,7 +105,7 @@ strings = {
 		BIOME_DAMAGE_REPORT_PLURAL: "~ of your biomes lost a total of\n~ populations. This may displace\nother populations.",
 		RESOLVED: "Resolved!",
 		RESOLUTION_MESSAGE: "You have survived this event! Now you\ncan return to building the biosphere.",
-		WILL_DISCARD_REMAINING_ORGANISMS: "None of the remaining displaced\npopulations can find a niche.\nThey must migrate to survive.",
+		WILL_DISCARD_REMAINING_ORGANISMS: "None of the remaining displaced\npopulations can find a niche. Only\nmigratory populations will survive.",
 		PLACED_ALL_ORGANISMS: "All of the populations have found\nnew niches. They will survive.",
 		WELL_DONE: "Well done!",
 
