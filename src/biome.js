@@ -62,6 +62,97 @@ bd.biome.prototype.init = function() {
 	this.niches.length = 0;
 };
 
+bd.biome.prototype.getCards = function(cardsOut) {
+	var i = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].getCards(cardsOut);
+	}
+};
+
+bd.biome.prototype.computeEcosystemBiodiversity = function() {
+	var i = 0;
+	var rating = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		rating += this.niches[i].computeEcosystemBiodiversity();
+	}
+
+	return rating;
+}
+
+bd.biome.prototype.computeNicheBiodiversity = function() {
+	var iNiche = 0;
+	var iValue = 0;
+	var keywords = null;
+	var uniqueWords = [];
+	var title = null;
+	var rating = 0;
+	var iWord = 0;
+	var card = null;
+	var keyword = null;
+
+	for (iValue=0; iValue<gs.WILD_CARD_VALUE; ++iValue) {
+		uniqueWords.length = 0;
+
+		for (iNiche=0; iNiche<this.niches.length; ++iNiche) {
+			card = this.niches[iNiche].getCardWithValue(iValue);
+
+			if (card) {
+				title = gs.getCardTitle(card);
+				if (title && uniqueWords.indexOf(title.toLowerCase()) < 0) {
+					uniqueWords.push(title.toLowerCase());
+				}
+
+				keywords = gs.getCardKeywords(card);
+				keywords = keywords ? keywords.split(",") : null;
+				for(iWord=0; keywords && iWord<keywords.length; ++iWord) {
+					keyword = keywords[iWord].replace(' ', '').toLowerCase();
+
+					if (uniqueWords.indexOf(keyword) < 0) {
+						uniqueWords.push(keyword);
+					}
+				}
+			}
+		}
+
+		rating += uniqueWords.length;
+	}
+
+	return rating;
+};
+
+bd.biome.prototype.computeScore = function() {
+	var i = 0;
+	var score = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		score += this.niches[i].computeScore();
+	}
+
+	return score;
+};
+
+bd.biome.prototype.getCardAt = function(tileRef, bDown) {
+	var card = null;
+
+	assert(tileRef.iNiche >= 0 && tileRef.iNiche < this.niches.length, "getCardAt: invalid niche index!");
+
+	card = this.niches[tileRef.iNiche].getCardAt(tileRef, bDown);
+
+	if (tileRef.iCard < 0) {
+		tileRef.iNiche += 1;
+		tileRef.iCard = 0;
+
+		if (tileRef.iNiche >= this.niches.length) {
+			tileRef.iNiche = -1;
+			tileRef.iCard = -1;
+		}
+	}
+
+	return card;
+};
+
 bd.biome.prototype.reset = function(layer) {
 	var i = 0;
 

@@ -182,5 +182,23 @@
 		} 		
 
 		return tileObj;
+ 	},
+
+ 	sortListHighToLow: function(list) {
+ 		var i = 0;
+ 		var j = 0;
+ 		var s = 0;
+
+ 		assert(list && list.length, "sortListHighToLow: invalid list!");
+
+ 		for (i=0; i<list.length - 1; ++i) {
+ 			for (j=i+1; j<list.length; ++j) {
+ 				if (list[j] > list[i]) {
+ 					s = list[j];
+ 					list[j] = list[i];
+ 					list[i] = s;
+ 				}
+ 			}
+ 		}
  	}
  }

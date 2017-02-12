@@ -39,6 +39,98 @@ bd.niche.prototype.init = function() {
 	}
 }
 
+bd.niche.prototype.getCardWithValue = function(value) {
+	var i = 0;
+	var card = null;
+
+	for (i=0; i<this.cards.length; ++i) {
+		if (this.cards[i] && this.cards[i].value === value) {
+			card = this.cards[i];
+			break;
+		}
+	}
+
+	return card;
+}
+
+bd.niche.prototype.computeScore = function() {
+	var i = 0;
+	var score = 0;
+
+	for (i=0; i<this.cards.length; ++i) {
+		if (this.cards[i]) {
+			score += 1;
+		}
+	}
+
+	return score * gs.UNIT_SCORE_SCALAR;
+}
+
+bd.niche.prototype.getCards = function(cardsOut) {
+	var i = 0;
+
+	for (i=0; i<this.cards.length; ++i) {
+		if (this.cards[i]) {
+			cardsOut.push(this.cards[i]);
+		}
+	}
+}
+
+bd.niche.prototype.computeEcosystemBiodiversity = function() {
+	var i = 0;
+	var iWord = 0;
+	var uniqueWords = [];
+	var keywords = null;
+	var title = null;
+	var keyword = null;
+
+	for (i=0; i<this.cards.length; ++i) {
+		if (this.cards[i] && this.cards[i].value > 0) {
+			keywords = gs.getCardKeywords(this.cards[i]);
+			title = gs.getCardTitle(this.cards[i]);
+
+			if (title && uniqueWords.indexOf(title.toLowerCase()) < 0) {
+				uniqueWords.push(title.toLowerCase());
+			}
+
+			keywords = keywords ? keywords.split(',') : null;
+
+			for (iWord=0; keywords && iWord<keywords.length; ++iWord) {
+				keyword = keywords[iWord].replace(' ', '').toLowerCase();
+
+				if (uniqueWords.indexOf(keyword) < 0) {
+					if (!gs.isNicheIdentifier(keyword)) {
+						uniqueWords.push(keyword);
+					}
+				}
+			}
+		}
+	}
+
+	return uniqueWords.length;
+}
+
+bd.niche.prototype.getCardAt = function(tileRef, bDown) {
+	var card = null;
+	var i = 0;
+
+	assert(tileRef.iCard >= 0 && tileRef.iCard < this.cards.length, "getCardAt: invalid card index!");
+
+	for (i=tileRef.iCard; i<this.cards.length; ++i) {
+		if (this.cards[i]) {
+			card = this.cards[i];
+			tileRef.iCard = i + 1;
+			break;
+		}
+	}
+
+	if (!card || tileRef.iCard >= this.cards.length) {
+		tileRef.iCard = -1;
+	}
+
+	return card;
+}
+
 bd.niche.prototype.setTopLeft = function(topRow, leftCol) {
 	this.topRow = topRow;
 	this.leftCol = leftCol;

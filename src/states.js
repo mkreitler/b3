@@ -171,13 +171,49 @@ var sm = {
 
 	showScore: {
 		bExit: false,
+		tileInfo: {iBiome: 0, iNiche: 0, iCard: 0},
+		timer: 0,
+		oldNiche: 0,
+		card: null,
+		TILE_FLASH_TIME: 33,
 
 		enter: function(data) {
-			this.bExit = true;
+			this.bExit = false;
+			this.timer = 0;
 		},
 
 		update: function() {
+			this.timer += game.time.physicsElapsedMS;
+			while (this.timer > this.TILE_FLASH_TIME) {
+				this.timer -= this.TILE_FLASH_TIME;
+
+				if (this.card) {
+					gs.redrawCard(this.card);
+				}
+
+				this.card = gs.eraseTileAt(this.tileInfo, true);
+
+				if (this.tileInfo.iBiome >= 0) {
+					if (this.tileInfo.iNiche !== this.oldNiche) {
+						// TODO: Update score to include the niche we just completed.
+					}
+				}
+				else {
+					if (this.card) {
+						gs.redrawCard(this.card);
+					}
+
+					// TODO: Switch to niche-order analysis.
+					this.bExit = true;
+				}
+			}
+
 			if (this.bExit) {
+				console.log(">>> World Biodiversity: " + gs.computeWorldBiodiversity());
+				console.log(">>> Niche Biodiversity: " + gs.computeNicheBiodiversity());
+				console.log(">>> Ecosystem Biodiversity: " + gs.computeEcosystemBiodiversity());
+				console.log(">>> Score: " + gs.computeScore());
+
 				setState(sm.showRestartMenu);
 			}
 		},
