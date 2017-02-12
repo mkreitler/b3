@@ -155,26 +155,85 @@ var sm = {
 	},
 
 	endGame: {
+		enter: function(data) {
+			sm.bLastEvent = true;
+			events.seedTutorialEvent('humanSettlement');
+		},
+
+		update: function() {
+			setState(sm.chooseEvent);
+		},
+
+		exit: function() {
+
+		}
+	},
+
+	showScore: {
 		bExit: false,
 
 		enter: function(data) {
-			this.bExit = false;
-
-			if (!sm.bLastEvent) {
-				sm.bLastEvent = true;
-				events.seedTutorialEvent('humanSettlement');
-				this.bExit = true;
-			}
+			this.bExit = true;
 		},
 
 		update: function() {
 			if (this.bExit) {
-				setState(sm.chooseEvent);
+				setState(sm.showRestartMenu);
 			}
 		},
 
 		exit: function() {
 
+		},
+	},
+
+	showRestartMenu: {
+		enter: function(data) {
+			uim.setupBanner(0, uim.UI_BANNER_INDEX, strings.UI.RESTART_GAME, function() {
+				setState("hideRestartMenu");
+			});
+			uim.setupBanner(1, uim.UI_BANNER_INDEX, "", null);
+			uim.setupBanner(2, uim.UI_BANNER_INDEX, "", null);
+			uim.setupBanner(3, uim.UI_BANNER_INDEX, "", null);
+			uim.setupBanner(4, uim.UI_BANNER_INDEX, "", null);
+
+			listenFor('UIoperationComplete', this);
+			uim.disableBannerInput();
+			uim.startOperation('moveBannersIn');
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+
+		},
+
+		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+			uim.setLeftHint(strings.UI.CHOOSE_ONE);
+			setState('chooseMenuItem');
+		}
+	},
+
+	hideRestartMenu: {
+		enter: function(data) {
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut');
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+
+		},
+
+		UIoperationComplete: function(data) {
+			unlistenFor("UIoperationComplete", this);
+			setState(sm.startGame);
 		}
 	},
 
@@ -573,26 +632,15 @@ var sm = {
 
 	endFinalEvent: {
 		enter: function(data) {
-			listenFor('UIoperationComplete', this);
-			uim.startOperation('moveBannersOut');
-			uim.setLeftHint('');
 		},
 
 		update: function() {
-
+			setState(sm.showScore);
 		},
 
 		exit: function() {
-
-		},
-
-		UIoperationComplete: function(data) {
-			unlistenFor('UIoperationComplete', this);
-
 			gs.restoreOriginalDrawDeck();
-
-			// TODO: show end game report.
-		}
+		},
 	},
 
 	eventEnd: {

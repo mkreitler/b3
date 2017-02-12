@@ -39,6 +39,11 @@ bd.niche.prototype.init = function() {
 	}
 }
 
+bd.niche.prototype.setTopLeft = function(topRow, leftCol) {
+	this.topRow = topRow;
+	this.leftCol = leftCol;
+}
+
 bd.niche.prototype.hasOrganismAtRank = function(rank) {
 	assert(rank >= 0 && rank < this.cards.length, "hasOrganismAtRank: invalid rank!");
 
@@ -51,7 +56,7 @@ bd.niche.prototype.scoreOrganismsAboveRank = function(rank, orgType, keyword) {
 
 	for (i=rank+1; i<this.cards.length; ++i) {
 		if (this.cards[i] && gs.getCardTitle(this.cards[i]).toLowerCase() === orgType) {
-			if (!keyword || gs.cardHasKeyword(keyword)) {
+			if (!keyword || gs.cardHasKeyword(this.cards[i], keyword)) {
 				score += 1;
 			}
 		}

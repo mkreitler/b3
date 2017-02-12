@@ -32,7 +32,7 @@ gs =  {
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1","38~0~1","21~1~2","27~1~1","71~2~2","65~0~1","30~4~0","28~3~2","32~3~1","29~4~1","49~0~0","39~1~0","56~1~0","37~4~1","51~4~1","22~2~3","50~1~1","47~1~2","24~2~1","66~0~0","59~1~2","48~2~3","17~2~0","46~2~0","25~3~0","64~1~1","34~2~2","54~2~3","67~2~2","35~4~0","45~2~1","41~3~2","55~2~1","43~3~0","53~4~0","70~3~1","57~3~2","68~3~1"]},
 		{"biomes":"{~Mountains~0~4~2~}{~Wetlands~1~1~3~}{~Desert~2~2~4~}{~Plains~3~2~3~}{~Plains~4~3~2~}","cards":["0~2~3","10~2~2","15~2~1","9~1~2","3~3~2","4~4~1","1~1~1","12~3~1","7~3~0","13~1~1","8~2~0","2~3~0","6~1~0","16~0~1","14~4~0","11~0~0"]},
 	],
-	iRestore: 2,
+	iRestore: -1,
 	logData: '',
 
 	lastPopulationCount: 0,
@@ -40,6 +40,32 @@ gs =  {
 	biomeMap: null,
 	baseMap: null,
 	biomes: [],
+	biomeStore: [
+		null, null, null, null, null
+	],
+	availableBiomes: [],
+	nicheStore: [
+		// Default niches
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+
+		// Possible additions from nematodes
+		null,
+		null,
+	],
+	availableNiches: [],
 	layers: {ocean: null, crust: null, oceanDetail: null, terrain: null, ice: null, shadows: null, producers: null, animals: null, links: null, grid: null},
 	baseLayers: {floor: null, walls: null, objects: null, ui: null},
 	drawDeck: [],
@@ -244,7 +270,20 @@ gs =  {
 	}
 };
 
+gs.stockStores = function() {
+	var i = 0;
+
+	for (i=0; i<this.biomeStore.length; ++i) {
+		this.biomeStore[i] = new bd.biome();
+	}
+
+	for (i=0; i<this.nicheStore.length; ++i) {
+		this.nicheStore[i] = new bd.niche(0, 0);
+	}
+};
+
 gs.startGame = function(data) {
+
 	uim.clearFocusBanner();
 
 	gs.init();
@@ -257,6 +296,26 @@ gs.instructions = function(data) {
 	uim.clearFocusBanner();
 	this.restoreGameState(0);
 	setState(sm.startTutorial);
+};
+
+gs.getNextAvailableBiome = function() {
+	var biome = gs.availableBiomes.shift();
+
+	assert(biome, "getNextAvailableBiome: out of biomes!");
+
+	biome.init();
+
+	return biome;
+};
+
+gs.getNextAvailableNiche = function() {
+	var niche = gs.availableNiches.shift();
+
+	assert(niche, "getNextAvailableNiche: out of niches!");
+
+	niche.init();
+
+	return niche;
 };
 
 gs.seedTutorialDeck = function(iDeck) {
@@ -450,7 +509,7 @@ gs.rebuildBiomes = function(biomeData) {
 	var startOffset = -1;
 
 	for (iBiome=1; iBiome<biomes.length; ++iBiome) {
-		biome = new bd.biome();
+		biome = gs.getNextAvailableBiome();
 
 		biomeInfo = biomes[iBiome].split('~');
 		typeName = biomeInfo[1];
@@ -473,10 +532,6 @@ gs.rebuildBiomes = function(biomeData) {
 		biome.build(gs.layers.terrain, 'ff_world', biome.getType(), blocker);
 
 		gs.biomes.push(biome);
-
-		if (iBiome < N_BIOMES - 1) {
-			biome = new bd.biome();
-		}
 	}
 };
 
@@ -1582,10 +1637,25 @@ gs.resetCard = function(card) {
 	card.linkedCards.below = null;
 	card.linkedCards.left = null;
 
+	card.suit = gs.cardValueToSuit["" + card.value];
+
 	card.coCard = null;
 };
 
 gs.init = function() {
+	var i = 0;
+
+	gs.availableBiomes.length = 0;
+	gs.availableNiches.length = 0;
+
+	for (i=0; i<gs.biomeStore.length; ++i) {
+		gs.availableBiomes.push(gs.biomeStore[i]);
+	}
+
+	for (i=0; i<gs.nicheStore.length; ++i) {
+		gs.availableNiches.push(gs.nicheStore[i]);
+	}
+
 	gs.resetWorld();
 
 	gs.lastPopulationCount = 0;

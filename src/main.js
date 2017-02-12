@@ -205,10 +205,11 @@ function startGame() {
 	// MAY HAVE TO MOVE THIS TO A BUTTON EVENT...
 	window.LOLSDK.allowSound();
 
+	addUiElements();
+	gs.stockStores();
+
 	if (gs.doRestoreGame()) {
 		gs.init();
-
-		addUiElements();
 		events.init();
 		bPhaseOneRestore = gs.restoreGameState();
 		
@@ -224,8 +225,6 @@ function startGame() {
 		setTimeout(function() {setState(sm.chooseEvent);}, 1000);
 	}
 	else {
-		addUiElements();
-		
 		setState(sm.startGame);
 	}
 
@@ -403,7 +402,7 @@ function generateStartingTerrain() {
 	var blocker = null;
 	var iNiche = 0;
 
-	biome = new bd.biome();
+	biome = gs.getNextAvailableBiome();
 
 	for (key in biome.TYPES) {
 		biomeList.push(key);
@@ -445,7 +444,7 @@ function generateStartingTerrain() {
 		gs.biomes.push(biome);
 
 		if (i < N_BIOMES - 1) {
-			biome = new bd.biome();
+			biome = gs.getNextAvailableBiome();
 		}
 	}
  }

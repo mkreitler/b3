@@ -129,5 +129,6 @@ strings = {
 		TUTORIAL: "Play Tutorial",
 		TOGGLE_SOUND: "Toggle Sound",
 		CHOOSE_ONE: "Choose One",
+		RESTART_GAME: "Restart Game",
 	}
 }

@@ -58,6 +58,10 @@ bd.biome.prototype.TYPES = {
 			},
 };
 
+bd.biome.prototype.init = function() {
+	this.niches.length = 0;
+};
+
 bd.biome.prototype.reset = function(layer) {
 	var i = 0;
 
@@ -67,7 +71,7 @@ bd.biome.prototype.reset = function(layer) {
 	}
 
 	this.erase(layer);
-}
+};
 
 bd.biome.prototype.getStartColumn = function() {
 	return this.startCol;
@@ -126,7 +130,8 @@ bd.biome.prototype.isFirstNiche = function(niche) {
 bd.biome.prototype.prependNiche = function(biome) {
 	this.startCol -= 1;
 
-	var niche = new bd.niche(this.getNicheRow(), this.getNicheColumn(0));
+	var niche = gs.getNextAvailableNiche();
+	niche.setTopLeft(this.getNicheRow(), this.getNicheColumn(0));
 
 	niche.setBiome(biome);
 	this.buildAdditionalNiche(biome.getType(), niche);
@@ -240,7 +245,9 @@ bd.biome.prototype.isBlocked = function() {
 }
 
 bd.biome.prototype.addNiche = function(biome) {
-	var niche = new bd.niche(this.getNicheRow(), this.getNicheColumn(this.niches.length));
+	var niche = gs.getNextAvailableNiche();
+
+	niche.setTopLeft(this.getNicheRow(), this.getNicheColumn(this.niches.length));
 
 	niche.setBiome(biome);
 	this.niches.push(niche);
