@@ -529,7 +529,7 @@ bd.niche.prototype.removeCard = function(card, bDestroyed) {
 	}
 	else {
 		gs.onCardDisplaced(card);
-		broadcast("cardDisplaced");
+		broadcast("cardDisplaced", card);
 	}
 
 	gs.eraseCard(card);

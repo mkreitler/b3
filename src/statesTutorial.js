@@ -761,7 +761,7 @@ sm.tutorialEnd = {
 			break;
 
 			case 3:
-				uim.helper.restNode();
+				uim.helper.resetNode();
 				setState(sm.startGame);
 			break;
 		}

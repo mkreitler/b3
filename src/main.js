@@ -115,6 +115,7 @@ function preload() {
 	game.load.image('reseeded', './res/ui/reseeded.png', false);
 	game.load.image('adapted', './res/ui/adapted.png', false);
 	game.load.image('migrated', './res/ui/migrated.png', false);
+	game.load.image('displaced', './res/ui/displaced.png', false);
 
 	// Help System Images
 	game.load.image('helperCenter', './res/ui/helperCenter.png', false);

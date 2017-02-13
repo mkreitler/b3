@@ -45,7 +45,7 @@ gs =  {
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1","38~0~1","21~1~2","27~1~1","71~2~2","65~0~1","30~4~0","28~3~2","32~3~1","29~4~1","49~0~0","39~1~0","56~1~0","37~4~1","51~4~1","22~2~3","50~1~1","47~1~2","24~2~1","66~0~0","59~1~2","48~2~3","17~2~0","46~2~0","25~3~0","64~1~1","34~2~2","54~2~3","67~2~2","35~4~0","45~2~1","41~3~2","55~2~1","43~3~0","53~4~0","70~3~1","57~3~2","68~3~1"]},
 		{"biomes":"{~Mountains~0~4~2~}{~Wetlands~1~1~3~}{~Desert~2~2~4~}{~Plains~3~2~3~}{~Plains~4~3~2~}","cards":["0~2~3","10~2~2","15~2~1","9~1~2","3~3~2","4~4~1","1~1~1","12~3~1","7~3~0","13~1~1","8~2~0","2~3~0","6~1~0","16~0~1","14~4~0","11~0~0"]},
 	],
-	iRestore: -1,
+	iRestore: 2,
 	logData: '',
 
 	lastPopulationCount: 0,
@@ -92,6 +92,7 @@ gs =  {
 	bPhaseOne: false,
 	emitterFire: null,
 	emitterSaved: null,
+	emitterDisplaced: null,
 	emitterReseeded: null,
 	emitterAdapted: null,
 	emitterMigrated: null,
@@ -317,6 +318,10 @@ gs.startGame = function(data) {
 
 gs.instructions = function(data) {
 	uim.clearFocusBanner();
+
+	gs.init();
+	events.init();
+
 	this.restoreGameState(0);
 	setState(sm.startTutorial);
 };
@@ -1913,6 +1918,15 @@ gs.init = function() {
 	gs.emitterSaved.maxParticleScale = gs.TEXT_PARTICLE_SCALE;
     gs.emitterSaved.makeParticles('saved');
 
+    gs.emitterDisplaced = game.add.emitter(0, 0, gs.MA_PARTICLE_FACTOR);
+	gs.emitterDisplaced.minParticleSpeed.setTo(0, -gs.Displaced_PARTICLE_SPEED);
+	gs.emitterDisplaced.maxParticleSpeed.setTo(0, -gs.Displaced_PARTICLE_SPEED);
+	gs.emitterDisplaced.minRotation = 0;
+	gs.emitterDisplaced.maxRotation = 0;
+	gs.emitterDisplaced.minParticleScale = gs.TEXT_PARTICLE_SCALE;
+	gs.emitterDisplaced.maxParticleScale = gs.TEXT_PARTICLE_SCALE;
+    gs.emitterDisplaced.makeParticles('displaced');
+
     gs.emitterReseeded = game.add.emitter(0, 0, gs.MA_PARTICLE_FACTOR);
 	gs.emitterReseeded.minParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED * 1.1);
 	gs.emitterReseeded.maxParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED * 1.1);
@@ -1940,7 +1954,9 @@ gs.init = function() {
 	gs.emitterMigrated.maxParticleScale = gs.TEXT_PARTICLE_SCALE;
     gs.emitterMigrated.makeParticles('migrated');
 
+    listenFor("cardDestroyed", this);
     listenFor("cardSaved", this);
+    listenFor("cardDisplaced", this);
     listenFor("seedsTransferred", this);
     listenFor("cardAdapted", this);
     listenFor("angiospermRepopulated", this);
@@ -1965,8 +1981,16 @@ gs.init = function() {
 	gs.initDiscardDeck();
 };
 
+gs.cardDestroyed = function(card) {
+	gs.startFireParticles(gs.getCardX(card), gs.getCardY(card), events.CARD_DESTROY_INTERVAL_MS / 2);
+};
+
 gs.cardSaved = function(card) {
 	// gs.startSavedParticles(gs.getCardX(card), gs.getCardY(card), events.CARD_DESTROY_INTERVAL_MS / 2);
+};
+
+gs.cardDisplaced = function(card) {
+	gs.startDisplacedParticles(gs.getCardX(card), gs.getCardY(card), events.CARD_DESTROY_INTERVAL_MS / 2);
 };
 
 gs.seedsTransferred = function(card) {
@@ -1997,6 +2021,12 @@ gs.startSavedParticles = function(x, y, duration) {
 	gs.emitterSaved.x = x;
 	gs.emitterSaved.y = y;
 	gs.emitterSaved.start(true, duration, null, 1);
+};
+
+gs.startDisplacedParticles = function(x, y, duration) {
+	gs.emitterDisplaced.x = x;
+	gs.emitterDisplaced.y = y;
+	gs.emitterDisplaced.start(true, duration, null, 1);
 };
 
 gs.startReseededParticles = function(x, y, duration) {
