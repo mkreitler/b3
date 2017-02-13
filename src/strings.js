@@ -35,11 +35,13 @@ strings = {
 		INVALID_PLACEMENT_CARNIVORE: "Carnivores must be placed beneath\nherbivores, insects, or nematodes.",
 		INVALID_PLACEMENT_SCAVENGER: "Scavengers must be placed beneath\ncarnivores.",
 		HUMANS_ARRIVE: "Humans Arrive!",
-		SEE_THEIR_IMPACT: "They build their colony into\nthe biosphere you have created."
+		SEE_THEIR_IMPACT: "They build their colony into\nthe biosphere you have created.",
+		FINAL_SCORE: "Final Score",
+		SCORE: "Score (populations x~): ~\nBiodiversity Rating: ~",
 	},
 	HINTS: {
 		CHOOSE_EGG: "          Choose an E.G.G.        ",
-		CHOOSE_DISPLACED_ORGANISM: "Pick a displaced organism",
+		CHOOSE_DISPLACED_ORGANISM: "Pick a displaced population",
 		PLACE_ORGANISM: "Place it in the biosphere",
 	},
 	TUTORIAL: {

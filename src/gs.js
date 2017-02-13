@@ -20,6 +20,17 @@ gs =  {
  	SPRITE_SCALE: 1.5,
  	UNIT_SCORE_SCALAR: 5,
  	UNIT_BIODIVERSITY_SCALAR: 5,
+ 	FIRE_PARTICLE_SPEED: 250,
+ 	MAX_PARTICLE_FACTOR: 3,
+ 	PARTICLES_PER_EMISSION: 6,
+ 	MAP_OFFSET_X: 464,
+ 	MAP_OFFSET_Y: 58,
+ 	FIRE_PARTICLE_SCALE_MIN: 0.75,
+ 	FIRE_PARTICLE_SCALE_MAX: 1.25,
+ 	FIRE_PARTICLE_ALPHA_MIN: 0.33,
+ 	FIRE_PARTICLE_ALPHA_MAX: 0.67,
+ 	SAVED_PARTICLE_SPEED: 50,
+ 	TEXT_PARTICLE_SCALE: 0.5,
 
 //	linkTile: {down: 284, right: 282, left: 283},
 	linkTile: {down: 81, right: 81, left: 81, up: 81},
@@ -34,7 +45,7 @@ gs =  {
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1","38~0~1","21~1~2","27~1~1","71~2~2","65~0~1","30~4~0","28~3~2","32~3~1","29~4~1","49~0~0","39~1~0","56~1~0","37~4~1","51~4~1","22~2~3","50~1~1","47~1~2","24~2~1","66~0~0","59~1~2","48~2~3","17~2~0","46~2~0","25~3~0","64~1~1","34~2~2","54~2~3","67~2~2","35~4~0","45~2~1","41~3~2","55~2~1","43~3~0","53~4~0","70~3~1","57~3~2","68~3~1"]},
 		{"biomes":"{~Mountains~0~4~2~}{~Wetlands~1~1~3~}{~Desert~2~2~4~}{~Plains~3~2~3~}{~Plains~4~3~2~}","cards":["0~2~3","10~2~2","15~2~1","9~1~2","3~3~2","4~4~1","1~1~1","12~3~1","7~3~0","13~1~1","8~2~0","2~3~0","6~1~0","16~0~1","14~4~0","11~0~0"]},
 	],
-	iRestore: 2,
+	iRestore: -1,
 	logData: '',
 
 	lastPopulationCount: 0,
@@ -79,6 +90,11 @@ gs =  {
 	specialToAnimIndex: {pollinator: 0, angiosperm: 1, symbiote: 2, adaptor: 3, decomposer: 4, migrator: 5},
 	biomeScores: [],
 	bPhaseOne: false,
+	emitterFire: null,
+	emitterSaved: null,
+	emitterReseeded: null,
+	emitterAdapted: null,
+	emitterMigrated: null,
 
 	discardFn: [
 		this.canDiscardPlantae,
@@ -295,6 +311,7 @@ gs.startGame = function(data) {
 	gs.init();
 	events.init();
 	generateStartingTerrain();
+
 	setState(sm.startPhaseOne);
 };
 
@@ -348,10 +365,13 @@ gs.computeEcosystemBiodiversity = function() {
 
 gs.computeNicheBiodiversity = function() {
 	var i = 0;
+	var iValue = 0;
 	var rating = 0;
 
 	for (i=0; i<this.biomes.length; ++i) {
-		rating += this.biomes[i].computeNicheBiodiversity();
+		for (iValue=0; iValue<gs.WILD_CARD_VALUE; ++iValue) {
+			rating += this.biomes[i].computeNicheBiodiversity(iValue);
+		}
 	}
 
 	return rating;
@@ -580,6 +600,8 @@ gs.restoreGameState = function(iSave) {
 gs.getEggIndexFromType = function(typeName) {
 	var iEgg = -1;
 
+	assert(typeName, "getEggIndexFromType: invalid type!");
+
 	typeName = typeName.toLowerCase();
 
 	if (gs.titleToAnimIndex.hasOwnProperty(typeName)) {
@@ -737,6 +759,66 @@ gs.getCardWithId = function(id) {
 	return card;
 };
 
+gs.eraseNiche = function(tileRef) {
+	assert(tileRef.iBiome >= 0 && tileRef.iBiome < this.biomes.length, "eraseNiche: invalid tileRef!");
+
+	this.biomes[tileRef.iBiome].eraseNiche(tileRef);
+
+	if (tileRef.iRank < 0) {
+		tileRef.iBiome += 1;
+		tileRef.iRank = 0;
+
+		if (tileRef.iBiome >= this.biomes.length) {
+			tileRef.iBiome = -1;
+		}
+	}
+};
+
+gs.redrawNiche = function(tileRef) {
+	assert(tileRef.iBiome >= 0 && tileRef.iBiome < this.biomes.length, "redrawNiche: invalid tileRef!");
+
+	this.biomes[tileRef.iBiome].redrawNiche(tileRef);
+};
+
+gs.eraseEcosystem = function(tileRef) {
+	var niche = null;
+
+	assert(tileRef.iBiome >= 0 && tileRef.iBiome < this.biomes.length, "eraseEcosystem: invalid tileRef!");
+
+	niche = this.biomes[tileRef.iBiome].eraseEcosystem(tileRef);
+
+	niche.eraseCards(tileRef);
+
+	if (tileRef.iNiche < 0) {
+		tileRef.iBiome += 1;
+		tileRef.iNiche = 0;
+
+		if (tileRef.iBiome >= this.biomes.length) {
+			tileRef.iBiome = -1;
+		}
+	}
+
+	return niche;
+};
+
+gs.redrawEcosystem = function(niche) {
+	niche.redrawCards();
+};
+
+gs.getCardX = function(card) {
+	var niche = card ? gs.getCardNiche(card) : null;
+	var rank = niche ? niche.getRankForCard(card) : -1;
+
+	return gs.MAP_OFFSET_X + (niche.getLeftCol() - 6) * TILE_SIZE * 3 / 2;
+};
+
+gs.getCardY = function(card) {
+	var niche = card ? gs.getCardNiche(card) : null;
+	var rank = niche ? niche.getRankForCard(card) : -1;
+
+	return gs.MAP_OFFSET_Y + (niche.getTopRow() - 3 + rank) * TILE_SIZE * 3 / 2;
+};
+
 gs.eraseCard = function(card) {
 	var niche = card ? gs.getCardNiche(card) : null;
 	var rank = niche ? niche.getRankForCard(card) : -1;
@@ -808,11 +890,28 @@ gs.populateNiche = function(card, niche) {
 	var length = 0;
 	var special = null;
 	var rank = -1;
+	var coCard = gs.getCardCoCard(card);
+
+	if (coCard) {
+		if (niche.canHoldCard(coCard)) {
+			gs.populateNiche(coCard, niche);
+			broadcast("seedsTransferred", coCard);
+		}
+		else {
+			this.primaryDrawDeck.unshift(coCard);
+			broadcast("angiospermMigrated");
+		}
+
+		gs.setCardCoCard(card, null);
+	}
 
 	switch(gs.getCardTitle(card).toLowerCase()) {
 		case 'plantae': case 'insecta': case 'nematoda':
 			if (!niche.hasOrganismAtRank(0)) {
 				gs.getTileIndexForCardInBiome(card, niche.getBiome());
+				if (card.tileId >= 0) {
+					gs.indexInfo.tile = card.tileId;
+				}
 
 				if (gs.indexInfo.shadow) {
 					tm.addTilesToLayer(gs.layers.shadows, 'ff_world', gs.indexInfo.shadow, niche.getTopRow(), niche.getLeftCol() + 1);
@@ -832,12 +931,10 @@ gs.populateNiche = function(card, niche) {
 				switch (special) {
 					case 'angiosperm':
 						tm.addTilesToLayer(gs.layers.grid, 'ff_world', 135, niche.getTopRow(), niche.getLeftCol());
-						card.tileId = 135;
 					break;
 
 					case 'pollinator':
 						tm.addTilesToLayer(gs.layers.grid, 'ff_world', 134, niche.getTopRow(), niche.getLeftCol() + 2);
-						card.tileId = 134;
 					break;
 				}
 			}
@@ -848,6 +945,9 @@ gs.populateNiche = function(card, niche) {
 
 		default:
 			gs.getTileIndexForCardInBiome(card, niche.getBiome());
+			if (card.tileId >= 0) {
+				gs.indexInfo.tile = card.tileId;
+			}
 
 			rank = niche.getRankForNewCard(card);
 
@@ -909,6 +1009,7 @@ gs.populateNiche = function(card, niche) {
 			this.cardLog.push(card.id + '~' + niche.getBiomeId() + '~' + niche.getId());
 		}
 
+		uim.closeAllEggChambers();
 		niche.addCard(card);
 
 		// TODO: remove this code if nothing hits the 'assert' after a while.
@@ -923,6 +1024,15 @@ gs.populateNiche = function(card, niche) {
 	}
 
 	return failMsg;
+};
+
+gs.unlogCard = function(card) {
+	if (this.bLogging) {
+		niche = gs.getCardNiche(card);
+		assert(niche, "onCardDestroyed: invalid niche!");
+
+		tm.listDeleteElement(this.cardLog, card.id + '~' + niche.getBiomeId() + '~' + niche.getId());
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -980,8 +1090,8 @@ gs.transferSeeds = function(card) {
 	cardBelow = niche.getNextCard(card);
 
 	if (cardBelow) {
-		gs.setCoCard(cardBelow, card);
-		broadcast("seedsTransferred", {angiosperm: card, seedCarrier: cardBelow});
+		gs.setCardCoCard(cardBelow, card);
+		broadcast("seedsTransferred", cardBelow);
 
 		bCardSaved = true;
 	}
@@ -1251,7 +1361,7 @@ gs.getCardCoCard = function(card) {
 
 gs.setCardCoCard = function(card, coCard) {
 	assert(card,  "setCardCoCard: invalid card!");
-	card.coCard = card;
+	card.coCard = coCard;
 };
 
 gs.getCardTitle = function(card) {
@@ -1293,10 +1403,6 @@ gs.getCardValue = function(card) {
 
 gs.setCardValue = function(card, value) {
 	card.value = value;
-};
-
-gs.setCoCard = function(card, coCard) {
-	card.coCard = coCard;
 };
 
 gs.getCardSpecial = function(card) {
@@ -1712,16 +1818,16 @@ gs.verifyCardCanBeRemoved = function(niche, card) {
 	}
 };
 
-gs.cardPrepForRemoval = function(niche, card) {
-	var linkedCards = null;
+// gs.cardPrepForRemoval = function(niche, card) {
+// 	var linkedCards = null;
 
-	if (gs.cardHasKeyword(card, 'angiosperm')) {
-		linkedCards = gs.getCardLinkedCards(card);
-		if (linkedCards.below) {
-			gs.setCardCoCard(linkedCards.below, card);
-		}
-	}
-};
+// 	if (gs.cardHasKeyword(card, 'angiosperm')) {
+// 		linkedCards = gs.getCardLinkedCards(card);
+// 		if (linkedCards.below) {
+// 			gs.setCardCoCard(linkedCards.below, card);
+// 		}
+// 	}
+// };
 
 gs.cardRemove = function(niche, card) {
 	niche.removeCard(card);
@@ -1787,6 +1893,59 @@ gs.resetCard = function(card) {
 gs.init = function() {
 	var i = 0;
 
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+
+	gs.emitterFire = game.add.emitter(0, 0, gs.PARTICLES_PER_EMISSION * gs.MAX_PARTICLE_FACTOR);
+	gs.emitterFire.minParticleSpeed.setTo(-gs.FIRE_PARTICLE_SPEED, -gs.FIRE_PARTICLE_SPEED);
+	gs.emitterFire.maxParticleSpeed.setTo(gs.FIRE_PARTICLE_SPEED, gs.FIRE_PARTICLE_SPEED);
+	gs.emitterFire.minParticleScale = gs.FIRE_PARTICLE_SCALE_MIN;
+	gs.emitterFire.maxParticleScale = gs.FIRE_PARTICLE_SCALE_MAX;
+	gs.emitterFire.minParticleAlpha = gs.FIRE_PARTICLE_ALPHA_MIN;
+	gs.emitterFire.maxParticleAlpha = gs.FIRE_PARTICLE_ALPHA_MAX;
+    gs.emitterFire.makeParticles('items_ff', [134]);
+
+    gs.emitterSaved = game.add.emitter(0, 0, gs.MA_PARTICLE_FACTOR);
+	gs.emitterSaved.minParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED);
+	gs.emitterSaved.maxParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED);
+	gs.emitterSaved.minRotation = 0;
+	gs.emitterSaved.maxRotation = 0;
+	gs.emitterSaved.minParticleScale = gs.TEXT_PARTICLE_SCALE;
+	gs.emitterSaved.maxParticleScale = gs.TEXT_PARTICLE_SCALE;
+    gs.emitterSaved.makeParticles('saved');
+
+    gs.emitterReseeded = game.add.emitter(0, 0, gs.MA_PARTICLE_FACTOR);
+	gs.emitterReseeded.minParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED * 1.1);
+	gs.emitterReseeded.maxParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED * 1.1);
+	gs.emitterReseeded.minRotation = 0;
+	gs.emitterReseeded.maxRotation = 0;
+	gs.emitterReseeded.minParticleScale = gs.TEXT_PARTICLE_SCALE;
+	gs.emitterReseeded.maxParticleScale = gs.TEXT_PARTICLE_SCALE;
+    gs.emitterReseeded.makeParticles('reseeded');
+
+    gs.emitterAdapted = game.add.emitter(0, 0, gs.MA_PARTICLE_FACTOR);
+	gs.emitterAdapted.minParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED * 1.2);
+	gs.emitterAdapted.maxParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED * 1.2);
+	gs.emitterAdapted.minRotation = 0;
+	gs.emitterAdapted.maxRotation = 0;
+	gs.emitterAdapted.minParticleScale = gs.TEXT_PARTICLE_SCALE;
+	gs.emitterAdapted.maxParticleScale = gs.TEXT_PARTICLE_SCALE;
+    gs.emitterAdapted.makeParticles('adapted');
+
+    gs.emitterMigrated = game.add.emitter(0, 0, gs.MA_PARTICLE_FACTOR);
+	gs.emitterMigrated.minParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED * 1.3);
+	gs.emitterMigrated.maxParticleSpeed.setTo(0, -gs.SAVED_PARTICLE_SPEED * 1.3);
+	gs.emitterMigrated.minRotation = 0;
+	gs.emitterMigrated.maxRotation = 0;
+	gs.emitterMigrated.minParticleScale = gs.TEXT_PARTICLE_SCALE;
+	gs.emitterMigrated.maxParticleScale = gs.TEXT_PARTICLE_SCALE;
+    gs.emitterMigrated.makeParticles('migrated');
+
+    listenFor("cardSaved", this);
+    listenFor("seedsTransferred", this);
+    listenFor("cardAdapted", this);
+    listenFor("angiospermRepopulated", this);
+    listenFor("cardMigrated", this);
+
 	gs.availableBiomes.length = 0;
 	gs.availableNiches.length = 0;
 
@@ -1804,6 +1963,58 @@ gs.init = function() {
 
 	gs.initDrawDeck();
 	gs.initDiscardDeck();
+};
+
+gs.cardSaved = function(card) {
+	// gs.startSavedParticles(gs.getCardX(card), gs.getCardY(card), events.CARD_DESTROY_INTERVAL_MS / 2);
+};
+
+gs.seedsTransferred = function(card) {
+	gs.startReseededParticles(gs.getCardX(card), gs.getCardY(card), events.CARD_DESTROY_INTERVAL_MS / 2);
+};
+
+gs.cardAdapted = function(card) {
+	gs.startAdaptedParticles(gs.getCardX(card), gs.getCardY(card), events.CARD_DESTROY_INTERVAL_MS / 2);
+};
+
+gs.angiospermRepopulated = function(card) {
+	gs.seedsTransferred(card);
+};
+
+gs.cardMigrated = function(card) {
+	if (gs.getCardNiche(card)) {
+		gs.startMigratedParticles(gs.getCardX(card), gs.getCardY(card), events.CARD_DESTROY_INTERVAL_MS / 2);
+	}
+};
+
+gs.startFireParticles = function(x, y, duration) {
+	gs.emitterFire.x = x;
+	gs.emitterFire.y = y;
+	gs.emitterFire.start(true, duration, null, gs.PARTICLES_PER_EMISSION);
+};
+
+gs.startSavedParticles = function(x, y, duration) {
+	gs.emitterSaved.x = x;
+	gs.emitterSaved.y = y;
+	gs.emitterSaved.start(true, duration, null, 1);
+};
+
+gs.startReseededParticles = function(x, y, duration) {
+	gs.emitterReseeded.x = x;
+	gs.emitterReseeded.y = y;
+	gs.emitterReseeded.start(true, duration, null, 1);
+};
+
+gs.startAdaptedParticles = function(x, y, duration) {
+	gs.emitterAdapted.x = x;
+	gs.emitterAdapted.y = y;
+	gs.emitterAdapted.start(true, duration, null, 1);
+};
+
+gs.startMigratedParticles = function(x, y, duration) {
+	gs.emitterMigrated.x = x;
+	gs.emitterMigrated.y = y;
+	gs.emitterMigrated.start(true, duration, null, 1);
 };
 
 gs.initDrawDeck = function() {

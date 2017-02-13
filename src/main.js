@@ -111,6 +111,10 @@ function preload() {
 	game.load.image('eventInfo', './res/ui/eventInfo.png', false);
 	game.load.image('infoShield', './res/ui/infoShield.png', false);
 	game.load.image('infoPanel', './res/ui/infoPanel.png', false);
+	game.load.image('saved', './res/ui/saved.png', false);
+	game.load.image('reseeded', './res/ui/reseeded.png', false);
+	game.load.image('adapted', './res/ui/adapted.png', false);
+	game.load.image('migrated', './res/ui/migrated.png', false);
 
 	// Help System Images
 	game.load.image('helperCenter', './res/ui/helperCenter.png', false);
@@ -126,6 +130,7 @@ function preload() {
 	game.load.spritesheet('ui_buttons', './res/ui/buttons.png', 315, 79);
 	game.load.spritesheet('ui_buttons_g', './res/ui/buttons_g.png', 324, 98);
 	game.load.spritesheet('ui_specials', './res/ui/specials.png', 24, 24);
+	game.load.spritesheet('items_ff', './res/tilesets/oryx_16bit_fantasy_items_trans.png', 16, 16);
 	game.load.spritesheet('cursor', './res/ui/cursor.png', 48, 96);
 	game.load.image('ui_frame_right', './res/ui/frameRight.png');
 	game.load.image('ui_frame_top', './res/ui/frameTop.png');
@@ -222,6 +227,7 @@ function startGame() {
 		}
 
 		// DEBUG: force transition to testEvent state.
+		events.seedTutorialEvent("poleShift");
 		setTimeout(function() {setState(sm.chooseEvent);}, 1000);
 	}
 	else {

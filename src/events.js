@@ -1,5 +1,5 @@
 events = {
-	CARD_DESTROY_INTERVAL_MS: 333,
+	CARD_DESTROY_INTERVAL_MS: 667,
 
 	remaining: [],
 
@@ -44,9 +44,11 @@ events = {
 	},
 
 	next: function() {
-		if (this.remaining.length > 0) {
-			this.remaining.shift();
+		if (this.remaining.length === 0) {
+			this.buildDeck();
 		}
+
+		this.remaining.shift();
 	},
 
 	getCurrentEventTitle: function() {

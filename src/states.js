@@ -171,50 +171,95 @@ var sm = {
 
 	showScore: {
 		bExit: false,
-		tileInfo: {iBiome: 0, iNiche: 0, iCard: 0},
+		tileInfo: {iBiome: 0, iNiche: 0, iRank: 0, rating: 0},
+		oldTileInfo: {iBiome: -1, iRank: -1},
 		timer: 0,
 		oldNiche: 0,
 		card: null,
-		TILE_FLASH_TIME: 33,
+		TILE_FLASH_TIME: 67,
+		bEcosystems: false,
+		rating: 0,
+		totalBiodiversityRating: 0,
 
 		enter: function(data) {
 			this.bExit = false;
 			this.timer = 0;
+			this.bEcosystems = true;
+			this.rating = 0;
+			this.ecoRating = 0;
+			this.nicheRating = 0;
+			this.worldRating = 0;
 		},
 
 		update: function() {
 			this.timer += game.time.physicsElapsedMS;
+
 			while (this.timer > this.TILE_FLASH_TIME) {
 				this.timer -= this.TILE_FLASH_TIME;
 
-				if (this.card) {
-					gs.redrawCard(this.card);
-				}
+				if (this.bEcosystems) {
+					if (this.oldNiche) {
+						gs.redrawEcosystem(this.oldNiche);
+					}
 
-				this.card = gs.eraseTileAt(this.tileInfo, true);
+					this.oldNiche = gs.eraseEcosystem(this.tileInfo);
 
-				if (this.tileInfo.iBiome >= 0) {
-					if (this.tileInfo.iNiche !== this.oldNiche) {
-						// TODO: Update score to include the niche we just completed.
+					if (this.tileInfo.iBiome >= 0) {
+						// TODO: Update score to include the ecpsystem we just completed.
+						this.rating += this.tileInfo.rating;
+						uim.clearInfoText();
+						uim.addInfoText("Ecosystem biodiversity: " + this.rating);
+					}
+					else {
+						if (this.oldNiche) {
+							gs.redrawEcosystem(this.oldNiche);
+						}
+
+						// TODO: Switch to niche-order analysis.
+						this.bEcosystems = false;
+						this.tileInfo.iBiome = 0;
+						this.tileInfo.iRank = 0;
+						this.tileInfo.rating = 0;
+						this.ecoRating = this.rating;
+						this.rating = 0;
 					}
 				}
 				else {
-					if (this.card) {
-						gs.redrawCard(this.card);
+					if (this.oldTileInfo.iBiome >= 0 && this.oldTileInfo.iRank >= 0) {
+						gs.redrawNiche(this.oldTileInfo);
 					}
 
-					// TODO: Switch to niche-order analysis.
-					this.bExit = true;
+					this.oldTileInfo.iBiome = this.tileInfo.iBiome;
+					this.oldTileInfo.iRank = this.tileInfo.iRank;
+
+					gs.eraseNiche(this.tileInfo);
+
+					if (this.tileInfo.iBiome < 0) {
+						if (this.oldTileInfo.iBiome >= 0 && this.oldTileInfo.iRank >= 0) {
+							gs.redrawNiche(this.oldTileInfo);
+						}
+
+						this.nicheRating = this.rating;
+						this.worldRating = gs.computeWorldBiodiversity();
+
+						uim.addInfoText("World biodiversity: " + this.worldRating);
+
+						this.totalBiodiversityRating = this.ecoRating + this.nicheRating + this.worldRating;
+
+						this.bExit = true;
+					}
+					else {
+						// TODO: Update score to include the niche we just completed.
+						this.rating += this.tileInfo.rating;
+						uim.clearInfoText();
+						uim.addInfoText("Ecosystem biodiversity: " + this.ecoRating);
+						uim.addInfoText("Niche biodiversity: " + this.rating);
+					}
 				}
 			}
 
 			if (this.bExit) {
-				console.log(">>> World Biodiversity: " + gs.computeWorldBiodiversity());
-				console.log(">>> Niche Biodiversity: " + gs.computeNicheBiodiversity());
-				console.log(">>> Ecosystem Biodiversity: " + gs.computeEcosystemBiodiversity());
-				console.log(">>> Score: " + gs.computeScore());
-
-				setState(sm.showRestartMenu);
+				uim.showInfoDialog(strings.INFO.FINAL_SCORE, strings.construct(strings.INFO.SCORE, [gs.UNIT_SCORE_SCALAR, gs.computeScore(), this.totalBiodiversityRating]), 'showRestartMenu');
 			}
 		},
 
@@ -232,6 +277,9 @@ var sm = {
 			uim.setupBanner(2, uim.UI_BANNER_INDEX, "", null);
 			uim.setupBanner(3, uim.UI_BANNER_INDEX, "", null);
 			uim.setupBanner(4, uim.UI_BANNER_INDEX, "", null);
+
+			uim.clearInfoText();
+			gs.hideCardHints();
 
 			listenFor('UIoperationComplete', this);
 			uim.disableBannerInput();
@@ -345,6 +393,7 @@ var sm = {
 			this.bExit = false;
 			listenFor('allCardsRemoved', this);
 			listenFor('noCardsRemoved', this);
+			listenFor('cardDestroyed', this);
 			events.destroyCards();
 		},
 
@@ -388,15 +437,24 @@ var sm = {
 		exit: function() {
 		},
 
+		cardDestroyed: function(data) {
+			var x = gs.getCardX(data);
+			var y = gs.getCardY(data);
+
+			gs.startFireParticles(x, y, events.CARD_DESTROY_INTERVAL_MS / 2);
+		},
+
 		noCardsRemoved: function(data) {
 			unlistenFor('allCardsRemoved', this);
 			unlistenFor('noCardsRemoved', this);
+			unlistenFor('cardDestroyed', this);
 			this.bExit = true;
 		},
 
 		allCardsRemoved: function(data) {
 			unlistenFor('allCardsRemoved', this);
 			unlistenFor('noCardsRemoved', this);
+			unlistenFor('cardDestroyed', this);
 			this.bExit = true;
 		}
 	},
@@ -594,10 +652,12 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			var bDrewNewCard = gs.discardAndReplace(uim.getFocusCard());
+
 			unlistenFor('UIoperationComplete', this);
 
 			if (gs.doPlaysRemainInDrawDeck()) {
-				if (gs.discardAndReplace(uim.getFocusCard())) {
+				if (bDrewNewCard) {
 					setState('eventDraw');
 				}
 				else {
@@ -681,6 +741,7 @@ var sm = {
 
 	eventEnd: {
 		enter: function(data) {
+			events.next();
 			listenFor('UIoperationComplete', this);
 			uim.startOperation('moveBannersOut');
 			uim.setLeftHint('');
@@ -708,6 +769,7 @@ var sm = {
 
 	eventEndNoDamage: {
 		enter: function(data) {
+			events.next();
 			gs.restoreOriginalDrawDeck();
 		},
 
@@ -912,9 +974,11 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			var bDrewNewCard = gs.discardAndReplace(uim.getFocusCard());
+
 			unlistenFor('UIoperationComplete', this);
 
-			if (gs.discardAndReplace(uim.getFocusCard())) {
+			if (bDrewNewCard) {
 				if (gs.doPlaysRemainInDrawDeck()) {
 					setState('phaseTwoDraw');
 				}
@@ -1109,9 +1173,11 @@ var sm = {
 		},
 
 		UIoperationComplete: function(data) {
+			var bDrewNewCard = gs.discardAndReplace(uim.getFocusCard());
+
 			unlistenFor('UIoperationComplete', this);
 			
-			if (gs.discardAndReplace(uim.getFocusCard())) {
+			if (bDrewNewCard) {
 				if (gs.doPlaysRemainInDrawDeck()) {
 					if (gs.playerHasLegalMove(true)) {
 						setState('phaseOneDraw');

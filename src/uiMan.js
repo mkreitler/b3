@@ -40,6 +40,7 @@
  	UI_BANNER_INDEX: 1,
  	GET_FROM_FUNCTION: -1,
  	NOOP: -99,
+ 	INFO_TEXT_MARGIN: 12,
 
 	group: null,
 	buttonGroup: null,
@@ -604,6 +605,8 @@
 				setTimeout(fn(i), uim.SLIDE_IN_DELAY * i);
 			}
 		}
+
+		uim.closeAllEggChambers();
 	},
 
  	moveBannersIn: function() {
@@ -969,13 +972,68 @@
  		return index;
  	},
 
+ 	getButtonIndexFromFocusWidget: function() {
+ 		var i = 0;
+ 		var index = -1;
+
+ 		for (i=0; uim.focusWidget && i<this.banners.length; ++i) {
+ 			if (uim.focusWidget.banner === this.banners[i]) {
+ 				index = i;
+ 				break;
+ 			}
+ 		}
+
+ 		return index;
+ 	},
+
+ 	openFocusEggChamber: function() {
+ 		var iChamber = uim.getButtonIndexFromFocusWidget();
+
+ 		if (iChamber >= 0) {
+ 			if (uim.focusWidget.banner.data && uim.focusWidget.banner.data.tileId >= 0) {
+	 			uim.openEggChamber(uim.focusWidget.banner.data.tileId, iChamber);
+ 			}
+ 			else {
+ 				uim.openEggChamber(gs.getCardTitle(uim.focusWidget.banner.data), iChamber);
+ 			}
+ 		}
+ 	},
+
+ 	closeFocusEggChamber: function() {
+ 		var iChamber = uim.getButtonIndexFromFocusWidget();
+
+ 		if (iChamber >= 0) {
+ 			uim.closeEggChamber(iChamber);
+ 		}
+ 	},
+
+ 	closeAllEggChambers: function() {
+ 		var i = 0;
+
+ 		for (i=0; i<this.banners.length; ++i) {
+ 			uim.closeEggChamber(i);
+ 		}
+ 	},
+
  	openEggChamber: function(eggType, iChamber) {
- 		var iEgg = gs.getEggIndexFromType(eggType);
+ 		var iEgg = null;
 
- 		assert(iEgg >= 0, "openEggChamber: unknown EGG type!");
+ 		if (eggType) {
+	 		tm.addTilesToLayer(gs.baseLayers.objects, 'sf_world', 340, 1 + 3 * iChamber, 11);
 
- 		tm.addTilesToLayer(gs.baseLayers.objects, 'sf_world', 340, 1 + 3 * iChamber, 11);
- 		tm.addTilesToLayer(gs.baseLayers.ui, 'sf_world', 285 + iEgg, 1 + 3 * iChamber, 11);
+	 		if (typeof(eggType) === "number") {
+	 			iEgg = eggType;
+		 		assert(iEgg >= 0, "openEggChamber: unknown EGG type (1)!");
+
+		 		tm.addTilesToLayer(gs.baseLayers.ui, 'sf_world', iEgg, 1 + 3 * iChamber, 11);
+	 		}
+	 		else {
+	 			iEgg = gs.getEggIndexFromType(eggType);
+		 		assert(iEgg >= 0, "openEggChamber: unknown EGG type (2)!");
+
+		 		tm.addTilesToLayer(gs.baseLayers.ui, 'sf_world', 285 + iEgg, 1 + 3 * iChamber, 11);
+	 		}
+		}
  	},
 
  	closeEggChamber: function(iChamber) {
@@ -997,8 +1055,15 @@
  	},
 
  	clearFocusBanner: function() {
+ 		var iChamber = uim.getButtonIndexFromFocusWidget();
+
  		if (this.focusWidget instanceof uim.button && uim.focusWidget.banner) {
  			this.focusWidget.buttonStateClear();
+
+ 			if (iChamber >= 0) {
+ 				uim.closeEggChamber(iChamber);
+ 			}
+
  			this.focusWidget = null;
  		}
  	},
@@ -1016,7 +1081,7 @@
 
  		nLines = this.frameTop.height / (uim.INFO_TEXT_SIZE + uim.INFO_TEXT_SIZE);
 
- 		x = uim.FRAME_BOTTOM_MARGIN.X + TILE_SIZE;
+ 		x = uim.FRAME_BOTTOM_MARGIN.X + uim.INFO_TEXT_MARGIN;
  		for (i=0; i<nLines; ++i) {
  			y = uim.FRAME_BOTTOM_MARGIN.Y + i * (uim.INFO_TEXT_SIZE + uim.INFO_TEXT_SPACING) + gs.getOffsetY();
  			bmpText = game.add.bitmapText(x, y, 'bogboo', '', uim.INFO_TEXT_SIZE);
@@ -1209,8 +1274,8 @@ uim.button.prototype.press = function() {
 		this.sprOn.animations.play(this.state + 'On');
 
 		if (uim.focusWidget) {
+			uim.closeFocusEggChamber();
 			uim.focusWidget.buttonStateClear();
-			uim.focusWidget = null;
 		}
 
 		if (this.onPressedCallback) {
@@ -1224,6 +1289,8 @@ uim.button.prototype.press = function() {
 			}
 
 			uim.focusWidget = this;
+
+			uim.openFocusEggChamber();
 		}
 	}
 }

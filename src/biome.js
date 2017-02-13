@@ -81,9 +81,16 @@ bd.biome.prototype.computeEcosystemBiodiversity = function() {
 	return rating;
 }
 
-bd.biome.prototype.computeNicheBiodiversity = function() {
+bd.biome.prototype.addToCardLog = function(logOut) {
+	var i = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].addToCardLog(logOut);
+	}
+};
+
+bd.biome.prototype.computeNicheBiodiversity = function(iValue) {
 	var iNiche = 0;
-	var iValue = 0;
 	var keywords = null;
 	var uniqueWords = [];
 	var title = null;
@@ -92,32 +99,30 @@ bd.biome.prototype.computeNicheBiodiversity = function() {
 	var card = null;
 	var keyword = null;
 
-	for (iValue=0; iValue<gs.WILD_CARD_VALUE; ++iValue) {
-		uniqueWords.length = 0;
+	uniqueWords.length = 0;
 
-		for (iNiche=0; iNiche<this.niches.length; ++iNiche) {
-			card = this.niches[iNiche].getCardWithValue(iValue);
+	for (iNiche=0; iNiche<this.niches.length; ++iNiche) {
+		card = this.niches[iNiche].getCardWithValue(iValue);
 
-			if (card) {
-				title = gs.getCardTitle(card);
-				if (title && uniqueWords.indexOf(title.toLowerCase()) < 0) {
-					uniqueWords.push(title.toLowerCase());
-				}
+		if (card) {
+			title = gs.getCardTitle(card);
+			if (title && uniqueWords.indexOf(title.toLowerCase()) < 0) {
+				uniqueWords.push(title.toLowerCase());
+			}
 
-				keywords = gs.getCardKeywords(card);
-				keywords = keywords ? keywords.split(",") : null;
-				for(iWord=0; keywords && iWord<keywords.length; ++iWord) {
-					keyword = keywords[iWord].replace(' ', '').toLowerCase();
+			keywords = gs.getCardKeywords(card);
+			keywords = keywords ? keywords.split(",") : null;
+			for(iWord=0; keywords && iWord<keywords.length; ++iWord) {
+				keyword = keywords[iWord].replace(' ', '').toLowerCase();
 
-					if (uniqueWords.indexOf(keyword) < 0) {
-						uniqueWords.push(keyword);
-					}
+				if (uniqueWords.indexOf(keyword) < 0) {
+					uniqueWords.push(keyword);
 				}
 			}
 		}
-
-		rating += uniqueWords.length;
 	}
+
+	rating += uniqueWords.length;
 
 	return rating;
 };
@@ -151,6 +156,51 @@ bd.biome.prototype.getCardAt = function(tileRef, bDown) {
 	}
 
 	return card;
+};
+
+bd.biome.prototype.eraseNiche = function(tileRef) {
+	var i = 0;
+
+	assert(tileRef.iRank >= 0 && tileRef.iRank < gs.WILD_CARD_VALUE, "eraseNiche: invalid rank index!");
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].eraseCardAtRank(tileRef.iRank);
+	}
+
+	tileRef.rating = this.computeNicheBiodiversity(tileRef.iRank);
+
+	tileRef.iRank += 1;
+	if (tileRef.iRank >= gs.WILD_CARD_VALUE) {
+		tileRef.iRank = -1;
+	}
+};
+
+bd.biome.prototype.redrawNiche = function(tileRef) {
+	var i = 0;
+
+	assert(tileRef.iRank >= 0 && tileRef.iRank < gs.WILD_CARD_VALUE, "redrawNiche: invalid rank index!");
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].redrawCardAtRank(tileRef.iRank);
+	}
+};
+
+bd.biome.prototype.eraseEcosystem = function(tileRef) {
+	var niche = null;
+
+	assert(tileRef.iNiche >= 0 && tileRef.iNiche < this.niches.length, "eraseEcosystem: invalid niche index!");
+
+	niche = this.niches[tileRef.iNiche];
+
+	niche.eraseCards(tileRef);
+
+	tileRef.iNiche += 1;
+
+	if (tileRef.iNiche >= this.niches.length) {
+		tileRef.iNiche = -1;
+	}
+
+	return niche;
 };
 
 bd.biome.prototype.reset = function(layer) {
@@ -694,7 +744,14 @@ bd.biome.prototype.getNicheId = function(niche) {
 	for (i=0; i<this.niches.length; ++i) {
 		if (this.niches[i] === niche) {
 			id = i;
-			break;
+		}
+	}
+
+	if (id >= 0) {
+		id -= this.nPrepended;
+
+		if (id < 0) {
+			id += this.niches.length;
 		}
 	}
 

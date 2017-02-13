@@ -76,6 +76,44 @@ bd.niche.prototype.getCards = function(cardsOut) {
 	}
 }
 
+bd.niche.prototype.eraseCards = function(tileRef) {
+	var i = 0;
+
+	for (i=0; i<this.cards.length; ++i) {
+		if (this.cards[i]) {
+			gs.eraseCard(this.cards[i]);
+		}
+	}
+
+	tileRef.rating = this.computeEcosystemBiodiversity();
+}
+
+bd.niche.prototype.redrawCards = function() {
+	var i = 0;
+
+	for (i=0; i<this.cards.length; ++i) {
+		if (this.cards[i]) {
+			gs.redrawCard(this.cards[i]);
+		}
+	}
+}
+
+bd.niche.prototype.eraseCardAtRank = function(iRank) {
+	var card = this.cardAtRank(iRank);
+
+	if (card) {
+		gs.eraseCard(card);
+	}
+}
+
+bd.niche.prototype.redrawCardAtRank = function(iRank) {
+	var card = this.cardAtRank(iRank);
+
+	if (card) {
+		gs.redrawCard(card);
+	}
+}
+
 bd.niche.prototype.computeEcosystemBiodiversity = function() {
 	var i = 0;
 	var iWord = 0;
@@ -179,14 +217,6 @@ bd.niche.prototype.getOrganismRank = function(orgType, keyword) {
 
 	return iRank;
 }
-
-bd.niche.prototype.setAddedDuringPlay = function() {
-	this.bAddedDuringPlay = true;
-};
-
-bd.niche.prototype.wasAddedDuringPlay = function() {
-	return this.bAddedDuringPlay;
-};
 
 bd.niche.prototype.getRankOfFirstHole = function() {
 	var rank = -1;
@@ -315,6 +345,7 @@ bd.niche.prototype.getRankForNewCard = function(card) {
 	var maxRank = this.cards.length - 1 - (this.cards[0] ? gs.getCardValue(this.cards[0]) : 0);
 
 	if (gs.isCardWild(card)) {
+		maxRank = gs.WILD_CARD_VALUE - 1;
 		for (i=1; i<=maxRank; ++i) {
 			wantRank = i;
 
@@ -453,7 +484,7 @@ bd.niche.prototype.tagCardsForDisplacement = function(cardsDisplaced) {
 					gs.setCardCoCard(this.cards[i], null);
 
 					gs.populateNiche(coCard, this);
-					broadcast("angiospermRepopulated");
+					broadcast("angiospermRepopulated", coCard);
 				}
 			}
 			else {
@@ -490,9 +521,11 @@ bd.niche.prototype.removeCard = function(card, bDestroyed) {
 	// 	gs.unlinkBelow(card);
 	// }
 
+	gs.unlogCard(card);
+
 	if (bDestroyed) {
 		gs.onCardDestroyed(card);
-		broadcast("cardDestroyed");
+		broadcast("cardDestroyed", card);
 	}
 	else {
 		gs.onCardDisplaced(card);
@@ -502,6 +535,18 @@ bd.niche.prototype.removeCard = function(card, bDestroyed) {
 	gs.eraseCard(card);
 	rank = this.getRankForCard(card);
 	this.cards[rank] = null;
+
+	gs.setCardNiche(card, null);
+};
+
+bd.niche.prototype.addToCardLog = function(logOut) {
+	var i = 0;
+
+	for (i=0; i<this.cards.length; ++i) {
+		if (this.cards[i]) {
+			logOut.push(this.cards[i].id + '~' + this.getBiomeId() + '~' + this.getId());
+		}
+	}
 };
 
 bd.niche.prototype.isCardSupported = function(card, checkedCards, rank) {

@@ -60,6 +60,20 @@
  		}
  	},
 
+ 	listDeleteElement: function(list, element) {
+ 		var i = 0;
+
+ 		i = list.indexOf(element);
+
+ 		if (i >= 0) {
+ 			for (;i<list.length - 1; ++i) {
+ 				list[i] = list[i + 1];
+ 			}
+
+ 			list.length = list.length - 1;
+ 		}
+ 	},
+
  	listReplaceWithLastNonNull: function(list, iReplace, bTrim) {
  		var bReplaced = false;
  		var iLast = -1;
@@ -144,6 +158,10 @@
  		assert(list, "listReturnRandomElement: invalid list!");
 
  		return (list[Math.floor(Math.random() * list.length)]);
+ 	},
+
+ 	getTileAt: function(layer, row, col) {
+ 		return layer.map.getTile(col, row);
  	},
 
  	addTilesToLayer: function(layer, imageName, tile, row, col) {
