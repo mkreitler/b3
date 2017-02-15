@@ -533,6 +533,8 @@ bd.niche.prototype.removeCard = function(card, bDestroyed) {
 	}
 
 	gs.eraseCard(card);
+	gs.cardResetSuitAndValue(card);
+	
 	rank = this.getRankForCard(card);
 	this.cards[rank] = null;
 

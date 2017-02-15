@@ -43,9 +43,9 @@ gs =  {
 		{"biomes":"{~Mountains~0~3~2~}{~Plains~1~2~3~}{~Wetlands~2~2~4~}{~Desert~3~2~3~}{~Forest~4~3~2~}","cards":[]},
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1"]},
 		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1","38~0~1","21~1~2","27~1~1","71~2~2","65~0~1","30~4~0","28~3~2","32~3~1","29~4~1","49~0~0","39~1~0","56~1~0","37~4~1","51~4~1","22~2~3","50~1~1","47~1~2","24~2~1","66~0~0","59~1~2","48~2~3","17~2~0","46~2~0","25~3~0","64~1~1","34~2~2","54~2~3","67~2~2","35~4~0","45~2~1","41~3~2","55~2~1","43~3~0","53~4~0","70~3~1","57~3~2","68~3~1"]},
-		{"biomes":"{~Mountains~0~4~2~}{~Wetlands~1~1~3~}{~Desert~2~2~4~}{~Plains~3~2~3~}{~Plains~4~3~2~}","cards":["0~2~3","10~2~2","15~2~1","9~1~2","3~3~2","4~4~1","1~1~1","12~3~1","7~3~0","13~1~1","8~2~0","2~3~0","6~1~0","16~0~1","14~4~0","11~0~0"]},
+		{"biomes":"{~Mountains~0~3~2~}{~Desert~1~1~3~}{~Wetlands~2~2~4~}{~Forest~3~1~3~}{~Forest~4~2~2~}","cards":["3~1~2","6~1~1","15~1~0","12~0~1","2~0~0","4~2~3","0~2~2","13~3~2","8~4~1","9~2~1","5~3~1","14~4~0","10~2~0","16~3~0","69~0~1","38~0~1","21~1~2","27~1~1","71~2~2","65~0~1","30~4~0","28~3~2","32~3~1","29~4~1","49~0~0","39~1~0","56~1~0","37~4~1","51~4~1","22~2~3","50~1~1","47~1~2","24~2~1","66~0~0","59~1~2","48~2~3","17~2~0","46~2~0","25~3~0","64~1~1","34~2~2","54~2~3"]},
 	],
-	iRestore: 2,
+	iRestore: -1,
 	logData: '',
 
 	lastPopulationCount: 0,
@@ -96,6 +96,18 @@ gs =  {
 	emitterReseeded: null,
 	emitterAdapted: null,
 	emitterMigrated: null,
+	sounds: {button: null,
+			 buttonHi: null,
+			 buttonLo: null,
+			 destroy: null,
+			 displace: null,
+			 event: null,
+			 eventReveal: null,
+			 info: null,
+			 infoRevealed: null,
+			 dialogClose: null,
+			 score: null,
+			 phaseSwitch: null},
 
 	discardFn: [
 		this.canDiscardPlantae,
@@ -321,6 +333,7 @@ gs.instructions = function(data) {
 
 	gs.init();
 	events.init();
+	uim.hideTitleText();
 
 	this.restoreGameState(0);
 	setState(sm.startTutorial);
@@ -421,6 +434,16 @@ gs.computeWorldBiodiversity = function() {
 	return rating * this.UNIT_BIODIVERSITY_SCALAR;
 };
 
+gs.playSound = function(sound) {
+	assert(sound, "playSound: invalid sound!");
+
+	if (sound.isPlaying) {
+		sound.stop();
+	}
+
+	sound.play();
+}
+
 gs.eraseTileAt = function(tileRef, bDown) {
 	var card = null;
 
@@ -494,6 +517,8 @@ gs.seedTutorialDeck = function(iDeck) {
 
 gs.toggleSound = function(data) {
 	uim.clearFocusBanner();
+
+	game.sound.volume = 1 - game.sound.volume;
 };
 
 gs.getBiomeId = function(biome) {
@@ -717,9 +742,9 @@ gs.populateBiomes = function(cardData) {
 
 		tm.listNullAndMoveToBack(this.drawDeck, card, true);
 
-		failMsg = this.populateNiche(card, niche);
+		failMsg = this.populateNiche(card, niche, true);
 		if (failMsg) {
-			console.log("FAIL: " + cardData[i] + "-- " + failMsg)
+			// console.log("FAIL: " + cardData[i] + "-- " + failMsg)
 		}
 	}
 
@@ -783,6 +808,8 @@ gs.redrawNiche = function(tileRef) {
 	assert(tileRef.iBiome >= 0 && tileRef.iBiome < this.biomes.length, "redrawNiche: invalid tileRef!");
 
 	this.biomes[tileRef.iBiome].redrawNiche(tileRef);
+
+	gs.playSound(gs.sounds.score);
 };
 
 gs.eraseEcosystem = function(tileRef) {
@@ -802,6 +829,8 @@ gs.eraseEcosystem = function(tileRef) {
 			tileRef.iBiome = -1;
 		}
 	}
+
+	gs.playSound(gs.sounds.score);
 
 	return niche;
 };
@@ -889,7 +918,7 @@ gs.redrawCard = function(card) {
 	}
 };
 
-gs.populateNiche = function(card, niche) {
+gs.populateNiche = function(card, niche, bMute) {
 	var failMsg = null;
 	var keywords = [];
 	var length = 0;
@@ -899,7 +928,7 @@ gs.populateNiche = function(card, niche) {
 
 	if (coCard) {
 		if (niche.canHoldCard(coCard)) {
-			gs.populateNiche(coCard, niche);
+			gs.populateNiche(coCard, niche, true);
 			broadcast("seedsTransferred", coCard);
 		}
 		else {
@@ -908,6 +937,10 @@ gs.populateNiche = function(card, niche) {
 		}
 
 		gs.setCardCoCard(card, null);
+	}
+
+	if (!bMute) {
+		gs.playSound(gs.sounds.buttonLo);
 	}
 
 	switch(gs.getCardTitle(card).toLowerCase()) {
@@ -999,12 +1032,12 @@ gs.populateNiche = function(card, niche) {
 					break;
 
 					default:
-						assert(false, "populateNiche: unhandled case!");
+						failMsg = strings.INFO.HABITAT_EMPTY;
 					break;
 				}
 			}
 			else {
-				failMsg = strings.INFO.NICHE_FULL;
+				failMsg = strings.INFO.HABITAT_FULL;
 			}
 		break;
 	}
@@ -1054,6 +1087,7 @@ gs.onCardDestroyed = function(card) {
 	if (!bCardSaved) {
 		gs.discard(card);
 		gs.resetCard(card);
+		gs.playSound(gs.sounds.destroy);
 	}
 	else {
 		broadcast("cardSaved", card);
@@ -1072,6 +1106,7 @@ gs.onCardDisplaced = function(card) {
 
 	if (!bAnchored) {
 		gs.displacementDeck.push(card);
+		gs.playSound(gs.sounds.displace);
 	}
 
 	return bAnchored;
@@ -1650,6 +1685,7 @@ gs.isCardPlantInsectOrNematode = function(card) {
 gs.showTargetableNiches = function(card) {
 	assert(card, "showTargetableNiches: invalid card!");
 
+	uim.clearAllCursors();
 	this.placeCursors(card);
 };
 
@@ -1876,6 +1912,16 @@ gs.resetCards = function() {
 	}
 }
 
+gs.cardResetSuitAndValue = function(card) {
+	assert(card, "cardResetSuitAndValue: invalid card!");
+
+	if (gs.cardHasKeyword(card, "omnivore")) {
+		card.value = gs.WILD_CARD_VALUE;
+	}
+	
+	card.suit = gs.cardValueToSuit["" + card.value];
+};
+
 gs.resetCard = function(card) {
 	assert(card, "resetCard: invalid card");
 
@@ -1890,14 +1936,12 @@ gs.resetCard = function(card) {
 	card.tileId = -1;
 	card.shadowId = -1;
 
-	card.suit = gs.cardValueToSuit["" + card.value];
+	gs.cardResetSuitAndValue(card);
 
 	card.coCard = null;
 };
 
-gs.init = function() {
-	var i = 0;
-
+gs.createEmitters = function() {
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 
 	gs.emitterFire = game.add.emitter(0, 0, gs.PARTICLES_PER_EMISSION * gs.MAX_PARTICLE_FACTOR);
@@ -1960,7 +2004,13 @@ gs.init = function() {
     listenFor("seedsTransferred", this);
     listenFor("cardAdapted", this);
     listenFor("angiospermRepopulated", this);
-    listenFor("cardMigrated", this);
+    listenFor("cardMigrated", this);	
+};
+
+gs.init = function() {
+	var i = 0;
+
+    gs.biomes.length = 0;
 
 	gs.availableBiomes.length = 0;
 	gs.availableNiches.length = 0;
@@ -2474,29 +2524,6 @@ gs.cardHasNoOtherLinks = function(card, otherCard) {
 	return !bHasOtherLinks;
 };
 
-gs.resetGame = function() {
-	var i =0;
-
-	// TODO: lots!
-	this.cardLog.length = 0;
-	this.drawDeck.length = 0;
-	this.discardDeck.length = 0;
-
-	for (i=0; i<this.phaseOneCards.length; ++i) {
-		if (this.phaseOneCards.linkedCards.above) this.phaseOneCards.linkedCards.above = null;
-		if (this.phaseOneCards.linkedCards.right) this.phaseOneCards.linkedCards.right = null;
-		if (this.phaseOneCards.linkedCards.below) this.phaseOneCards.linkedCards.below = null;
-		if (this.phaseOneCards.linkedCards.left) this.phaseOneCards.linkedCards.left  = null;
-	}
-
-	for (i=0; i<this.phaseTwoCards.length; ++i) {
-		if (this.phaseTwoCards.linkedCards.above) this.phaseTwoCards.linkedCards.above = null;
-		if (this.phaseTwoCards.linkedCards.right) this.phaseTwoCards.linkedCards.right = null;
-		if (this.phaseTwoCards.linkedCards.below) this.phaseTwoCards.linkedCards.below = null;
-		if (this.phaseTwoCards.linkedCards.left) this.phaseTwoCards.linkedCards.left  = null;
-	}
-};
-
 gs.executeCardSpecialFunction = function(card, fnType) {
 	var keywords = card ? gs.getCardKeywords(card) : null;
 	var keyList = null;
@@ -2518,6 +2545,7 @@ gs.executeCardSpecialFunction = function(card, fnType) {
 gs.resetWorld = function() {
 	this.resetBiomes();
 	this.resetCards();
+	gs.cardLog.length = 0;
 };
 
 gs.hideCardHints = function() {

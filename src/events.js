@@ -610,6 +610,7 @@ events = {
 						biomes[i].setScore(0);
 						biomes[i].setScore(biomes[i].scoreNichesBy("insecta", null, true));
 						biomes[i].setScore(biomes[i].getScore() + biomes[i].scoreNichesBy("plantae", "large", true));
+						biomes[i].setScore(biomes[i].getScore() + biomes[i].scoreNichesBy("amphibia", null, true));
 						biomeScores.push(biomes[i].getScore());
 
 						tm.numberListFindMaxima(biomeScores, maxIndeces);
@@ -634,6 +635,7 @@ events = {
 
 				targetBiome.tagCardsOfTypeForDestruction('insecta', null, true);
 				targetBiome.tagCardsOfTypeForDestruction('plantae', 'large', false);
+				targetBiome.tagCardsOfTypeForDestruction('amphibia', null, false);
 
 				if (targetBiome.getNumCardsDestroyed() > 0) {
 					events.affectedBiomes.push(targetBiome);
@@ -668,6 +670,7 @@ events = {
 						biomes[i].setScore(0);
 						biomes[i].setScore(biomes[i].scoreNichesBy("nematoda", null, true));
 						biomes[i].setScore(biomes[i].getScore() + biomes[i].scoreNichesBy("plantae", "small", true));
+						biomes[i].setScore(biomes[i].getScore() + biomes[i].scoreNichesBy("reptilia", null, true));
 						biomeScores.push(biomes[i].getScore());
 
 						tm.numberListFindMaxima(biomeScores, maxIndeces);
@@ -692,6 +695,7 @@ events = {
 
 				targetBiome.tagCardsOfTypeForDestruction('nematoda', null, true);
 				targetBiome.tagCardsOfTypeForDestruction('plantae', 'small', false);
+				targetBiome.tagCardsOfTypeForDestruction('reptilia', null, false);
 
 				if (targetBiome.getNumCardsDestroyed() > 0) {
 					events.affectedBiomes.push(targetBiome);

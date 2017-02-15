@@ -75,22 +75,24 @@ function broadcast(msg, data) {
 
 // LOL API ////////////////////////////////////////////////////////////////////
 function onPauseMainScreen() {
-	console.log("<<< Pausing main screen >>>");
+	// console.log("<<< Pausing main screen >>>");
+	game.sound.pauseAll();
 	game.paused = true;
 }
 
 function onResumeMainScreen() {
-	console.log("<<< Resuming main screen >>>");
+	// console.log("<<< Resuming main screen >>>");
 	game.paused = false;
+	game.sound.resumeAll();
 }
 
 function onPauseOther() {
-	console.log("<<< Pausing other stuff >>>");
+	// console.log("<<< Pausing other stuff >>>");
 	game.paused = true;
 }
 
 function onResumeOther() {
-	console.log("<<< Resuming other stuff >>>");
+	// console.log("<<< Resuming other stuff >>>");
 	game.paused = false;
 }
 
@@ -140,6 +142,20 @@ function preload() {
 	game.load.bitmapFont('bogboo', './res/fonts/bogboo.png', './res/fonts/bogboo.xml');	
     // game.load.bitmapFont('carrier_command', './res/carrier_command.png', './res/carrier_command.xml');
 
+    // Audio
+    game.load.audio('uiButton', ['./art/uiSoundsEGG/exported/button5.ogg', './art/uiSoundsEGG/exported/button5.mp3']);
+    game.load.audio('uiButtonHi', ['./art/uiSoundsEGG/exported/button4.ogg', './art/uiSoundsEGG/exported/button4.mp3']);
+    game.load.audio('uiButtonLo', ['./art/uiSoundsEGG/exported/displace2.ogg', './art/uiSoundsEGG/exported/displace2.mp3']);
+    game.load.audio('displace', ['./art/uiSoundsEGG/exported/destroy1.ogg', './art/uiSoundsEGG/exported/destroy1.mp3']);
+    game.load.audio('destroy', ['./art/uiSoundsEGG/exported/displace1.ogg', './art/uiSoundsEGG/exported/displace1.mp3']);
+    game.load.audio('event', ['./art/uiSoundsEGG/exported/event1.ogg', './art/uiSoundsEGG/exported/event1.mp3']);
+    game.load.audio('eventReveal', ['./art/uiSoundsEGG/exported/event3.ogg', './art/uiSoundsEGG/exported/event3.mp3']);
+    game.load.audio('info', ['./art/uiSoundsEGG/exported/info1.ogg', './art/uiSoundsEGG/exported/info1.mp3']);
+    game.load.audio('infoReveal', ['./art/uiSoundsEGG/exported/event2.ogg', './art/uiSoundsEGG/exported/event2.mp3']);
+    game.load.audio('dialogClose', ['./art/uiSoundsEGG/exported/dialogClose.ogg', './art/uiSoundsEGG/exported/dialogClose.mp3']);
+    game.load.audio('score', ['./art/uiSoundsEGG/exported/score1.ogg', './art/uiSoundsEGG/exported/score1.mp3']);
+    game.load.audio('phaseSwitch', ['./art/uiSoundsEGG/exported/phaseSwitch.ogg', './art/uiSoundsEGG/exported/phaseSwitch.mp3']);
+
     // Sounds
 }
 
@@ -153,6 +169,19 @@ function create() {
 	gs.baseMap = game.add.tilemap('base');
 	gs.baseMap.addTilesetImage('sf_world', 'world_sf', 24, 24);
 	gs.baseMap.addTilesetImage('ff_world', 'world_ff', 24, 24);
+
+	gs.sounds.button = game.add.audio('uiButton');
+	gs.sounds.buttonHi = game.add.audio('uiButtonHi');
+	gs.sounds.buttonLo= game.add.audio('uiButtonLo');
+	gs.sounds.destroy = game.add.audio('destroy');
+	gs.sounds.displace = game.add.audio('displace');
+	gs.sounds.event = game.add.audio('event');
+	gs.sounds.eventReveal = game.add.audio('eventReveal');
+	gs.sounds.info = game.add.audio('info');
+	gs.sounds.infoReveal = game.add.audio('infoReveal');
+	gs.sounds.dialogClose = game.add.audio('dialogClose');
+	gs.sounds.score = game.add.audio('score');
+	gs.sounds.phaseSwitch = game.add.audio('phaseSwitch');
 
 //	gs.layers.stars 		= gs.biomeMap.createLayer('StarField');
 //	gs.layers.ocean 		= gs.biomeMap.createLayer('Ocean01');
@@ -213,6 +242,7 @@ function startGame() {
 
 	addUiElements();
 	gs.stockStores();
+	gs.createEmitters();
 
 	if (gs.doRestoreGame()) {
 		gs.init();
@@ -242,14 +272,9 @@ function quitGame() {
 	window.LOLSDK.completeGame();	
 }
 
-function resetGame() {
-	gs.resetBiomes();
-	gs.resetCards();	
-}
-
 function assert(bTest, message) {
 	if (!bTest) {
-		console.log("ASSERT FAILED: " + message);
+		// console.log("ASSERT FAILED: " + message);
 		debugger;
 	}
 }

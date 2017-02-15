@@ -37,7 +37,7 @@ sm.handleTutorialBannerPress = function(button, stage) {
 };
 
 sm.handleTutorialWorldPress = function(arg1, arg2) {
-	console.log("Mouse: (" + game.input.mousePointer.x + ", " + game.input.mousePointer.y + ")");
+	// console.log("Mouse: (" + game.input.mousePointer.x + ", " + game.input.mousePointer.y + ")");
 	
 	if (sm.worldInputStages.indexOf(sm.startTutorialIntro.stage) >= 0) {
 
@@ -62,7 +62,7 @@ sm.handleTutorialBannerPress02 = function(button, stage) {
 };
 
 sm.handleTutorialWorldPress02 = function(arg1, arg2) {
-	console.log("Mouse: (" + game.input.mousePointer.x + ", " + game.input.mousePointer.y + ")");
+	// console.log("Mouse: (" + game.input.mousePointer.x + ", " + game.input.mousePointer.y + ")");
 	
 	if (sm.worldInputStages.indexOf(sm.continueTutorial01.stage) >= 0) {
 

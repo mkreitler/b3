@@ -2,6 +2,7 @@
 
 var sm = {
 	TURNS_UNTIL_EVENT: 7,
+	BIODIVERSITY_SCALAR: 100,
 
 	nextState: null,
 	bLastEvent: false,
@@ -78,6 +79,7 @@ var sm = {
 			uim.setupBanner(4, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, null);
 
 			gs.resetWorld();
+			uim.showTitleText();
 
 			listenFor('UIoperationComplete', this);
 			uim.disableBannerInput();
@@ -117,6 +119,7 @@ var sm = {
 		enter: function(data) {
 			listenFor("UIoperationComplete", this);
 			uim.startOperation("moveBannersOut", this);
+			uim.hideTitleText();
 		},
 
 		update: function() {
@@ -170,13 +173,14 @@ var sm = {
 	},
 
 	showScore: {
+		TILE_FLASH_TIME: 67,
+
 		bExit: false,
 		tileInfo: {iBiome: 0, iNiche: 0, iRank: 0, rating: 0},
 		oldTileInfo: {iBiome: -1, iRank: -1},
 		timer: 0,
 		oldNiche: 0,
 		card: null,
-		TILE_FLASH_TIME: 67,
 		bEcosystems: false,
 		rating: 0,
 		totalBiodiversityRating: 0,
@@ -189,9 +193,18 @@ var sm = {
 			this.ecoRating = 0;
 			this.nicheRating = 0;
 			this.worldRating = 0;
+			this.oldNiche = null;
+			this.tileInfo.iBiome = 0;
+			this.tileInfo.iNiche = 0;
+			this.tileInfo.iRank = 0;
+			this.tileInfo.rating = 0;
+			this.oldTileInfo.iBiome = -1;
+			this.oldTileInfo.iRank = -1;
 		},
 
 		update: function() {
+			var score = 0;
+
 			this.timer += game.time.physicsElapsedMS;
 
 			while (this.timer > this.TILE_FLASH_TIME) {
@@ -244,7 +257,12 @@ var sm = {
 
 						uim.addInfoText("World biodiversity: " + this.worldRating);
 
+						score = gs.computeScore();
+
 						this.totalBiodiversityRating = this.ecoRating + this.nicheRating + this.worldRating;
+						// this.totalBiodiversityRating *= sm.BIODIVERSITY_SCALAR;
+						// this.totalBiodiversityRating /= Math.max(1, score);
+						// this.totalBiodiversityRating = Math.round(this.totalBiodiversityRating);
 
 						this.bExit = true;
 					}
@@ -259,7 +277,7 @@ var sm = {
 			}
 
 			if (this.bExit) {
-				uim.showInfoDialog(strings.INFO.FINAL_SCORE, strings.construct(strings.INFO.SCORE, [gs.UNIT_SCORE_SCALAR, gs.computeScore(), this.totalBiodiversityRating]), 'showRestartMenu');
+				uim.showInfoDialog(strings.INFO.FINAL_SCORE, strings.construct(strings.INFO.SCORE, [gs.UNIT_SCORE_SCALAR, score, this.totalBiodiversityRating]), 'showRestartMenu');
 			}
 		},
 
@@ -494,8 +512,8 @@ var sm = {
 				// Set up next state here.
 				gs.unblockAllBiomes();
 				if (sm.bLastEvent) {
-					uim.showInfoDialog(strings.EVENTS.RESOLVED,
-									   strings.EVENTS.RESOLUTION_MESSAGE,
+					uim.showInfoDialog(strings.EVENTS.COLONY_COMPLETE,
+									   strings.EVENTS.RESOLUTION_MESSAGE_END,
 									   "endFinalEvent");
 				}
 				else {
@@ -547,10 +565,10 @@ var sm = {
 
 		enter: function(data) {
 			this.bExit = false;
+			gs.showNextCardHints();
 
 			if (gs.playerHasLegalMove(false)) {
 				uim.enableBannerInput();
-				gs.showNextCardHints();
 			}
 			else {
 				this.bExit = true;
@@ -562,7 +580,14 @@ var sm = {
 				uim.disableBannerInput();
 
 				if (!gs.doPlaysRemainInDrawDeck()) {
-					uim.showInfoDialog(strings.INFO.NO_MORE_MOVES, strings.EVENTS.WILL_DISCARD_REMAINING_ORGANISMS, 'eventCloseBannersAndDisplace');
+					if (uim.getNumBannersWithData()) {
+						uim.showInfoDialog(strings.INFO.NO_MORE_MOVES, strings.EVENTS.WILL_DISCARD_REMAINING_ORGANISMS, 'eventCloseBannersAndDisplace');
+					}
+					else {
+						uim.showInfoDialog(strings.EVENTS.WELL_DONE,
+										   strings.EVENTS.PLACED_ALL_ORGANISMS,
+										   "eventCloseBannersAndDisplace");
+					}
 				}
 				else {
 					uim.setLeftHint('');
@@ -688,7 +713,14 @@ var sm = {
 				}
 			}
 			else {
-				uim.showInfoDialog(strings.INFO.NO_MORE_MOVES, strings.EVENTS.WILL_DISCARD_REMAINING_ORGANISMS, 'eventCloseBannersAndDisplace');
+				if (uim.getNumBannersWithData()) {
+					uim.showInfoDialog(strings.INFO.NO_MORE_MOVES, strings.EVENTS.WILL_DISCARD_REMAINING_ORGANISMS, 'eventCloseBannersAndDisplace');
+				}
+				else {
+					uim.showInfoDialog(strings.EVENTS.WELL_DONE,
+									   strings.EVENTS.PLACED_ALL_ORGANISMS,
+									   "eventCloseBannersAndDisplace");
+				}
 			}
 		},
 	},
@@ -1300,6 +1332,7 @@ var sm = {
 			gs.removeInsectsAndNematodes();
 			gs.addPhaseTwoCards();
 			gs.shuffleDrawDeck();
+			gs.playSound(gs.sounds.phaseSwitch);
 
 			sm.setTransitionState('startPhaseTwo', 'phaseTwo');
 		},

@@ -211,6 +211,7 @@ uim.helper = {
 	onHelpTapped: function(data) {
 		if (this.alpha > uim.helper.ALPHA_THRESH && !uim.helper.bInputBlocked) {
 			broadcast('onHelpTapped');
+			gs.playSound(gs.sounds.buttonHi);
 		}
 	},
 

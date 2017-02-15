@@ -21,6 +21,8 @@
  	BANNER_SPACING: 27,
  	SLIDE_IN_DELAY: 50,
  	FRAME_BOTTOM_MARGIN: {X: 8, Y: 304},
+ 	TOP_TITLE_SIZE: 60,
+ 	BOTTOM_TITLE_SIZE: 150,
  	INFO_TEXT_SIZE: 20,
  	INFO_TEXT_SPACING: 4,
  	HINT_TEXT_SIZE: 32,
@@ -48,6 +50,7 @@
 	frameRight: null,
 	frameTop: null,
 	groupBottomFrame: null,
+	titleGroup: null,
 	infoText: {currentLine: -1, lines:[]},
 	banners: [],
 	cursors: [],
@@ -57,6 +60,8 @@
 	cardHintGroup: null,
 	bInputBlocked: false,	// Filthy hack to make dialog box behave modally.
 	lastOp: null,			// DEBUG: tracks last uiOperation executed.
+	topTitleText: null,
+	bottomTitleText: null,
 
 	// Event dialog
 	eventShield: null,
@@ -86,6 +91,7 @@
  		game.world.bringToTop(this.hint.group);
  		game.world.bringToTop(this.cardHintGroup);
  		game.world.bringToTop(this.infoGroup);
+ 		game.world.bringToTop(this.titleGroup);
  	},
 
  	createHints: function() {
@@ -249,6 +255,8 @@
  		else {
  			pushState(sm.showInfoDialog, {title: title, text: text});
  		}
+
+ 		gs.playSound(gs.sounds.info);
  	},
 
  	startInfoDialog: function(title, text) {
@@ -264,7 +272,7 @@
  		this.infoDlgPrompt.visible = true;
  		this.infoDlgPrompt.alpha = 0.0;
 
-		this.infoDlgMarker.data.tweenIn.start()
+		this.infoDlgMarker.data.tweenIn.start();
  	},
 
  	showInfoPrompt: function() {
@@ -278,6 +286,7 @@
  	revealInfoText: function() {
 		this.infoDlgTitle.tweenIn.start();
 		this.infoDlgText.tweenIn.start();
+		gs.playSound(gs.sounds.infoReveal);
  	},
 
  	hideInfoText: function() {
@@ -312,6 +321,8 @@
 		this.infoDlgTitle.tweenOut.start();
 		this.infoDlgText.tweenOut.start();
 		this.infoDlgPrompt.tweenOut.start();
+
+		gs.playSound(gs.sounds.dialogClose);
 
 		this.infoDlgPanel.data.tweenBack.start();
  	},
@@ -393,6 +404,8 @@
 
  		// gs.hideCardHints();
 
+ 		gs.playSound(gs.sounds.event);
+
  		this.eventMarker.y = -this.eventShield.height;
 
  		this.eventTitle.text = title;
@@ -415,6 +428,7 @@
  		this.eventTitle.tweenIn.start();
  		this.eventText.tweenIn.start();
  		this.eventPrompt.tweenIn.start();
+ 		gs.playSound(gs.sounds.eventReveal);
  	},
 
  	onEventOff: function() {
@@ -437,6 +451,9 @@
  		this.eventText.tweenOut.start();
  		this.eventPrompt.tweenOut.start();
  		this.eventInfo.data.tweenBack.start();
+
+		gs.playSound(gs.sounds.dialogClose);
+
  	},
 
  	hideEventText: function() {
@@ -903,11 +920,31 @@
  		}
  	},
 
+ 	hideTitleText: function() {
+ 		this.titleGroup.visible = false;
+ 	},
+
+ 	showTitleText: function() {
+ 		this.titleGroup.visible = true;
+ 	},
+
  	init: function() {
 		this.helperGroup = game.add.group();
 		this.buttonGroup = game.add.group();
 		this.group = game.add.group();
 		this.infoGroup = game.add.group();
+		this.titleGroup = game.add.group();
+
+		this.topTitleText = game.add.bitmapText(game.width / 2, game.height / 2 - uim.TOP_TITLE_SIZE / 2, 'bogboo', 'Project', uim.TOP_TITLE_SIZE);
+		this.bottomTitleText = game.add.bitmapText(game.width / 2, game.height / 2 + uim.BOTTOM_TITLE_SIZE / 2, 'bogboo', 'E.G.G.', uim.BOTTOM_TITLE_SIZE);
+		this.topTitleText.x += 3 * uim.BOTTOM_TITLE_SIZE / 2;
+		this.bottomTitleText.x += 3 * uim.BOTTOM_TITLE_SIZE / 2;
+		this.topTitleText.y -= uim.BOTTOM_TITLE_SIZE / 4;
+		this.bottomTitleText.y -= uim.BOTTOM_TITLE_SIZE / 4;
+		this.topTitleText.anchor.setTo(0.85, 0.5);
+		this.bottomTitleText.anchor.setTo(0.5, 0.5);
+		this.titleGroup.add(this.topTitleText);
+		this.titleGroup.add(this.bottomTitleText);
 
 		this.createEvents();
 		this.createInfoDialog();
@@ -1291,6 +1328,10 @@ uim.button.prototype.press = function() {
 			uim.focusWidget = this;
 
 			uim.openFocusEggChamber();
+		}
+
+		if (game.sound.volume > 0) {
+			gs.playSound(gs.sounds.button);
 		}
 	}
 }
