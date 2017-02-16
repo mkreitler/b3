@@ -6,6 +6,7 @@ sm.startTutorial = {
 		uim.disableBannerInput();
 		listenFor('UIoperationComplete', this);
 		uim.startOperation('moveBannersOut');
+		gs.postTutorialProgress();
 	},
 
 	update: function() {

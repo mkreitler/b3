@@ -66,6 +66,11 @@ events = {
 		return this.remaining[0].getPrimaryBiome();
 	},
 
+	getCurrentEventQuestion: function() {
+		assert(this.remaining.length > 0, "getCurrentEventQuestion: out of Event cards!");
+		return this.remaining[0].getQuestion();
+	},
+
 	tagCardsForDestruction: function() {
 		assert(this.remaining.length > 0, "applyCurrent: out of Event cards!");
 
@@ -172,6 +177,10 @@ events = {
 				return strings.EVENTS.HUMAN_SETTLEMENT.info;
 			},
 
+			getQuestion: function() {
+				return strings.EVENTS.HUMAN_SETTLEMENT.question;
+			},
+
 			getPrimaryBiome: function() {
 				var biomeScores = [];
 				var biomeAntiScores = [];
@@ -220,6 +229,10 @@ events = {
 				return strings.EVENTS.FAMINE.info;
 			},
 
+			getQuestion: function() {
+				return strings.EVENTS.FAMINE.question;
+			},
+
 			getPrimaryBiome: function() {
 				var biomeScores = [];
 				var maxIndeces = [];
@@ -255,6 +268,10 @@ events = {
 
 			getInfo: function() {
 				return strings.EVENTS.POLE_SHIFT.info;
+			},
+
+			getQuestion: function() {
+				return strings.EVENTS.POLE_SHIFT.question;
 			},
 
 			getPrimaryBiome: function() {
@@ -294,6 +311,10 @@ events = {
 
 			getInfo: function() {
 				return strings.EVENTS.BLIGHT.info;
+			},
+
+			getQuestion: function() {
+				return strings.EVENTS.BLIGHT.question;
 			},
 
 			getPrimaryBiome: function() {
@@ -360,6 +381,10 @@ events = {
 				return strings.EVENTS.INSECT_PLAGUE.info;
 			},
 
+			getQuestion: function() {
+				return strings.EVENTS.INSECT_PLAGUE.question;
+			},
+
 			getPrimaryBiome: function() {
 				var biomeScores = [];
 				var maxIndeces = []
@@ -424,6 +449,10 @@ events = {
 				return strings.EVENTS.DISEASE.info;
 			},
 
+			getQuestion: function() {
+				return strings.EVENTS.DISEASE.question;
+			},
+
 			getPrimaryBiome: function() {
 				var biomeScores = {amphibia: [], reptilia: [], aves: [], mammalia: []};
 				var bestBiomes = [];
@@ -479,6 +508,10 @@ events = {
 				return strings.EVENTS.DROUGHT.info;
 			},
 
+			getQuestion: function() {
+				return strings.EVENTS.DROUGHT.question;
+			},
+
 			getPrimaryBiome: function() {
 				var biomeScores = [];
 				var maxIndeces = [];
@@ -521,6 +554,10 @@ events = {
 				return strings.EVENTS.FAST_ACTING_TOXINS.info;
 			},
 
+			getQuestion: function() {
+				return strings.EVENTS.FAST_ACTING_TOXINS.question;
+			},
+
 			getPrimaryBiome: function() {
 				var biomeScores = [];
 				var maxIndeces = [];
@@ -558,6 +595,10 @@ events = {
 				return strings.EVENTS.CUMULATIVE_TOXINS.info;
 			},
 
+			getQuestion: function() {
+				return strings.EVENTS.CUMULATIVE_TOXINS.question;
+			},
+
 			getPrimaryBiome: function() {
 				var biomeScores = [];
 				var maxIndeces = [];
@@ -593,6 +634,10 @@ events = {
 
 			getInfo: function() {
 				return strings.EVENTS.GLOBAL_WARMING.info;
+			},
+
+			getQuestion: function() {
+				return strings.EVENTS.GLOBAL_WARMING.question;
 			},
 
 			getPrimaryBiome: function() {
@@ -655,6 +700,10 @@ events = {
 				return strings.EVENTS.GLOBAL_COOLING.info;
 			},
 
+			getQuestion: function() {
+				return strings.EVENTS.GLOBAL_COOLING.question;
+			},
+
 			getPrimaryBiome: function() {
 				var biomes = [];
 				var targetBiome = null;
@@ -713,6 +762,10 @@ events = {
 
 			getInfo: function() {
 				return strings.EVENTS.SUPER_PARASITE.info;
+			},
+
+			getQuestion: function() {
+				return strings.EVENTS.SUPER_PARASITE.question;
 			},
 
 			getPrimaryBiome: function() {

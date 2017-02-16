@@ -86,18 +86,18 @@ strings = {
 		// NEW_EGG_AVAILABLE: "When you\nuse an E.G.G.,\na new one will\nappear from\nstorage."
 	},
 	EVENTS: {
-		FAMINE: {title: "Famine", info: "Destroy all large birds and mammals."},
-		POLE_SHIFT: {title: "Pole Shift", info: "Destroy all large amphibians and reptiles."},
-		BLIGHT: {title: "Blight", info: "Destroy all large vegetation in 3\nneighboring biomes."},
-		INSECT_PLAGUE: {title: "Insect Plague", info: "Destroy all small vegetation in 3\nneighboring biomes."},
-		DISEASE: {title: "Disease", info: "Destroy all animals of one\nfamily in one biome."},
-		DROUGHT: {title: "Drought", info: "Destroy all herbivores in one biome."},
-		FAST_ACTING_TOXINS: {title: "Fast Acting Toxins", info: "Destroy all small amphibians and reptiles."},
-		CUMULATIVE_TOXINS: {title: "Cumulative Toxins", info: "Destroy all small birds and mammals."},
-		GLOBAL_WARMING: {title: "Global Warming", info: "One wetland becomes a desert,\ndestroying large plants,\ninsects, and amphibians."},
-		SUPER_PARASITE: {title: "Super Parasite", info: "Destroy all carnivores\nin one biome."},
-		GLOBAL_COOLING: {title: "Global Cooling", info: "One desert becomes a wetland,\ndestroying small plants,\nnematodes, and reptiles."},
-		HUMAN_SETTLEMENT: {title: "Human Settlement", info: "Humans build a colony,\ndestroying mid-sized plants."},
+		FAMINE: {title: "Famine", info: "Destroy all large birds and mammals.", question: "What happens during a famine\nif all populations consist\nof large organisms?"},
+		POLE_SHIFT: {title: "Pole Shift", info: "Destroy all large amphibians and reptiles.", question: "What happens during a pole\nshift if all populations\nconsist of large organisms?"},
+		BLIGHT: {title: "Blight", info: "Destroy all large vegetation in 3\nneighboring biomes.", question: "What happens to biomes that\nhave only large plants\nwhen blight appears?"},
+		INSECT_PLAGUE: {title: "Insect Plague", info: "Destroy all small vegetation in 3\nneighboring biomes.", question: "What happens to biomes that\nhave only small plants\nduring an insect plague?"},
+		DISEASE: {title: "Disease", info: "Destroy all animals of one\nfamily in one biome.", question: "If all populations in a\nbiome belong to one family,\nis disease more dangerous?"},
+		DROUGHT: {title: "Drought", info: "Destroy all herbivores in one biome.", question: "What kinds of ecosystems\ncan exist without herbivores?\nDid this biome have any?"},
+		FAST_ACTING_TOXINS: {title: "Fast Acting Toxins", info: "Destroy all small amphibians and reptiles.", question: "Which populations can resist\nfast-acting toxins? Did you\nhave any in this biome?"},
+		CUMULATIVE_TOXINS: {title: "Cumulative Toxins", info: "Destroy all small birds and mammals.", question: "Which populations can resist\ncumulative toxins? Did you\nhave any in this biome?"},
+		GLOBAL_WARMING: {title: "Global Warming", info: "One wetland becomes a desert,\ndestroying large plants,\ninsects, and amphibians.", question: "How might biodiversity help\na biome recover from\nglobal warming, if at all?"},
+		SUPER_PARASITE: {title: "Super Parasite", info: "Destroy all carnivores\nin one biome.", question: "What populations can occupy\na Carnivore niche and resist\nparasites?"},
+		GLOBAL_COOLING: {title: "Global Cooling", info: "One desert becomes a wetland,\ndestroying small plants,\nnematodes, and reptiles.", question: "How does biodiversity help\na biome recover from\nglobal cooling, if at all?"},
+		HUMAN_SETTLEMENT: {title: "Human Settlement", info: "Humans build a colony,\ndestroying mid-sized plants.", question: "Can biodiversity help ecosystems\nresist damage from human\nsettlement. If so, how?"},
 
 		BIOSPHERE_SAFE: "Biosphere safe!",
 		BIOME_DAMAGED: "Biome damaged!",
@@ -134,5 +134,6 @@ strings = {
 		TOGGLE_SOUND: "Toggle Sound",
 		CHOOSE_ONE: "Choose One",
 		RESTART_GAME: "Restart Game",
+		QUIT: "Quit",
 	}
 }

@@ -57,6 +57,7 @@ gs =  {
 		null, null, null, null, null
 	],
 	availableBiomes: [],
+	nPopulationsPerFamily: 0,
 	nicheStore: [
 		// Default niches
 		null,
@@ -78,6 +79,8 @@ gs =  {
 		null,
 		null,
 	],
+	beforePopulationCount: {aves: 0, reptilia: 0, amphibia: 0, mammalia: 0},
+	afterPopulationCount: {aves: 0, reptilia: 0, amphibia: 0, mammalia: 0},
 	availableNiches: [],
 	layers: {ocean: null, crust: null, oceanDetail: null, terrain: null, ice: null, shadows: null, producers: null, animals: null, links: null, grid: null},
 	baseLayers: {floor: null, walls: null, objects: null, ui: null},
@@ -107,7 +110,8 @@ gs =  {
 			 infoRevealed: null,
 			 dialogClose: null,
 			 score: null,
-			 phaseSwitch: null},
+			 phaseSwitch: null,
+			 reportOpen: null},
 
 	discardFn: [
 		this.canDiscardPlantae,
@@ -196,29 +200,30 @@ gs =  {
 		{id: 48, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
 		{id: 49, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Carnivore, Migrator', special: 'migrator'},
 		{id: 50, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Carnivore', special: ''},
+		{id: 51, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 2, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Carnivore', special: ''},
 
-		{id: 51, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger, Symbiote', special: 'symbiote'},
-		{id: 52, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger, Migrator', special: 'migrator'},
-		{id: 53, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
+		{id: 52, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger, Symbiote', special: 'symbiote'},
+		{id: 53, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger, Migrator', special: 'migrator'},
 		{id: 54, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
 		{id: 55, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
-		{id: 56, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Scavenger', special: ''},
+		{id: 56, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
 		{id: 57, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Scavenger', special: ''},
-		{id: 58, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Scavenger, Symbiote', special: 'symbiote'},
-		{id: 59, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
+		{id: 58, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Small, Scavenger', special: ''},
+		{id: 59, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Scavenger, Symbiote', special: 'symbiote'},
 		{id: 60, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
-		{id: 61, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger, Symbiote', special: 'symbiote'},
-		{id: 62, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger, Migrator', special: 'migrator'},
-		{id: 63, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger', special: ''},
-		{id: 64, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
-		{id: 65, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
-		{id: 66, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
-		{id: 67, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger, Migrator', special: 'migrator'},
+		{id: 61, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
+		{id: 62, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger, Symbiote', special: 'symbiote'},
+		{id: 63, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger, Migrator', special: 'migrator'},
+		{id: 64, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger', special: ''},
+		{id: 65, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
+		{id: 66, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Scavenger', special: ''},
+		{id: 67, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Large, Scavenger', special: ''},
+		{id: 68, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 3, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Small, Scavenger, Migrator', special: 'migrator'},
 
-		{id: 68, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
-		{id: 69, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
-		{id: 70, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Omnivore, Adaptor', special: 'adaptor'},
-		{id: 71, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
+		{id: 69, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Amphibia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
+		{id: 70, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Reptilia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
+		{id: 71, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Aves', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, 	keywords: 'Omnivore, Adaptor', special: 'adaptor'},
+		{id: 72, coCard: null, tileId: -1, shadowId: -1, bRemovePending: false, bWantsRemoved: false, title: 'Mammalia', niche: null, value: 4, linkedCards: {above: null, right: null, below: null, left: null}, keywords: 'Omnivore, Adaptor', special: 'adaptor'},
 	],
 
 	cardSpecialFunctionTable: {
@@ -326,6 +331,35 @@ gs.startGame = function(data) {
 	generateStartingTerrain();
 
 	setState(sm.startPhaseOne);
+};
+
+gs.getBeforePopulations = function() {
+	return gs.beforePopulationCount;
+};
+
+gs.getAfterPopulations = function() {
+	return gs.afterPopulationCount;
+};
+
+gs.recordBeforePopulations = function() {
+	gs.recordPopulations(gs.beforePopulationCount);
+};
+
+gs.recordAfterPopulations = function() {
+	gs.recordPopulations(gs.afterPopulationCount);
+};
+
+gs.recordPopulations = function(record) {
+	var key = null;
+	var i = 0;
+
+	for (key in record) {
+		record[key] = 0;
+	}
+
+	for (i=0; i<this.biomes.length; ++i) {
+		this.biomes[i].recordPopulations(record);
+	}
 };
 
 gs.instructions = function(data) {
@@ -2014,6 +2048,7 @@ gs.init = function() {
 
 	gs.availableBiomes.length = 0;
 	gs.availableNiches.length = 0;
+	gs.lastPopulationCount = 0;
 
 	for (i=0; i<gs.biomeStore.length; ++i) {
 		gs.availableBiomes.push(gs.biomeStore[i]);
@@ -2029,6 +2064,49 @@ gs.init = function() {
 
 	gs.initDrawDeck();
 	gs.initDiscardDeck();
+};
+
+gs.computePopulationsPerFamily = function() {
+	var i = 0;
+	var nAves = 0;
+	var nReptilia = 0;
+	var nAmphibia = 0;
+	var nMammalia = 0;
+
+	for (i=0; i<gs.phaseTwoCards.length; ++i) {
+		switch (gs.getCardTitle(gs.phaseTwoCards[i]).toLowerCase()) {
+			case "aves":
+				nAves += 1;
+			break;
+
+			case "reptilia":
+				nReptilia += 1;
+			break;
+
+			case "amphibia":
+				nAmphibia += 1;
+			break;
+
+			case "mammalia":
+				nMammalia += 1;
+			break;
+
+			default:
+				assert(false, "computePopulationPerFamily: invalid family!");
+			break;
+		}
+	}
+
+	assert(nAves === nReptilia &&
+		   nReptilia === nAmphibia &&
+		   nAmphibia === nMammalia,
+		   "computePopulationsPerFamily: family have unequal membership!");
+
+	gs.nPopulationsPerFamily = nAves;
+};
+
+gs.getPopulationsPerFamily = function() {
+	return gs.nPopulationsPerFamily;
 };
 
 gs.cardDestroyed = function(card) {
@@ -2179,12 +2257,34 @@ gs.movePlayableCardToTop = function() {
 	}
 };
 
-gs.postDeckProgress = function() {
+gs.postTutorialProgress = function() {
+	var maxPopulationCount = gs.getMaxPopulationCount();
+
 	var progress = {
-		currentProgress: gs.discardDeck.length,
-		maximumProgress: gs.phaseOneCards.length + gs.phaseTwoCards.length,
-		score: gs.getCurrentPopulationCount()
-	}
+	  currentProgress: 1,
+	  maximumProgress: maxPopulationCount,
+	  score: gs.computeScore()
+	};
+
+	gs.lastPopulationCount = 1;
+
+	// console.log(progress);
+
+	window.LOLSDK.submitProgress(progress);	
+};
+
+gs.postProgressComplete = function() {
+	var maxPopulationCount = gs.getMaxPopulationCount();
+
+	var progress = {
+	  currentProgress: maxPopulationCount,
+	  maximumProgress: maxPopulationCount,
+	  score: gs.computeScore()
+	};
+
+	// console.log(progress);
+
+	gs.lastPopulationCount = maxPopulationCount;
 
 	window.LOLSDK.submitProgress(progress);	
 };
@@ -2196,8 +2296,10 @@ gs.postPopulationProgress = function() {
 	var progress = {
 	  currentProgress: Math.max(gs.lastPopulationCount, currentPopulationCount),
 	  maximumProgress: maxPopulationCount,
-	  score: currentPopulationCount
+	  score: gs.computeScore()
 	};
+
+	// console.log(progress);
 
 	gs.lastPopulationCount = Math.max(gs.lastPopulationCount, currentPopulationCount);
 
@@ -2217,13 +2319,19 @@ gs.getCurrentPopulationCount = function() {
 
 gs.getMaxPopulationCount = function() {
 	var i = 0;
-	var maxPopCount = 0;
+	var size = 0;
 
 	for (i=0; i<this.biomes.length; ++i) {
-		maxPopCount += this.biomes[i].getMaxPopulationCount();
+		size += this.biomes[i].getNormalSize();
 	}
 
-	return maxPopCount;
+	for (i=0; i<this.phaseOneCards.length; ++i) {
+		if (gs.cardTitleIs(this.phaseOneCards[i], "insecta") || gs.cardTitleIs(this.phaseOneCards[i], "nematoda")) {
+			size += 1;
+		}
+	}
+
+	return size * gs.WILD_CARD_VALUE;
 };
 
 gs.initDiscardDeck = function() {

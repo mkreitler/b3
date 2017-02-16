@@ -75,7 +75,7 @@ var sm = {
 			uim.setupBanner(0, uim.UI_BANNER_INDEX, strings.UI.START_GAME, function() {setState("outroToStartGame"); });
 			uim.setupBanner(1, uim.UI_BANNER_INDEX, strings.UI.TUTORIAL, gs.instructions.bind(gs));
 			uim.setupBanner(2, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, gs.toggleSound.bind(gs));
-			uim.setupBanner(3, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, null);
+			uim.setupBanner(3, uim.UI_BANNER_INDEX, strings.UI.QUIT, function() {window.LOLSDK.completeGame();});
 			uim.setupBanner(4, uim.UI_BANNER_INDEX, strings.UI.TOGGLE_SOUND, null);
 
 			gs.resetWorld();
@@ -83,6 +83,7 @@ var sm = {
 
 			listenFor('UIoperationComplete', this);
 			uim.disableBannerInput();
+			uim.clearFocusBanner();
 			uim.startOperation('moveBannersIn', this);
 		},
 
@@ -291,17 +292,20 @@ var sm = {
 			uim.setupBanner(0, uim.UI_BANNER_INDEX, strings.UI.RESTART_GAME, function() {
 				setState("hideRestartMenu");
 			});
-			uim.setupBanner(1, uim.UI_BANNER_INDEX, "", null);
+			uim.setupBanner(1, uim.UI_BANNER_INDEX, strings.UI.QUIT, function() {window.LOLSDK.completeGame();});
 			uim.setupBanner(2, uim.UI_BANNER_INDEX, "", null);
 			uim.setupBanner(3, uim.UI_BANNER_INDEX, "", null);
 			uim.setupBanner(4, uim.UI_BANNER_INDEX, "", null);
 
+			uim.clearFocusBanner();
 			uim.clearInfoText();
 			gs.hideCardHints();
 
 			listenFor('UIoperationComplete', this);
 			uim.disableBannerInput();
 			uim.startOperation('moveBannersIn');
+
+			gs.postProgressComplete();
 		},
 
 		update: function() {
@@ -348,8 +352,11 @@ var sm = {
 		enter: function(data) {
 			this.eventBiome = gs.getEventBiome();
 			gs.hideCardHints();
+			gs.recordBeforePopulations();
 
 			events.setBiome(this.eventBiome);
+			uim.setCurrentEventQuestion(events.getCurrentEventQuestion());
+
 			uim.showEvent(this.eventBiome, events.getCurrentEventTitle(), events.getCurrentEventInfo());
 			listenFor('eventExited', this);
 		},
@@ -421,9 +428,14 @@ var sm = {
 
 			if (this.bExit) {
 				if (events.getNumBiomesAffected() === 0) {
-					uim.showInfoDialog(strings.EVENTS.BIOSPHERE_SAFE,
-									   strings.EVENTS.BIOME_DAMAGE_REPORT_NONE,
-									   'eventEndNoDamage');
+					if (sm.bLastEvent) {
+						setState(sm.endFinalEvent);
+					}
+					else {
+						uim.showInfoDialog(strings.EVENTS.BIOSPHERE_SAFE,
+										   strings.EVENTS.BIOME_DAMAGE_REPORT_NONE,
+										   'eventEndNoDamage');
+					}
 				}
 				else if (events.getNumBiomesAffected() === 1) {
 					if (nCardsDestroyed === 1) {
@@ -763,12 +775,58 @@ var sm = {
 		},
 
 		update: function() {
-			setState(sm.showScore);
+			setState(sm.showFinalEventReport);
 		},
 
 		exit: function() {
 			gs.restoreOriginalDrawDeck();
 		},
+	},
+
+	showFinalEventReport: {
+		enter: function(data) {
+			gs.recordAfterPopulations();
+			listenFor("eventReportClosed", this);
+			uim.showEventReport();
+		},
+
+		update: function() {
+		},
+
+		exit: function() {
+		},
+
+		render: function() {
+			uim.renderEventReport(gs.getBeforePopulations(), gs.getAfterPopulations());
+		},
+
+		eventReportClosed: function(data) {
+			unlistenFor("eventReportClosed", this);
+			setState(sm.showScore);
+		}
+	},
+
+	showEventReport: {
+		enter: function(data) {
+			gs.recordAfterPopulations();
+			listenFor("eventReportClosed", this);
+			uim.showEventReport();
+		},
+
+		update: function() {
+		},
+
+		exit: function() {
+		},
+
+		render: function() {
+			uim.renderEventReport(gs.getBeforePopulations(), gs.getAfterPopulations());
+		},
+
+		eventReportClosed: function(data) {
+			unlistenFor("eventReportClosed", this);
+			sm.setTransitionState("startPhaseTwo", "phaseTwo");
+		}
 	},
 
 	eventEnd: {
@@ -791,11 +849,7 @@ var sm = {
 			unlistenFor('UIoperationComplete', this);
 
 			gs.restoreOriginalDrawDeck();
-
-			// TODO: start phase two without reshuffling the draw deck!
-			sm.setTransitionState("startPhaseTwo", "phaseTwo");
-
-			// TODO: if this is the final event, go to game over.
+			setState(sm.showEventReport);
 		}
 	},
 
@@ -940,9 +994,6 @@ var sm = {
 
 		exit: function() {
 			unlistenFor('UIoperationComplete', this);
-
-			gs.postPopulationProgress();
-			gs.postDeckProgress();
 		},
 
 		onPushed: function() {
@@ -969,7 +1020,7 @@ var sm = {
 		},
 
 		exit: function() {
-
+			gs.postPopulationProgress();
 		},
 
 		onBannerPressedCallback: function(button) {
@@ -1169,7 +1220,7 @@ var sm = {
 		},
 
 		exit: function() {
-
+			gs.postPopulationProgress();
 		},
 
 		onBannerPressedCallback: function(button) {

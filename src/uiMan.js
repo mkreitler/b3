@@ -44,9 +44,12 @@
  	NOOP: -99,
  	INFO_TEXT_MARGIN: 12,
 
+ 	REPORT_COLORS: [0x0044AA, 0x445016, 0xAA8800, 0x4D4D4D],
+
 	group: null,
 	buttonGroup: null,
 	infoGroup: null,
+	reportGroup: null,
 	frameRight: null,
 	frameTop: null,
 	groupBottomFrame: null,
@@ -79,6 +82,15 @@
 	infoDlgText: null,
 	infoDlgPrompt: null,
 
+	// Event report
+	eventReport: null,
+	beforeResults: {aves: 0, reptilia: 0, amphibia: 0, mammalia: 0},
+	afterResults: {aves: 0, reptilia: 0, amphibia: 0, mammalia: 0},
+	textBefore: {aves: null, reptilia: null, amphibia: null, mammalia: null},
+	textAfter: {aves: null, reptilia: null, amphibia: null, mammalia: null},
+	eventGfx: null,
+	questionText: null,
+
  	focusWidget: null,
 
  	raiseGroups: function() {
@@ -92,6 +104,146 @@
  		game.world.bringToTop(this.cardHintGroup);
  		game.world.bringToTop(this.infoGroup);
  		game.world.bringToTop(this.titleGroup);
+
+ 		// TODO: move to beneath titleGroup?
+ 		game.world.bringToTop(this.reportGroup);
+ 	},
+
+ 	closeEventReport: function() {
+		this.hideEventReport();
+		gs.playSound(gs.sounds.dialogClose);
+		broadcast("eventReportClosed");
+ 	},
+
+ 	createEventReport: function() {
+ 		var key = null;
+ 		var i = 0;
+
+ 		gs.computePopulationsPerFamily();
+
+ 		this.reportGroup = game.add.group();
+ 		this.eventReport = this.reportGroup.create(game.width / 2, game.height / 2, 'eventResults');
+ 		this.eventReport.anchor.setTo(0.5, 0.5);
+ 		this.eventGfx = game.add.graphics(500, 310); // x = 25, y = 127
+ 		this.eventGfx.pivot.x = 237;
+ 		this.eventGfx.pivot.y = 162;
+ 		this.reportGroup.addChild(this.eventGfx);
+
+ 		this.eventReport.inputEnabled = true;
+
+ 		this.eventReport.events.onInputDown.add(this.closeEventReport, this);
+
+ 		uim.textBefore.aves = game.add.bitmapText(0, 20, 'bogboo', '', uim.INFO_TEXT_SIZE);
+ 		uim.textBefore.reptilia = game.add.bitmapText(0, 20, 'bogboo', '', uim.INFO_TEXT_SIZE);
+ 		uim.textBefore.amphibia = game.add.bitmapText(0, 20, 'bogboo', '', uim.INFO_TEXT_SIZE);
+ 		uim.textBefore.mammalia = game.add.bitmapText(0, 20, 'bogboo', '', uim.INFO_TEXT_SIZE);
+
+ 		this.eventGfx.addChild(uim.textBefore.aves);
+ 		this.eventGfx.addChild(uim.textBefore.reptilia);
+ 		this.eventGfx.addChild(uim.textBefore.amphibia);
+ 		this.eventGfx.addChild(uim.textBefore.mammalia);
+
+ 		i = 0;
+ 		for (key in uim.textBefore) {
+ 			uim.textBefore[key].anchor.setTo(0.5, 1.0);
+ 			uim.textBefore[key].x = 32 + i * 60;
+ 			i += 1;
+ 		}
+
+ 		uim.textAfter.aves = game.add.bitmapText(0, 20, 'bogboo', '', uim.INFO_TEXT_SIZE);
+ 		uim.textAfter.reptilia = game.add.bitmapText(0, 20, 'bogboo', '', uim.INFO_TEXT_SIZE);
+ 		uim.textAfter.amphibia = game.add.bitmapText(0, 20, 'bogboo', '', uim.INFO_TEXT_SIZE);
+ 		uim.textAfter.mammalia = game.add.bitmapText(0, 20, 'bogboo', '', uim.INFO_TEXT_SIZE);
+
+ 		this.eventGfx.addChild(uim.textAfter.aves);
+ 		this.eventGfx.addChild(uim.textAfter.reptilia);
+ 		this.eventGfx.addChild(uim.textAfter.amphibia);
+ 		this.eventGfx.addChild(uim.textAfter.mammalia);
+
+ 		i = 0;
+ 		for (key in uim.textAfter) {
+ 			uim.textAfter[key].anchor.setTo(0.5, 1.0);
+ 			uim.textAfter[key].x = 290 + i * 60;
+ 			i += 1;
+ 		}
+
+ 		uim.questionText = game.add.bitmapText(0, 0, 'bogboo', 'A question goes here to prompt\nplayers to think about how\nbest to optimize play.', uim.HINT_TEXT_SIZE);
+ 		this.eventGfx.addChild(uim.questionText);
+ 		this.questionText.x = 20;
+ 		this.questionText.y = 430;
+
+ 		this.hideEventReport();
+ 	},
+
+ 	setCurrentEventQuestion: function(question) {
+ 		this.questionText.text = question;
+ 	},
+
+ 	showEventReport: function() {
+ 		uim.setLeftHint('');
+ 		this.reportGroup.visible = true;
+ 		this.eventReport.inputEnabled = true;
+ 		gs.playSound(gs.sounds.reportOpen);
+ 	},
+
+ 	hideEventReport: function() {
+ 		this.reportGroup.visible = false;
+ 		this.eventReport.inputEnabled = false;
+ 	},
+
+ 	drawReportBarGraph: function(color, offset, textObj, population, maxPopulation) {
+ 		var dy = Math.round(307 * population / maxPopulation);
+
+ 		this.eventGfx.beginFill(color);	// AVES
+ 		this.eventGfx.drawRect(offset, 1 + (307 - dy), 58, dy);
+ 		this.eventGfx.endFill();
+
+ 		textObj.y = 307 - dy + uim.INFO_TEXT_SIZE;
+ 		textObj.y = Math.min(textObj.y, 307);
+ 		textObj.text = "" + population;
+ 	},
+
+ 	keyIndex: 0,
+ 	keyTimer: 0,
+ 	DEBUGrenderEventReport: function() {
+ 		var keys = Object.keys(strings.EVENTS);
+
+ 		this.keyTimer += game.time.physicsElapsedMS;
+
+ 		if (this.keyTimer > 2000) {
+ 			this.keyTimer -= 2000;
+ 			this.keyIndex += 1;
+ 			this.keyIndex = this.keyIndex % keys.length;
+ 		}
+
+ 		if (strings.EVENTS[keys[this.keyIndex]].hasOwnProperty("question")) {
+ 			this.setCurrentEventQuestion(strings.EVENTS[keys[this.keyIndex]].question);
+ 		}
+ 		else {
+ 			this.keyTimer += 2000;
+ 		}
+ 	},
+
+ 	renderEventReport: function(beforePopulations, afterPopulations) {
+ 		var familySize = gs.getPopulationsPerFamily();
+ 		var i = 0;
+ 		var key = null;
+
+ 		this.eventGfx.clear();
+
+ 		i = 0;
+ 		for (key in beforePopulations) {
+ 			assert(uim.textBefore.hasOwnProperty(key), "renderEventReport: invalid population key (before)!");
+	 		this.drawReportBarGraph(uim.REPORT_COLORS[i], 2 + 60 * i, uim.textBefore[key], beforePopulations[key], familySize);
+	 		++i;
+ 		}
+
+ 		i = 0;
+ 		for (key in afterPopulations) {
+ 			assert(uim.textAfter.hasOwnProperty(key), "renderEventReport: invalid population key (after)!");
+	 		this.drawReportBarGraph(uim.REPORT_COLORS[i], 260 + 60 * i, uim.textAfter[key], afterPopulations[key], familySize);
+	 		++i;
+ 		}
  	},
 
  	createHints: function() {
@@ -256,6 +408,8 @@
  			pushState(sm.showInfoDialog, {title: title, text: text});
  		}
 
+ 		uim.setLeftHint('');
+
  		gs.playSound(gs.sounds.info);
  	},
 
@@ -404,6 +558,8 @@
 
  		// gs.hideCardHints();
 
+ 		uim.setLeftHint('');
+
  		gs.playSound(gs.sounds.event);
 
  		this.eventMarker.y = -this.eventShield.height;
@@ -479,7 +635,7 @@
  	},
 
  	inputBlocked: function() {
- 		return uim.bInputBlocked;
+ 		return uim.bInputBlocked || uim.reportGroup.visible;
  	},
 
  	worldToUiX: function(x) {

@@ -288,7 +288,7 @@ bd.niche.prototype.getCurrentPopulationCount = function() {
 	var i = 0;
 	var count = 0;
 
-	for (i=0; i<this.cards; ++i) {
+	for (i=0; i<this.cards.length; ++i) {
 		if (this.cards[i]) {
 			++count;
 		}
@@ -402,6 +402,26 @@ bd.niche.prototype.getId = function() {
 	}
 
 	return id;
+};
+
+bd.niche.prototype.recordPopulations = function(record) {
+	var i = 0;
+	var title = null;
+
+	for (i=0; i<this.cards.length; ++i) {
+		if (this.cards[i]) {
+			title = gs.getCardTitle(this.cards[i]);
+
+			if (title) {
+				title = title.toLowerCase();
+
+				if (record.hasOwnProperty(title)) {
+					record[title] += 1;
+				}
+			}
+		}
+	}
+
 };
 
 bd.niche.prototype.getTopRow = function() {
@@ -534,7 +554,7 @@ bd.niche.prototype.removeCard = function(card, bDestroyed) {
 
 	gs.eraseCard(card);
 	gs.cardResetSuitAndValue(card);
-	
+
 	rank = this.getRankForCard(card);
 	this.cards[rank] = null;
 

@@ -175,6 +175,14 @@ bd.biome.prototype.eraseNiche = function(tileRef) {
 	}
 };
 
+bd.biome.prototype.recordPopulations = function(record) {
+	var i = 0;
+
+	for (i=0; i<this.niches.length; ++i) {
+		this.niches[i].recordPopulations(record);
+	}
+};
+
 bd.biome.prototype.redrawNiche = function(tileRef) {
 	var i = 0;
 
@@ -212,6 +220,10 @@ bd.biome.prototype.reset = function(layer) {
 	}
 
 	this.erase(layer);
+};
+
+bd.biome.prototype.getNormalSize = function() {
+	return this.sizeByLatitude[this.latitude];
 };
 
 bd.biome.prototype.getStartColumn = function() {
@@ -442,7 +454,7 @@ bd.biome.prototype.build = function(layer, tileSet, type, sprBlocked) {
 
 	x = startOffset * TILE_SIZE;
 	y = row * TILE_SIZE;
-	this.sprNoSelect = uim.getGroup().create(x, y, 'noSelect' + this.noSelectByLatitude[this.latitude]);
+	this.sprNoSelect = uim.getGroup().create(x, y, 'noSelectLarge');
 	this.sprNoSelect.kill();
 
 	this.draw(layer);

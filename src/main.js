@@ -24,7 +24,7 @@ var bWantsStatePush = false;
 var bWantsStatePop = false;
 var switchboard = {};
 
-var game = new Phaser.Game(MAX_WINDOW_X, MAX_WINDOW_Y, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(MAX_WINDOW_X, MAX_WINDOW_Y, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 
 function listenFor(msg, listener) {
 	var listeners = switchboard[msg];
@@ -102,13 +102,11 @@ function preload() {
 	// Tilemaps
 	game.load.image('world_ff', './res/tilesets/oryx_16bit_fantasy_world_trans.png', false);
 	game.load.image('world_sf', './res/tilesets/oryx_16bit_scifi_world_trans.png', false);
-	game.load.tilemap('globe', './art/world.json', null, Phaser.Tilemap.TILED_JSON);
-	game.load.tilemap('base', './art/base.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('globe', './res/tilesets/world.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('base', './res/tilesets/base.json', null, Phaser.Tilemap.TILED_JSON);
 
 	// Images
-	game.load.image('noSelectSmall', './res/noSelectSmall.png', false);
-	game.load.image('noSelectMedium', './res/noSelectMedium.png', false);
-	game.load.image('noSelectLarge', './res/noSelectLarge.png', false);
+	game.load.image('noSelectLarge', './res/ui/noSelectLarge.png', false);
 	game.load.image('eventMarker', './res/ui/eventMarker.png', false);
 	game.load.image('eventInfo', './res/ui/eventInfo.png', false);
 	game.load.image('infoShield', './res/ui/infoShield.png', false);
@@ -118,6 +116,7 @@ function preload() {
 	game.load.image('adapted', './res/ui/adapted.png', false);
 	game.load.image('migrated', './res/ui/migrated.png', false);
 	game.load.image('displaced', './res/ui/displaced.png', false);
+	game.load.image('eventResults', './res/ui/results.png', false);
 
 	// Help System Images
 	game.load.image('helperCenter', './res/ui/helperCenter.png', false);
@@ -140,21 +139,21 @@ function preload() {
 
 	// Fonts
 	game.load.bitmapFont('bogboo', './res/fonts/bogboo.png', './res/fonts/bogboo.xml');	
-    // game.load.bitmapFont('carrier_command', './res/carrier_command.png', './res/carrier_command.xml');
 
     // Audio
-    game.load.audio('uiButton', ['./art/uiSoundsEGG/exported/button5.ogg', './art/uiSoundsEGG/exported/button5.mp3']);
-    game.load.audio('uiButtonHi', ['./art/uiSoundsEGG/exported/button4.ogg', './art/uiSoundsEGG/exported/button4.mp3']);
-    game.load.audio('uiButtonLo', ['./art/uiSoundsEGG/exported/displace2.ogg', './art/uiSoundsEGG/exported/displace2.mp3']);
-    game.load.audio('displace', ['./art/uiSoundsEGG/exported/destroy1.ogg', './art/uiSoundsEGG/exported/destroy1.mp3']);
-    game.load.audio('destroy', ['./art/uiSoundsEGG/exported/displace1.ogg', './art/uiSoundsEGG/exported/displace1.mp3']);
-    game.load.audio('event', ['./art/uiSoundsEGG/exported/event1.ogg', './art/uiSoundsEGG/exported/event1.mp3']);
-    game.load.audio('eventReveal', ['./art/uiSoundsEGG/exported/event3.ogg', './art/uiSoundsEGG/exported/event3.mp3']);
-    game.load.audio('info', ['./art/uiSoundsEGG/exported/info1.ogg', './art/uiSoundsEGG/exported/info1.mp3']);
-    game.load.audio('infoReveal', ['./art/uiSoundsEGG/exported/event2.ogg', './art/uiSoundsEGG/exported/event2.mp3']);
-    game.load.audio('dialogClose', ['./art/uiSoundsEGG/exported/dialogClose.ogg', './art/uiSoundsEGG/exported/dialogClose.mp3']);
-    game.load.audio('score', ['./art/uiSoundsEGG/exported/score1.ogg', './art/uiSoundsEGG/exported/score1.mp3']);
-    game.load.audio('phaseSwitch', ['./art/uiSoundsEGG/exported/phaseSwitch.ogg', './art/uiSoundsEGG/exported/phaseSwitch.mp3']);
+    game.load.audio('uiButton', ['./res/uiSoundsEGG/exported/button5.ogg', './res/uiSoundsEGG/exported/button5.mp3']);
+    game.load.audio('uiButtonHi', ['./res/uiSoundsEGG/exported/button4.ogg', './res/uiSoundsEGG/exported/button4.mp3']);
+    game.load.audio('uiButtonLo', ['./res/uiSoundsEGG/exported/displace2.ogg', './res/uiSoundsEGG/exported/displace2.mp3']);
+    game.load.audio('displace', ['./res/uiSoundsEGG/exported/destroy1.ogg', './res/uiSoundsEGG/exported/destroy1.mp3']);
+    game.load.audio('destroy', ['./res/uiSoundsEGG/exported/displace1.ogg', './res/uiSoundsEGG/exported/displace1.mp3']);
+    game.load.audio('event', ['./res/uiSoundsEGG/exported/event1.ogg', './res/uiSoundsEGG/exported/event1.mp3']);
+    game.load.audio('eventReveal', ['./res/uiSoundsEGG/exported/event3.ogg', './res/uiSoundsEGG/exported/event3.mp3']);
+    game.load.audio('info', ['./res/uiSoundsEGG/exported/info1.ogg', './res/uiSoundsEGG/exported/info1.mp3']);
+    game.load.audio('infoReveal', ['./res/uiSoundsEGG/exported/event2.ogg', './res/uiSoundsEGG/exported/event2.mp3']);
+    game.load.audio('dialogClose', ['./res/uiSoundsEGG/exported/dialogClose.ogg', './res/uiSoundsEGG/exported/dialogClose.mp3']);
+    game.load.audio('score', ['./res/uiSoundsEGG/exported/score1.ogg', './res/uiSoundsEGG/exported/score1.mp3']);
+    game.load.audio('phaseSwitch', ['./res/uiSoundsEGG/exported/phaseSwitch.ogg', './res/uiSoundsEGG/exported/phaseSwitch.mp3']);
+    game.load.audio('reportOpen', ['./res/uiSoundsEGG/exported/event5.ogg', './res/uiSoundsEGG/exported/event5.mp3']);
 
     // Sounds
 }
@@ -182,13 +181,10 @@ function create() {
 	gs.sounds.dialogClose = game.add.audio('dialogClose');
 	gs.sounds.score = game.add.audio('score');
 	gs.sounds.phaseSwitch = game.add.audio('phaseSwitch');
+	gs.sounds.reportOpen = game.add.audio('reportOpen');
 
-//	gs.layers.stars 		= gs.biomeMap.createLayer('StarField');
-//	gs.layers.ocean 		= gs.biomeMap.createLayer('Ocean01');
 	gs.layers.crust 		= gs.biomeMap.createLayer('Crust');
-//	gs.layers.oceanDetail 	= gs.biomeMap.createLayer('OceanDetail');
 	gs.layers.terrain 		= gs.biomeMap.createLayer('Terrain');
-//	gs.layers.ice 			= gs.biomeMap.createLayer('Ice');
 	gs.layers.shadows		= gs.biomeMap.createLayer('Shadow');
 	gs.layers.producers		= gs.biomeMap.createLayer('Producers');
 	gs.layers.animals		= gs.biomeMap.createLayer('Animals');
@@ -248,6 +244,7 @@ function startGame() {
 		gs.init();
 		events.init();
 		bPhaseOneRestore = gs.restoreGameState();
+		uim.hideTitleText();
 		
 		// TEMP: force game into PhaseOne state.
 		if (bPhaseOneRestore && gs.playerHasLegalMove(true)) {
@@ -378,6 +375,12 @@ function update() {
 	}
 }
 
+function render() {
+	if (currentState && currentState.hasOwnProperty("render")) {
+		currentState.render();
+	}
+}
+
 function addUiElements() {
 	var x = 0;
 	var y = 0;
@@ -410,6 +413,7 @@ function addUiElements() {
 	uim.createInfoArea();
 	uim.createCursors();
 	uim.createHints();
+	uim.createEventReport();
 
 	uim.enableInput();
 }
@@ -461,16 +465,7 @@ function generateStartingTerrain() {
 			biome.addNiche(biome);
 		}
 
-		if (i === 0 || i === N_BIOMES - 1) {
-			blocker = uim.addBlocker(0, 0, 'noSelectSmall');
-		}
-		else if (i === 1 || i === N_BIOMES - 2) {
-			blocker = uim.addBlocker(0, 0, 'noSelectMedium');
-		}
-		else {
-			blocker = uim.addBlocker(0, 0, 'noSelectLarge');
-		}
-
+		blocker = uim.addBlocker(0, 0, 'noSelectLarge');
 		biome.build(gs.layers.terrain, 'ff_world', biome.getType(), blocker);
 
 		gs.biomes.push(biome);
