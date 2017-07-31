@@ -329,6 +329,7 @@ gs.startGame = function(data) {
 	gs.init();
 	events.init();
 	generateStartingTerrain();
+	broadcast("showCloseButton");
 
 	setState(sm.startPhaseOne);
 };
@@ -368,9 +369,11 @@ gs.instructions = function(data) {
 	gs.init();
 	events.init();
 	uim.hideTitleText();
+	gs.hideCardHints();
 
 	this.restoreGameState(0);
 	setState(sm.startTutorial);
+	broadcast("showCloseButton");
 };
 
 gs.getNextAvailableBiome = function() {
@@ -391,6 +394,23 @@ gs.getNextAvailableNiche = function() {
 	niche.init();
 
 	return niche;
+};
+
+gs.abortGame = function(bResetOnly) {
+	uim.clearAllCursors();
+	gs.hideCardHints();
+	gs.unblockAllBiomes();
+	uim.createEvents(true);
+	uim.createInfoDialog(true);
+	uim.hideEventReport();
+	broadcast("hideCloseButton");
+	uim.helper.resetNode();
+	uim.unblockInput();
+
+	if (!bResetOnly) {
+		unlistenAll(sm);
+ 		setState("quitMode");
+ 	}
 };
 
 gs.computeScore = function() {

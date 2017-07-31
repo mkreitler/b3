@@ -35,36 +35,38 @@ var sm = {
 		var worldPressInfo = null;
 		var failMsg = null;
 
-		if (uim.hasFocusCard()) {
-		 	worldPressInfo = gs.getWorldPressInfo(game.input.activePointer.x, game.input.activePointer.y);
+		if (!uim.inputBlocked()) {
+			if (uim.hasFocusCard()) {
+			 	worldPressInfo = gs.getWorldPressInfo(game.input.activePointer.x, game.input.activePointer.y);
 
-		 	if (worldPressInfo && worldPressInfo.biome) {
-		 		if (worldPressInfo.biome.isBlocked()) {
-				 	uim.clearInfoText();
-				 	uim.addInfoText(strings.INFO.ILLEGAL_PLACEMENT);
-				 	sm.setTransitionState('wiggleFocusBanner', transReturnState);
-		 		}
-		 		else {
-		 			failMsg = gs.populateNiche(uim.getFocusCard(), worldPressInfo.niche);
-		 			if (failMsg) {
+			 	if (worldPressInfo && worldPressInfo.biome) {
+			 		if (worldPressInfo.biome.isBlocked()) {
 					 	uim.clearInfoText();
-					 	uim.addInfoText(failMsg);
-		 			}
-		 			else {
-		 				uim.clearInfoText();
-		 				setState(discardState);
-		 			}
-		 		}
+					 	uim.addInfoText(strings.INFO.ILLEGAL_PLACEMENT);
+					 	sm.setTransitionState('wiggleFocusBanner', transReturnState);
+			 		}
+			 		else {
+			 			failMsg = gs.populateNiche(uim.getFocusCard(), worldPressInfo.niche);
+			 			if (failMsg) {
+						 	uim.clearInfoText();
+						 	uim.addInfoText(failMsg);
+			 			}
+			 			else {
+			 				uim.clearInfoText();
+			 				setState(discardState);
+			 			}
+			 		}
 
-		 		uim.clearAllCursors();
-		 	}
-		 }
-		 else {
-		 	uim.clearInfoText();
-		 	uim.addInfoText(strings.INFO.SELECT_ORGANISM);
+			 		uim.clearAllCursors();
+			 	}
+			 }
+			 else {
+			 	uim.clearInfoText();
+			 	uim.addInfoText(strings.INFO.SELECT_ORGANISM);
 
-		 	sm.setTransitionState('wiggleBanners', transReturnState);
-		 }
+			 	sm.setTransitionState('wiggleBanners', transReturnState);
+			 }
+		}
 	},
 
 	///////////////////////////////////////////////////////////////////////////
@@ -85,6 +87,7 @@ var sm = {
 			uim.disableBannerInput();
 			uim.clearFocusBanner();
 			uim.startOperation('moveBannersIn', this);
+			broadcast("hideCloseButton");
 		},
 
 		update: function() {
@@ -225,10 +228,6 @@ var sm = {
 						uim.addInfoText("Ecosystem biodiversity: " + this.rating);
 					}
 					else {
-						if (this.oldNiche) {
-							gs.redrawEcosystem(this.oldNiche);
-						}
-
 						// TODO: Switch to niche-order analysis.
 						this.bEcosystems = false;
 						this.tileInfo.iBiome = 0;
@@ -239,6 +238,11 @@ var sm = {
 					}
 				}
 				else {
+					if (this.oldNiche) {
+						gs.redrawEcosystem(this.oldNiche);
+						this.oldNiche = null;
+					}
+
 					if (this.oldTileInfo.iBiome >= 0 && this.oldTileInfo.iRank >= 0) {
 						gs.redrawNiche(this.oldTileInfo);
 					}
@@ -249,10 +253,6 @@ var sm = {
 					gs.eraseNiche(this.tileInfo);
 
 					if (this.tileInfo.iBiome < 0) {
-						if (this.oldTileInfo.iBiome >= 0 && this.oldTileInfo.iRank >= 0) {
-							gs.redrawNiche(this.oldTileInfo);
-						}
-
 						this.nicheRating = this.rating;
 						this.worldRating = gs.computeWorldBiodiversity();
 
@@ -283,7 +283,9 @@ var sm = {
 		},
 
 		exit: function() {
-
+			if (this.oldTileInfo.iBiome >= 0 && this.oldTileInfo.iRank >= 0) {
+				gs.redrawNiche(this.oldTileInfo);
+			}
 		},
 	},
 
@@ -339,6 +341,7 @@ var sm = {
 
 		UIoperationComplete: function(data) {
 			unlistenFor("UIoperationComplete", this);
+			gs.abortGame(true);
 			setState(sm.startGame);
 		}
 	},
@@ -346,6 +349,28 @@ var sm = {
 	///////////////////////////////////////////////////////////////////////////
 	// Event Resolution
 	///////////////////////////////////////////////////////////////////////////
+	quitMode: {
+		enter: function(data) {
+			uim.clearInfoText();
+			uim.disableBannerInput();
+			listenFor('UIoperationComplete', this);
+			uim.startOperation('moveBannersOut', this);
+		},
+
+		update: function() {
+
+		},
+
+		exit: function() {
+		},
+
+		UIoperationComplete: function(data) {
+			unlistenFor('UIoperationComplete', this);
+
+			setState(sm.showRestartMenu);
+		},
+	},
+
 	chooseEvent: {
 		eventBiome: null,
 

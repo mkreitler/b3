@@ -506,7 +506,7 @@ sm.startTutorialIntro = {
 				uim.startOperation('fadeIn', ['textCenter']);
 				uim.startOperation('moveBannerIn', 1, true);
 
-				uim.openEggChamber('reptilia', 1);
+				uim.openEggChamber('amphibia', 1);
 			break;
 
 			case 45:
@@ -691,7 +691,6 @@ sm.tutorialEndEvent = {
 	},
 
 	exit: function() {
-
 	}
 };
 
@@ -728,7 +727,6 @@ sm.tutorialEnd = {
 	},
 
 	exit: function() {
-
 	},
 
 	nextStage: function() {

@@ -4,12 +4,13 @@
 
  uim = {
  	FRAME_MARGIN: {X: 7, Y: 7},
- 	TITLE_SIZE: 24,
- 	VALUE_SIZE: 24,
- 	KEYWORD_SIZE: 18,
+ 	INFO_TITLE_SIZE: 24,
+ 	TITLE_SIZE: 33, // was 24
+ 	VALUE_SIZE: 33, // was 24
+ 	KEYWORD_SIZE: 19, // was 18
  	BANNER_WIDTH_FACTOR: 25,
- 	VALUE_WIDTH_NUM: 23,
- 	VALUE_WIDTH_DENOM: 25,
+ 	VALUE_WIDTH_NUM: 19,
+ 	VALUE_WIDTH_DENOM: 20,
  	KEYWORDS_NUM: 2,
  	KEYWORDS_DENOM: 5,
  	SPECIAL_HEIGHT_NUM: 2,
@@ -43,12 +44,20 @@
  	GET_FROM_FUNCTION: -1,
  	NOOP: -99,
  	INFO_TEXT_MARGIN: 12,
+ 	VALUE_OFFSET_X: 24,
+ 	VALUE_OFFSET_Y: 18,
+ 	INFO_DLG_FUDGE_Y: 3,
+ 	TITLE_SCALAR: 0.8,
+ 	CLOSE_BUTTON_WIDTH: 44,
+ 	CLOSE_BUTTON_HEIGHT: 44,
+ 	RIGHT_PANEL_WIDTH: 590,
 
  	REPORT_COLORS: [0x0044AA, 0x445016, 0xAA8800, 0x4D4D4D],
 
 	group: null,
 	buttonGroup: null,
 	infoGroup: null,
+	choiceGroup: null,
 	reportGroup: null,
 	frameRight: null,
 	frameTop: null,
@@ -59,12 +68,10 @@
 	cursors: [],
 	showingCards: [],
 	cursorGroup: null,
-	hint: {group: null, sprite: null, text: null},
+	hint: {group: null, sprite: null, text: null, wasText: null, bWasLeftHint: false},
 	cardHintGroup: null,
 	bInputBlocked: false,	// Filthy hack to make dialog box behave modally.
 	lastOp: null,			// DEBUG: tracks last uiOperation executed.
-	topTitleText: null,
-	bottomTitleText: null,
 
 	// Event dialog
 	eventShield: null,
@@ -91,6 +98,13 @@
 	eventGfx: null,
 	questionText: null,
 
+	// Choice dialog
+	choiceDialog: null,
+	textTop: null,
+	textBottom: null,
+	topAction: null,
+	bottomAction: null,
+
  	focusWidget: null,
 
  	raiseGroups: function() {
@@ -107,12 +121,71 @@
 
  		// TODO: move to beneath titleGroup?
  		game.world.bringToTop(this.reportGroup);
+ 		game.world.bringToTop(this.choiceGroup);
  	},
 
  	closeEventReport: function() {
-		this.hideEventReport();
+ 		if (!this.choiceGroup.visible) {
+			this.hideEventReport();
+			gs.playSound(gs.sounds.dialogClose);
+			broadcast("eventReportClosed");
+		}
+ 	},
+
+ 	createChoiceDialog: function() {
+ 		var groupX = Math.round(((game.width - this.RIGHT_PANEL_WIDTH) + game.width) * 0.5);
+
+ 		this.choiceGroup = game.add.group();
+ 		this.choiceDialog = this.choiceGroup.create(groupX, game.height / 2, 'choiceDialog');
+ 		this.choiceDialog.anchor.set(0.5, 0.5);
+
+ 		this.textTop = game.add.bitmapText(0, 20, 'bogboo', 'Click here\nto quit', 2 * uim.INFO_TEXT_SIZE);
+ 		this.textTop.anchor.set(0.5, 0.5);
+ 		this.textTop.x = Math.round(0);
+ 		this.textTop.y = Math.round(-this.choiceDialog.height / 4);
+ 		this.textTop.align = "center";
+ 		this.choiceDialog.addChild(this.textTop);
+
+ 		this.textBottom = game.add.bitmapText(0, 20, 'bogboo', 'Click here\nto resume', 2 * uim.INFO_TEXT_SIZE);
+ 		this.textBottom.anchor.set(0.5, 0.5);
+ 		this.textBottom.x = Math.round(0);
+ 		this.textBottom.y = Math.round(this.choiceDialog.height / 4);
+ 		this.textBottom.align = "center";
+ 		this.choiceDialog.addChild(this.textBottom);
+
+ 		this.choiceDialog.events.onInputDown.add(this.onChoiceClicked.bind(this));
+ 		this.choiceDialog.inputEnabled = true;
+ 		this.choiceGroup.visible = false;
+ 	},
+
+ 	offerChoice: function(topChoice, topAction, bottomChoice, bottomAction) {
+ 		gs.playSound(gs.sounds.reportOpen);
+
+ 		this.textTop.text = topChoice;
+ 		this.topAction = topAction;
+
+ 		this.textBottom.text = bottomChoice;
+ 		this.bottomAction = bottomAction;
+
+ 		this.blockInput();
+ 		this.choiceGroup.visible = true;
+ 	},
+
+ 	onChoiceClicked: function(object, pointer) {
+ 		if (pointer.y < game.height / 2) {
+ 			if (this.topAction) {
+ 				this.topAction();
+ 			}
+ 		}
+ 		else {
+ 			if (this.bottomAction) {
+ 				this.bottomAction();
+ 			}
+ 		}
+
+ 		this.unblockInput();
+ 		this.choiceGroup.visible = false;
 		gs.playSound(gs.sounds.dialogClose);
-		broadcast("eventReportClosed");
  	},
 
  	createEventReport: function() {
@@ -246,6 +319,24 @@
  		}
  	},
 
+ 	createCloseButton: function() {
+ 		this.closeButton = this.group.create(game.width - this.CLOSE_BUTTON_WIDTH / 2, this.CLOSE_BUTTON_HEIGHT / 2, 'closeButton');
+ 		this.closeButton.anchor.set(0.5, 0.5);
+ 		this.closeButton.inputEnabled = true;
+ 		this.closeButton.visible = false;
+		this.closeButton.events.onInputDown.add(this.onCloseButtonClicked, this);
+		listenFor("showCloseButton", this);
+		listenFor("hideCloseButton", this);
+ 	},
+
+ 	showCloseButton: function() {
+ 		this.closeButton.visible = true;
+ 	},
+
+ 	hideCloseButton: function() {
+ 		this.closeButton.visible = false;
+ 	},
+
  	createHints: function() {
  		this.cardHintGroup = game.add.group();
  		this.hint.group = game.add.group();
@@ -282,6 +373,9 @@
 
 	 		this.hint.text.visible = true;
 	 		this.hint.sprite.visible = true;
+
+	 		this.hint.text.inputEnabled = false;
+	 		this.hint.bWasLeftHint = true;
 	 	}
 	 	else {
 	 		this.hideHint();
@@ -297,6 +391,9 @@
 
 	 		this.hint.text.visible = true;
 	 		this.hint.sprite.visible = true;
+
+	 		this.hint.text.inputEnabled = false;
+	 		this.hint.bWasLeftHint = false;
 	 	}
 	 	else {
 	 		this.hideHint();
@@ -319,6 +416,7 @@
 	},
 
  	hideHint: function() {
+ 		this.hint.text.text = '';
  		this.hint.text.visible = false;
  		this.hint.sprite.visible = false;
  	},
@@ -337,42 +435,74 @@
  		}
  	},
 
- 	createInfoDialog: function() {
- 		this.infoDlgMarker = this.infoGroup.create(0, 0);
- 		this.infoDlgShield = this.infoGroup.create(0, 0, 'infoShield');
- 		this.infoDlgPanel = this.infoGroup.create(0, 0, 'infoPanel');
+ 	createInfoDialog: function(bReset) {
+ 		if (!bReset) {
+	 		this.infoDlgMarker = this.infoGroup.create(0, 0);
+	 		this.infoDlgShield = this.infoGroup.create(0, 0, 'infoShield');
+	 		this.infoDlgPanel = this.infoGroup.create(0, 0, 'infoPanel');
+	 	}
 
  		this.infoDlgMarker.x = this.EVENT_MARGIN * TILE_SIZE + this.infoDlgShield.width + TILE_SIZE * gs.SPRITE_SCALE / 2;
  		this.infoDlgMarker.y = -this.infoDlgShield.height;
  		this.infoDlgMarker.anchor.setTo(0, 0);
  		this.infoDlgMarker.visible = false;
- 		this.infoDlgMarker.data = {};
- 		this.infoDlgMarker.data.tweenOut = game.add.tween(this.infoDlgMarker).to({x: this.infoDlgMarker.x, y: -this.infoDlgShield.height }, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.In, false);
- 		this.infoDlgMarker.data.tweenIn = game.add.tween(this.infoDlgMarker).to({x: this.infoDlgMarker.x, y: game.height / 2 - this.infoDlgShield.height / 2}, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.Out, false);
+
+ 		if (!bReset) {
+	 		this.infoDlgMarker.data = {};
+	 		this.infoDlgMarker.data.tweenOut = game.add.tween(this.infoDlgMarker).to({x: this.infoDlgMarker.x, y: -this.infoDlgShield.height }, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.In, false);
+	 		this.infoDlgMarker.data.tweenIn = game.add.tween(this.infoDlgMarker).to({x: this.infoDlgMarker.x, y: game.height / 2 - this.infoDlgShield.height / 2}, uim.INFO_TWEEN_TIME, Phaser.Easing.Cubic.Out, false);
+	 	}
 
  		this.infoDlgPanel.x = this.infoDlgShield.width / 2;
  		this.infoDlgPanel.y = 0;
  		this.infoDlgPanel.anchor.setTo(0.0, 0.0);
- 		this.infoDlgPanel.data.tweenOut = game.tweens.create(this.infoDlgPanel.scale);
- 		this.infoDlgPanel.data.tweenOut.to({x: 1.0, y: 1.0}, uim.INFO_EXPAND_TIME, Phaser.Easing.Cubic.InOut);
- 		this.infoDlgPanel.data.tweenOut.onComplete.add(this.revealInfoText, this);
- 		this.infoDlgPanel.data.tweenBack = game.tweens.create(this.infoDlgPanel.scale);
- 		this.infoDlgPanel.data.tweenBack.to({x: this.INFO_INFO_SCALE_SMALL, y: 1.0}, uim.INFO_EXPAND_TIME, Phaser.Easing.Cubic.InOut);
- 		this.infoDlgPanel.data.tweenBack.onComplete.add(this.hideInfoText, this);
- 		this.infoDlgMarker.addChild(this.infoDlgPanel);
+
+ 		if (!bReset) {
+	 		this.infoDlgPanel.data.tweenOut = game.tweens.create(this.infoDlgPanel.scale);
+	 		this.infoDlgPanel.data.tweenOut.to({x: 1.0, y: 1.0}, uim.INFO_EXPAND_TIME, Phaser.Easing.Cubic.InOut);
+	 		this.infoDlgPanel.data.tweenOut.onComplete.add(this.revealInfoText, this);
+	 		this.infoDlgPanel.data.tweenBack = game.tweens.create(this.infoDlgPanel.scale);
+	 		this.infoDlgPanel.data.tweenBack.to({x: this.INFO_INFO_SCALE_SMALL, y: 1.0}, uim.INFO_EXPAND_TIME, Phaser.Easing.Cubic.InOut);
+	 		this.infoDlgPanel.data.tweenBack.onComplete.add(this.hideInfoText, this);
+	 		this.infoDlgMarker.addChild(this.infoDlgPanel);
+	 	}
 
  		this.infoDlgShield.anchor.setTo(0, 0);
- 		this.infoDlgMarker.addChild(this.infoDlgShield);
 
- 		this.infoDlgMarker.data.tweenOut.onComplete.add(this.onInfoDialogOut, this);
- 		this.infoDlgMarker.data.tweenIn.onComplete.add(this.onInfoDialogIn, this);
+ 		if (!bReset) {
+	 		this.infoDlgMarker.addChild(this.infoDlgShield);
+	 	}
 
-		this.infoDlgTitle = game.add.bitmapText(this.infoDlgPanel.width / 2, uim.TITLE_SIZE / 2, 'bogboo', "Event Title", uim.TITLE_SIZE); 		
-		this.infoDlgText = game.add.bitmapText(this.infoDlgPanel.width / 2, this.infoDlgPanel.height * 1 / 4 + uim.TITLE_SIZE / 3, 'bogboo', "Event Info", uim.INFO_TEXT_SIZE); 		
-		this.infoDlgPrompt = game.add.bitmapText(this.infoDlgPanel.width / 2, this.infoDlgPanel.height - uim.TITLE_SIZE, 'bogboo', strings.EVENTS.PROMPT, uim.INFO_TEXT_SIZE * 3 / 4); 		
-		this.infoDlgPanel.addChild(this.infoDlgTitle);
-		this.infoDlgPanel.addChild(this.infoDlgText);
-		this.infoDlgPanel.addChild(this.infoDlgPrompt);
+	 	if (!bReset) {
+	 		this.infoDlgMarker.data.tweenOut.onComplete.add(this.onInfoDialogOut, this);
+	 		this.infoDlgMarker.data.tweenIn.onComplete.add(this.onInfoDialogIn, this);
+
+			this.infoDlgTitle = game.add.bitmapText(this.infoDlgPanel.width / 2, uim.INFO_TITLE_SIZE / 2, 'bogboo', "Event Title", Math.floor(uim.TITLE_SIZE * uim.TITLE_SCALAR));
+		}
+
+		this.infoDlgTitle.x = Math.round(this.infoDlgTitle.x);
+		this.infoDlgTitle.y = Math.floor(this.infoDlgTitle.y);
+
+		if (!bReset) {
+			this.infoDlgText = game.add.bitmapText(this.infoDlgPanel.width / 2, Math.floor(this.infoDlgPanel.height * 1 / 5 + uim.TITLE_SIZE / 2), 'smallbogboo', "Event Info", uim.INFO_TEXT_SIZE); 		
+		}
+
+		if (!bReset) {
+			this.infoDlgText.x = Math.round(this.infoDlgText.x);
+			this.infoDlgText.y = Math.round(this.infoDlgText.y) - uim.INFO_DLG_FUDGE_Y;
+
+			this.infoDlgPrompt = game.add.bitmapText(this.infoDlgPanel.width / 2, this.infoDlgPanel.height - uim.INFO_TEXT_SIZE, 'smallbogboo', strings.EVENTS.PROMPT, uim.INFO_TEXT_SIZE * 3 / 4);
+		}
+
+		if (!bReset) {
+			this.infoDlgPrompt.x = Math.round(this.infoDlgPrompt.x);
+			this.infoDlgPrompt.y = Math.floor(this.infoDlgPrompt.y) - uim.INFO_DLG_FUDGE_Y;
+
+			this.infoDlgPanel.addChild(this.infoDlgTitle);
+			this.infoDlgPanel.addChild(this.infoDlgText);
+			this.infoDlgPanel.addChild(this.infoDlgPrompt);
+		}
+
 		this.infoDlgTitle.anchor.setTo(0.5, 0.0);
 		this.infoDlgText.anchor.setTo(0.5, 0.0);
 		this.infoDlgPrompt.anchor.setTo(0.5, 0.0);
@@ -380,27 +510,33 @@
 		this.infoDlgText.alpha = 0.0;
 		this.infoDlgPrompt.alpha = 0.0;
 
-		this.infoDlgShield.events.onInputDown.add(this.onInfoPanelClicked, this);
-		this.infoDlgPanel.events.onInputDown.add(this.onInfoPanelClicked, this);
+		if (!bReset) {
+			this.infoDlgShield.events.onInputDown.add(this.onInfoPanelClicked, this);
+			this.infoDlgPanel.events.onInputDown.add(this.onInfoPanelClicked, this);
+		}
+
 		this.infoDlgShield.enableInput = false;
 		this.infoDlgPanel.enableInput = false;
 
-		this.infoDlgTitle.tweenIn = game.add.tween(this.infoDlgTitle).to({alpha: 1}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.infoDlgText.tweenIn = game.add.tween(this.infoDlgText).to({alpha: 1}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.infoDlgPrompt.tweenIn = game.add.tween(this.infoDlgPrompt).to({alpha: 1}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.infoDlgText.tweenIn.onComplete.add(this.onInfoRevealed, this);
+		if (!bReset) {
+			this.infoDlgTitle.tweenIn = game.add.tween(this.infoDlgTitle).to({alpha: 1}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.infoDlgText.tweenIn = game.add.tween(this.infoDlgText).to({alpha: 1}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.infoDlgPrompt.tweenIn = game.add.tween(this.infoDlgPrompt).to({alpha: 1}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.infoDlgText.tweenIn.onComplete.add(this.onInfoRevealed, this);
 
-		this.infoDlgTitle.tweenOut = game.add.tween(this.infoDlgTitle).to({alpha: 0}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.infoDlgText.tweenOut = game.add.tween(this.infoDlgText).to({alpha: 0}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.infoDlgPrompt.tweenOut = game.add.tween(this.infoDlgPrompt).to({alpha: 0}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.infoDlgTitle.tweenOut = game.add.tween(this.infoDlgTitle).to({alpha: 0}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.infoDlgText.tweenOut = game.add.tween(this.infoDlgText).to({alpha: 0}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.infoDlgPrompt.tweenOut = game.add.tween(this.infoDlgPrompt).to({alpha: 0}, uim.INFO_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+		}
 
  		this.infoDlgPanel.scale.setTo(uim.INFO_INFO_SCALE_SMALL, 1.0);
 
- 		this.infoDlgMarker.bringToTop();
+ 		if (!bReset) {
+	 		this.infoDlgMarker.bringToTop();
+	 	}
  	},
 
  	showInfoDialog: function(title, text, nextState) {
- 		// gs.hideCardHints();
  		if (nextState) {
  			sm.setTransitionState('showInfoDialog', nextState, {title: title, text: text});
  		}
@@ -454,8 +590,6 @@
  		this.infoDlgPrompt.visible = false;
  		this.infoDlgMarker.visible = false;
 
- 		// gs.showNextCardHints();
-
  		broadcast("infoDialogOut");
  	},
 
@@ -465,62 +599,83 @@
  	},
 
  	onInfoPanelClicked: function() {
- 		this.infoDlgShield.inputEnabled = false;
- 		this.infoDlgPanel.inputEnabled = false;
+ 		if (!this.choiceGroup.visible) {
+	 		this.infoDlgShield.inputEnabled = false;
+	 		this.infoDlgPanel.inputEnabled = false;
 
-		this.infoDlgTitle.tweenIn.stop();
-		this.infoDlgText.tweenIn.stop();
-		this.infoDlgPrompt.tweenIn.stop();
+			this.infoDlgTitle.tweenIn.stop();
+			this.infoDlgText.tweenIn.stop();
+			this.infoDlgPrompt.tweenIn.stop();
 
-		this.infoDlgTitle.tweenOut.start();
-		this.infoDlgText.tweenOut.start();
-		this.infoDlgPrompt.tweenOut.start();
+			this.infoDlgTitle.tweenOut.start();
+			this.infoDlgText.tweenOut.start();
+			this.infoDlgPrompt.tweenOut.start();
 
-		gs.playSound(gs.sounds.dialogClose);
+			gs.playSound(gs.sounds.dialogClose);
 
-		this.infoDlgPanel.data.tweenBack.start();
+			this.infoDlgPanel.data.tweenBack.start();
+		}
  	},
 
- 	createEvents: function() {
- 		this.eventMarker = this.infoGroup.create(0, 0);
- 		this.eventShield = this.infoGroup.create(0, 0, 'eventMarker');
- 		this.eventInfo = this.infoGroup.create(0, 0, 'eventInfo');
+ 	onCloseButtonClicked: function() {
+ 		this.offerChoice(strings.INFO.OFFER_ABORT_GAME, gs.abortGame.bind(gs), strings.INFO.OFFER_RESUME_GAME, null);
+ 	},
+
+ 	createEvents: function(bReset) {
+ 		if (!bReset) {
+	 		this.eventMarker = this.infoGroup.create(0, 0);
+	 		this.eventShield = this.infoGroup.create(0, 0, 'eventMarker');
+	 		this.eventInfo = this.infoGroup.create(0, 0, 'eventInfo');
+	 	}
 
  		this.eventMarker.x = this.EVENT_MARGIN * TILE_SIZE + this.eventShield.width + TILE_SIZE * gs.SPRITE_SCALE / 2;
  		this.eventMarker.y = -this.eventShield.height;
  		this.eventMarker.anchor.setTo(0, 0);
  		this.eventMarker.visible = false;
- 		this.eventMarker.data = {};
- 		this.eventMarker.data.tweenOut = game.add.tween(this.eventMarker).to({x: this.eventMarker.x, y: -this.eventShield.height }, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.In, false);
- 		this.eventMarker.data.tweenIn = game.add.tween(this.eventMarker).to({x: this.eventMarker.x, y: game.height - this.eventShield.height}, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.Out, false);
- 		this.eventMarker.data.tweenToBiome = game.add.tween(this.eventMarker).to({x: this.eventMarker.x, y:0}, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
- 		this.eventMarker.data.tweenFromBiome = game.add.tween(this.eventMarker).to({x: this.eventMarker.x, y:0}, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
+
+ 		if (!bReset) {
+	 		this.eventMarker.data = {};
+	 		this.eventMarker.data.tweenOut = game.add.tween(this.eventMarker).to({x: this.eventMarker.x, y: -this.eventShield.height }, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.In, false);
+	 		this.eventMarker.data.tweenIn = game.add.tween(this.eventMarker).to({x: this.eventMarker.x, y: game.height - this.eventShield.height}, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.Out, false);
+	 		this.eventMarker.data.tweenToBiome = game.add.tween(this.eventMarker).to({x: this.eventMarker.x, y:0}, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
+	 		this.eventMarker.data.tweenFromBiome = game.add.tween(this.eventMarker).to({x: this.eventMarker.x, y:0}, uim.EVENT_TWEEN_TIME, Phaser.Easing.Cubic.InOut, false);
+	 	}
 
  		this.eventInfo.x = this.eventShield.width / 2;
  		this.eventInfo.y = 0;
  		this.eventInfo.anchor.setTo(0.0, 0.0);
- 		this.eventInfo.data.tweenOut = game.tweens.create(this.eventInfo.scale);
- 		this.eventInfo.data.tweenOut.to({x: 1.0, y: 1.0}, uim.EVENT_EXPAND_TIME, Phaser.Easing.Cubic.InOut);
- 		this.eventInfo.data.tweenOut.onComplete.add(this.revealEventText, this);
- 		this.eventInfo.data.tweenBack = game.tweens.create(this.eventInfo.scale);
- 		this.eventInfo.data.tweenBack.to({x: this.EVENT_INFO_SCALE_SMALL, y: 1.0}, uim.EVENT_EXPAND_TIME, Phaser.Easing.Cubic.InOut);
- 		this.eventInfo.data.tweenBack.onComplete.add(this.hideEventText, this);
- 		this.eventMarker.addChild(this.eventInfo);
+
+ 		if (!bReset) {
+	 		this.eventInfo.data.tweenOut = game.tweens.create(this.eventInfo.scale);
+	 		this.eventInfo.data.tweenOut.to({x: 1.0, y: 1.0}, uim.EVENT_EXPAND_TIME, Phaser.Easing.Cubic.InOut);
+	 		this.eventInfo.data.tweenOut.onComplete.add(this.revealEventText, this);
+	 		this.eventInfo.data.tweenBack = game.tweens.create(this.eventInfo.scale);
+	 		this.eventInfo.data.tweenBack.to({x: this.EVENT_INFO_SCALE_SMALL, y: 1.0}, uim.EVENT_EXPAND_TIME, Phaser.Easing.Cubic.InOut);
+	 		this.eventInfo.data.tweenBack.onComplete.add(this.hideEventText, this);
+	 		this.eventMarker.addChild(this.eventInfo);
+	 	}
 
  		this.eventShield.anchor.setTo(0, 0);
- 		this.eventMarker.addChild(this.eventShield);
 
- 		this.eventMarker.data.tweenOut.onComplete.add(this.onEventOff, this);
- 		this.eventMarker.data.tweenIn.onComplete.add(this.onEventIn, this);
- 		this.eventMarker.data.tweenToBiome.onComplete.add(this.onEventArrived, this);
- 		this.eventMarker.data.tweenFromBiome.onComplete.add(this.onEventExited, this);
+ 		if (!bReset) {
+	 		this.eventMarker.addChild(this.eventShield);
 
-		this.eventTitle = game.add.bitmapText(this.eventInfo.width, uim.TITLE_SIZE / 2, 'bogboo', "Event Title", uim.TITLE_SIZE); 		
-		this.eventText = game.add.bitmapText(this.eventInfo.width, this.eventInfo.height * 1 / 4 + uim.TITLE_SIZE / 2, 'bogboo', "Event Info", uim.INFO_TEXT_SIZE); 		
-		this.eventPrompt = game.add.bitmapText(this.eventInfo.width, this.eventInfo.height - uim.TITLE_SIZE, 'bogboo', strings.EVENTS.PROMPT, uim.INFO_TEXT_SIZE * 3 / 4); 		
-		this.eventInfo.addChild(this.eventTitle);
-		this.eventInfo.addChild(this.eventText);
-		this.eventInfo.addChild(this.eventPrompt);
+	 		this.eventMarker.data.tweenOut.onComplete.add(this.onEventOff, this);
+	 		this.eventMarker.data.tweenIn.onComplete.add(this.onEventIn, this);
+	 		this.eventMarker.data.tweenToBiome.onComplete.add(this.onEventArrived, this);
+	 		this.eventMarker.data.tweenFromBiome.onComplete.add(this.onEventExited, this);
+	 	}
+
+
+	 	if (!bReset) {
+			this.eventTitle = game.add.bitmapText(this.eventInfo.width, uim.TITLE_SIZE / 2, 'bogboo', "Event Title", Math.floor(uim.TITLE_SIZE * uim.TITLE_SCALAR));
+			this.eventText = game.add.bitmapText(this.eventInfo.width, this.eventInfo.height * 1 / 4 + uim.TITLE_SIZE / 2, 'smallbogboo', "Event Info", uim.INFO_TEXT_SIZE); 		
+			this.eventPrompt = game.add.bitmapText(this.eventInfo.width, this.eventInfo.height - uim.TITLE_SIZE, 'smallbogboo', strings.EVENTS.PROMPT, uim.INFO_TEXT_SIZE * 3 / 4); 		
+			this.eventInfo.addChild(this.eventTitle);
+			this.eventInfo.addChild(this.eventText);
+			this.eventInfo.addChild(this.eventPrompt);
+		}
+
 		this.eventTitle.anchor.setTo(0.5, 0.0);
 		this.eventText.anchor.setTo(0.5, 0.0);
 		this.eventPrompt.anchor.setTo(0.5, 0.0);
@@ -528,19 +683,28 @@
 		this.eventText.alpha = 0.0;
 		this.eventPrompt.alpha = 0.0;
 
-		this.eventShield.events.onInputDown.add(this.onEventInfoClicked, this);
-		this.eventInfo.events.onInputDown.add(this.onEventInfoClicked, this);
+		if (!bReset) {
+			this.eventTitle.y -= 2;
+			this.eventText.y -= 4;
+			this.eventPrompt.y += 10;
+
+			this.eventShield.events.onInputDown.add(this.onEventInfoClicked, this);
+			this.eventInfo.events.onInputDown.add(this.onEventInfoClicked, this);
+		}
+
 		this.eventShield.enableInput = false;
 		this.eventInfo.enableInput = false;
 
-		this.eventTitle.tweenIn = game.add.tween(this.eventTitle).to({alpha: 1}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.eventText.tweenIn = game.add.tween(this.eventText).to({alpha: 1}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.eventPrompt.tweenIn = game.add.tween(this.eventPrompt).to({alpha: 1}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.eventText.tweenIn.onComplete.add(this.onEventRevealed, this);
+		if (!bReset) {
+			this.eventTitle.tweenIn = game.add.tween(this.eventTitle).to({alpha: 1}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.eventText.tweenIn = game.add.tween(this.eventText).to({alpha: 1}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.eventPrompt.tweenIn = game.add.tween(this.eventPrompt).to({alpha: 1}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.eventText.tweenIn.onComplete.add(this.onEventRevealed, this);
 
-		this.eventTitle.tweenOut = game.add.tween(this.eventTitle).to({alpha: 0}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.eventText.tweenOut = game.add.tween(this.eventText).to({alpha: 0}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
-		this.eventPrompt.tweenOut = game.add.tween(this.eventPrompt).to({alpha: 0}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.eventTitle.tweenOut = game.add.tween(this.eventTitle).to({alpha: 0}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.eventText.tweenOut = game.add.tween(this.eventText).to({alpha: 0}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+			this.eventPrompt.tweenOut = game.add.tween(this.eventPrompt).to({alpha: 0}, uim.EVENT_ALPHA_TIME, Phaser.Easing.Cubic.InOut);
+		}
 
  		this.eventInfo.scale.setTo(uim.EVENT_INFO_SCALE_SMALL, 1.0);
  	},
@@ -555,8 +719,6 @@
  	showEvent: function(biome, title, info) {
  		var y = biome ? biome.getY() + TILE_SIZE / 2 * gs.SPRITE_SCALE : game.height / 2 - this.eventShield.height / 2;
  		var dt = uim.EVENT_TWEEN_TIME * Math.abs(y - (game.height - this.eventShield.height)) / game.height;
-
- 		// gs.hideCardHints();
 
  		uim.setLeftHint('');
 
@@ -599,17 +761,18 @@
  	},
 
  	onEventInfoClicked: function() {
- 		this.eventShield.inputEnabled = false;
- 		this.eventInfo.inputEnabled = false;
+ 		if (!this.choiceGroup.visible) {
+	 		this.eventShield.inputEnabled = false;
+	 		this.eventInfo.inputEnabled = false;
 
- 		// TODO: apply event.
- 		this.eventTitle.tweenOut.start();
- 		this.eventText.tweenOut.start();
- 		this.eventPrompt.tweenOut.start();
- 		this.eventInfo.data.tweenBack.start();
+	 		// TODO: apply event.
+	 		this.eventTitle.tweenOut.start();
+	 		this.eventText.tweenOut.start();
+	 		this.eventPrompt.tweenOut.start();
+	 		this.eventInfo.data.tweenBack.start();
 
-		gs.playSound(gs.sounds.dialogClose);
-
+			gs.playSound(gs.sounds.dialogClose);
+		}
  	},
 
  	hideEventText: function() {
@@ -623,7 +786,6 @@
  	onEventExited: function() {
  		this.eventMarker.visible = false;
  		broadcast('eventExited');
- 		// gs.showNextCardHints();
  	},
 
  	blockInput: function() {
@@ -681,6 +843,9 @@
  			child.x = parent.x + localX;
  			child.y = parent.y + localY;
  		}
+ 	},
+
+ 	onInputDown: function(gameObject, pointer, bStillOver) {
  	},
 
  	onInputUp: function(gameObject, pointer, bStillOver) {
@@ -933,10 +1098,10 @@
 	 		this.title  	= game.add.bitmapText(this.button.width(), this.button.height() / 2, 'bogboo', title, uim.TITLE_SIZE);
 	 		this.title.anchor.setTo(0.0, 1.0);
 
-	 		this.value  	= game.add.bitmapText(-15, 15, 'bogboo', "" + value, uim.VALUE_SIZE);
+	 		this.value  	= game.add.bitmapText(-uim.VALUE_OFFSET_X, uim.VALUE_OFFSET_Y, 'bogboo', "" + value, uim.VALUE_SIZE);
 	 		this.value.anchor.setTo(0.0, 1.0);
 
-	 		this.keywords  	= game.add.bitmapText(this.button.width(), this.button.height(), 'bogboo', keywords, uim.KEYWORD_SIZE);
+	 		this.keywords  	= game.add.bitmapText(this.button.width(), this.button.height(), 'smallbogboo', keywords, uim.KEYWORD_SIZE);
 	 		this.keywords.anchor.setTo(0.0, 1.0);
 
 	 		this.button.group.addChild(this.title);
@@ -945,16 +1110,19 @@
 
 	 		this.button.group.addChild(this.value);
 	 		this.value.x += uim.VALUE_WIDTH_NUM * this.button.sprOn.width / uim.VALUE_WIDTH_DENOM;
+	 		this.value.x = Math.round(this.value.x);
 	 		this.value.y = 0;
+	 		this.value.anchor.setTo(0.5, 1.0);
+	 		this.value.align ="center";
 
 	 		this.button.group.addChild(this.keywords);
-	 		this.keywords.x = this.button.sprOn.width / uim.BANNER_WIDTH_FACTOR;
-	 		this.keywords.y = this.keywords.height * (1 + uim.KEYWORDS_NUM / uim.KEYWORDS_DENOM);
+	 		this.keywords.x = Math.round(this.button.sprOn.width / uim.BANNER_WIDTH_FACTOR);
+	 		this.keywords.y = Math.round(this.keywords.height * (1 + uim.KEYWORDS_NUM / uim.KEYWORDS_DENOM));
 
  			this.special = this.button.group.create(0, 0, 'ui_specials');
  			this.special.visible = false;
  			this.special.anchor.setTo(0.5, 0.5);
- 			this.special.x = this.value.x - this.value.width / 2;
+ 			this.special.x = this.value.x;
  			this.special.y += uim.SPECIAL_HEIGHT_NUM * this.special.height / uim.SPECIAL_HEIGHT_DENOM;
 
 			for (key in specialStates) { 			
@@ -1091,16 +1259,8 @@
 		this.infoGroup = game.add.group();
 		this.titleGroup = game.add.group();
 
-		this.topTitleText = game.add.bitmapText(game.width / 2, game.height / 2 - uim.TOP_TITLE_SIZE / 2, 'bogboo', 'Project', uim.TOP_TITLE_SIZE);
-		this.bottomTitleText = game.add.bitmapText(game.width / 2, game.height / 2 + uim.BOTTOM_TITLE_SIZE / 2, 'bogboo', 'E.G.G.', uim.BOTTOM_TITLE_SIZE);
-		this.topTitleText.x += 3 * uim.BOTTOM_TITLE_SIZE / 2;
-		this.bottomTitleText.x += 3 * uim.BOTTOM_TITLE_SIZE / 2;
-		this.topTitleText.y -= uim.BOTTOM_TITLE_SIZE / 4;
-		this.bottomTitleText.y -= uim.BOTTOM_TITLE_SIZE / 4;
-		this.topTitleText.anchor.setTo(0.85, 0.5);
-		this.bottomTitleText.anchor.setTo(0.5, 0.5);
-		this.titleGroup.add(this.topTitleText);
-		this.titleGroup.add(this.bottomTitleText);
+ 		this.titleSplash = this.titleGroup.create(game.width - this.RIGHT_PANEL_WIDTH / 2, game.height / 2, 'splash');
+ 		this.titleSplash.anchor.setTo(0.5, 0.5);
 
 		this.createEvents();
 		this.createInfoDialog();
@@ -1277,7 +1437,7 @@
  		x = uim.FRAME_BOTTOM_MARGIN.X + uim.INFO_TEXT_MARGIN;
  		for (i=0; i<nLines; ++i) {
  			y = uim.FRAME_BOTTOM_MARGIN.Y + i * (uim.INFO_TEXT_SIZE + uim.INFO_TEXT_SPACING) + gs.getOffsetY();
- 			bmpText = game.add.bitmapText(x, y, 'bogboo', '', uim.INFO_TEXT_SIZE);
+ 			bmpText = game.add.bitmapText(x, y, 'smallbogboo', '', uim.INFO_TEXT_SIZE);
  			this.groupBottomFrame.add(bmpText);
  			this.infoText.lines.push(bmpText);
  		}

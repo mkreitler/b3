@@ -36,11 +36,11 @@ uim.helper = {
 		this.arrowOut 	= uim.helperGroup.create(0, 0, 'helperArrowOut');
 		this.arrowIn 	= uim.helperGroup.create(0, 0, 'helperArrowIn');
 
-		this.textCenter	= game.add.bitmapText(0, 0, 'bogboo', "Center\nText", uim.INFO_TEXT_SIZE); 		
-		this.textTop	= game.add.bitmapText(0, -this.top.height / 2 + this.MARGIN, 'bogboo', "Top\nText", uim.INFO_TEXT_SIZE); 		
-		this.textRight	= game.add.bitmapText(this.right.width / 2 - this.MARGIN, 0, 'bogboo', "Right\nText", uim.INFO_TEXT_SIZE); 
-		this.textBottom	= game.add.bitmapText(0, 0, 'bogboo', "Bottom\nText", uim.INFO_TEXT_SIZE); 		
-		this.textLeft	= game.add.bitmapText(-this.left.width / 2 + this.MARGIN, 0, 'bogboo', "Left\nText", uim.INFO_TEXT_SIZE); 		
+		this.textCenter	= game.add.bitmapText(0, 0, 'smallbogboo', "Center\nText", uim.INFO_TEXT_SIZE); 		
+		this.textTop	= game.add.bitmapText(0, -this.top.height / 2 + this.MARGIN, 'smallbogboo', "Top\nText", uim.INFO_TEXT_SIZE); 		
+		this.textRight	= game.add.bitmapText(Math.round(-2 * this.MARGIN / 1), 0, 'smallbogboo', "Right\nText", uim.INFO_TEXT_SIZE); 
+		this.textBottom	= game.add.bitmapText(0, 0, 'smallbogboo', "Bottom\nText", uim.INFO_TEXT_SIZE); 		
+		this.textLeft	= game.add.bitmapText(-this.left.width / 2 + this.MARGIN, 0, 'smallbogboo', "Left\nText", uim.INFO_TEXT_SIZE); 		
 
 		this.node.anchor.set(0.5, 0.5);
 		this.center.anchor.set(0.5, 0.5);
@@ -78,13 +78,13 @@ uim.helper = {
 
 		this.textCenter.anchor.set(0.5, 0.5);
 		this.textTop.anchor.set(0.5, 0.0);
-		this.textRight.anchor.set(1.0, 0.5);
+		this.textRight.anchor.set(0.0, 0.5);
 		this.textBottom.anchor.set(0.5, 0.0);
 		this.textLeft.anchor.set(0.0, 0.5);
 
 		this.textCenter.align = "center";
 		this.textTop.align = "center";
-		this.textRight.align = "right";
+		this.textRight.align = "left";
 		this.textBottom.align = "center";
 		this.textLeft.align = "left";
 

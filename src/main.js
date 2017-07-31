@@ -50,6 +50,15 @@ function listenFor(msg, listener) {
 	}
 }
 
+function unlistenAll(listener) {
+	var msg = null;
+	var listeners = null;
+
+	for (msg in switchboard) {
+		this.unlistenFor(msg, listener);
+	}
+}
+
 function unlistenFor(msg, listener) {
 	var listeners = switchboard[msg];
 
@@ -117,6 +126,9 @@ function preload() {
 	game.load.image('migrated', './res/ui/migrated.png', false);
 	game.load.image('displaced', './res/ui/displaced.png', false);
 	game.load.image('eventResults', './res/ui/results.png', false);
+	game.load.image('splash', './res/title.png', false);
+	game.load.image('closeButton', './res/ui/closeButton.png', false);
+	game.load.image('choiceDialog', './res/ui/choiceDialog.png', false);
 
 	// Help System Images
 	game.load.image('helperCenter', './res/ui/helperCenter.png', false);
@@ -138,7 +150,8 @@ function preload() {
 	game.load.image('ui_frame_top', './res/ui/frameTop.png');
 
 	// Fonts
-	game.load.bitmapFont('bogboo', './res/fonts/bogboo.png', './res/fonts/bogboo.xml');	
+	game.load.bitmapFont('smallbogboo', './res/fonts/bogboosmall.png', './res/fonts/bogboosmall.xml');	
+	game.load.bitmapFont('bogboo', './res/fonts/bogboomid.png', './res/fonts/bogboomid.xml');	
 
     // Audio
     game.load.audio('uiButton', ['./res/uiSoundsEGG/exported/button5.ogg', './res/uiSoundsEGG/exported/button5.mp3']);
@@ -245,6 +258,7 @@ function startGame() {
 		events.init();
 		bPhaseOneRestore = gs.restoreGameState();
 		uim.hideTitleText();
+		broadcast("showCloseButton");
 		
 		// TEMP: force game into PhaseOne state.
 		if (bPhaseOneRestore && gs.playerHasLegalMove(true)) {
@@ -408,14 +422,23 @@ function addUiElements() {
 	uim.frameRight = uim.group.create(x, y, 'ui_frame_right');
 	uim.frameRight.visible = false;
 
+	game.input.onDown.add(onInputDown, this);
 	game.input.onUp.add(onInputUp, this);
 
 	uim.createInfoArea();
 	uim.createCursors();
 	uim.createHints();
 	uim.createEventReport();
+	uim.createChoiceDialog();
+	uim.createCloseButton();
 
 	uim.enableInput();
+}
+
+function onInputDown(gameObject, pointer, bStillOver) {
+	if (!uim.onInputDown(gameObject, pointer, bStillOver)) {
+		// UI didn't handle the event.
+	}
 }
 
 function onInputUp(gameObject, pointer, bStillOver) {
